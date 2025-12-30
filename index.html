@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de CCTV</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f3f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .menu-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo-section {
+            margin-bottom: 30px;
+        }
+        .btn-menu {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 0.2s, background-color 0.2s;
+            border: 2px solid transparent;
+        }
+        .btn-menu:active {
+            transform: scale(0.95);
+            background-color: #e8f4fd;
+        }
+        .btn-menu i {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .icon {
+            font-size: 30px;
+            margin-right: 15px;
+        }
+        .footer {
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="menu-container">
+    <div class="logo-section">
+        <h1 style="color: #2c3e50; margin: 0;">Control de CCTV</h1>
+        <p style="color: #7f8c8d;">Selecciona una actividad</p>
+    </div>
+
+    <a href="bandejas.html" class="btn-menu">
+        <span class="icon">💿</span>
+        Cambio de Bandejas
+    </a>
+
+    <a href="https://forms.gle/CkFV8a6whcTuxxvx6" target="_blank" class="btn-menu">
+        <span class="icon">📋</span>
+        Inspección Preventiva
+    </a>
+
+    <div class="footer">
+        Desarrollado para Operaciones TAB v2.0
+    </div>
+</div>
+
+</body>
+</html>
