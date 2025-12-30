@@ -3,83 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de CCTV</title>
+    <title>Grupo Herradura - Occidente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
+        :root {
+            --anydo-blue: #0085ff;
+            --text-main: #2c2c2c;
+            --text-secondary: #909090;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+        }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f0f3f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
             margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-main);
         }
-        .menu-container {
+
+        /* Barra superior minimalista */
+        .top-bar {
             width: 100%;
-            max-width: 400px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .header-section {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 25px 20px 25px;
+            box-sizing: border-box;
+            text-align: left; /* Any.do suele alinear a la izquierda */
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin: 8px 0 0 0;
+        }
+
+        .menu-list {
+            width: 100%;
+            max-width: 450px;
             padding: 20px;
-            text-align: center;
+            box-sizing: border-box;
         }
-        .logo-section {
-            margin-bottom: 30px;
+
+        /* Botones estilo Any.do (Cards blancas con sombra suave) */
+        .task-card {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra muy sutil */
+            border: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
         }
-        .btn-menu {
+
+        .task-card:active {
+            transform: scale(0.98);
+            background-color: #f9f9f9;
+        }
+
+        .icon-container {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: white;
-            color: #2c3e50;
-            text-decoration: none;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-right: 18px;
+            font-size: 20px;
+        }
+
+        /* Colores específicos de iconos */
+        .blue-icon { background-color: #eef6ff; color: #0085ff; }
+        .green-icon { background-color: #f0fff4; color: #27ae60; }
+
+        .task-text {
             font-size: 18px;
-            font-weight: bold;
-            transition: transform 0.2s, background-color 0.2s;
-            border: 2px solid transparent;
+            font-weight: 400;
+            flex-grow: 1;
         }
-        .btn-menu:active {
-            transform: scale(0.95);
-            background-color: #e8f4fd;
+
+        .arrow {
+            color: #d1d1d1;
+            font-size: 14px;
         }
-        .btn-menu i {
-            font-size: 24px;
-            margin-right: 15px;
-        }
-        .icon {
-            font-size: 30px;
-            margin-right: 15px;
-        }
+
         .footer {
-            margin-top: 20px;
-            color: #7f8c8d;
+            position: fixed;
+            bottom: 30px;
+            color: var(--text-secondary);
             font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-<div class="menu-container">
-    <div class="logo-section">
-        <h1 style="color: #2c3e50; margin: 0;">Control de CCTV</h1>
-        <p style="color: #7f8c8d;">Selecciona una actividad</p>
+    <div class="top-bar">
+        <i class="fa-solid fa-chevron-left" style="color: var(--anydo-blue); font-size: 20px;"></i>
     </div>
 
-    <a href="bandejas.html" class="btn-menu">
-        <span class="icon">💿</span>
-        Cambio de Bandejas
-    </a>
-
-    <a href="https://forms.gle/CkFV8a6whcTuxxvx6" target="_blank" class="btn-menu">
-        <span class="icon">📋</span>
-        Inspección Preventiva
-    </a>
-
-    <div class="footer">
-        Desarrollado para Operaciones TAB v2.0
+    <div class="header-section">
+        <h1>Actividades</h1>
+        <p>Selecciona una tarea para hoy</p>
     </div>
-</div>
+
+    <div class="menu-list">
+        <a href="bandejas.html" class="task-card">
+            <div class="icon-container blue-icon">
+                <i class="fa-solid fa-compact-disc"></i>
+            </div>
+            <div class="task-text">Cambio de Bandejas</div>
+            <div class="arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+
+        <a href="https://forms.gle/CkFV8a6whcTuxxvx6" target="_blank" class="task-card">
+            <div class="icon-container green-icon">
+                <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <div class="task-text">Inspección Preventiva</div>
+            <div class="arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+    </div>
+
+    <div class="footer">Desarrollado para Operaciones TAB 1.0</div>
 
 </body>
 </html>
