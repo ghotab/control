@@ -146,17 +146,17 @@
 
         <div class="field-group">
             <span class="label">Colaborador</span>
-            <input type="number" id="tecnico" placeholder="Tu clave de colaborador" oninput="validarProgreso()">
+            <input type="number" id="tecnico" placeholder="Tu clave de colaborador" onkeyup="validarProgreso()" onchange="validarProgreso()">
         </div>
 
         <div class="field-group">
             <span class="label">Autobús</span>
-            <input type="number" id="eco" placeholder="Económico a 5 dígitos" oninput="validarProgreso()>
+            <input type="number" id="eco" placeholder="Económico a 5 dígitos" onkeyup="validarProgreso()" onchange="validarProgreso()">
         </div>
 
         <div id="reader"></div>
 
-        <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: all 0.5s ease;">
+        <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: all 0.4s ease-in-out;">
             <div class="field-group">
                 <span class="label">Bandeja que SUBES</span>
                 <div class="scan-wrapper">
@@ -245,7 +245,7 @@
         
             // REGLAS: Técnico >= 7 caracteres Y Unidad == 5 caracteres
             const tecnicoValido = tecnico.length >= 7;
-            const ecoValido = eco.length == 5;
+            const ecoValido = eco.length === 5;
         
             if (tecnicoValido && ecoValido) {
                 // DESBLOQUEAR
@@ -255,6 +255,8 @@
                 btnScan2.disabled = false;
                 inputSube.placeholder = "Escanea QR de Bandeja que SUBES";
                 inputBaja.placeholder = "Escanea QR de Bandeja que BAJAS";
+                document.getElementById('eco').style.borderBottom = "2px solid #27ae60";
+                document.getElementById('tecnico').style.borderBottom = "2px solid #27ae60";
             } else {
                 // BLOQUEAR
                 seccionEscaneo.style.opacity = "0.3";
@@ -263,6 +265,7 @@
                 btnScan2.disabled = true;
                 inputSube.placeholder = "Faltan datos arriba...";
                 inputBaja.placeholder = "Faltan datos arriba...";
+                document.getElementById('eco').style.borderBottom = "none";
             }
         }
         
