@@ -146,43 +146,49 @@
 
         <div class="field-group">
             <span class="label">Colaborador</span>
-            <input type="number" id="tecnico" placeholder="Tu clave de colaborador">
+            <input type="number" id="tecnico" placeholder="Tu clave de colaborador" oninput="validarProgreso()">
         </div>
 
         <div class="field-group">
             <span class="label">Autobús</span>
-            <input type="number" id="eco" placeholder="Número económico (5 dígitos)" oninput="validarContenido()">
+            <input type="number" id="eco" placeholder="Económico a 5 dígitos" oninput="validarProgreso()>
         </div>
 
         <div id="reader"></div>
 
-        <div class="field-group">
-            <span class="label">Bandeja que SUBES</span>
-            <div class="scan-wrapper">
-                <input type="text" id="bandejaSube" readonly placeholder="Escanea QR de Bandeja que SUBES">
-                <button class="btn-scan-small" onclick="scan('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
+        <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: all 0.5s ease;">
+            <div class="field-group">
+                <span class="label">Bandeja que SUBES</span>
+                <div class="scan-wrapper">
+                        <input type="text" id="bandejaSube" readonly placeholder="Primero llena los datos de arriba">
+                    <button id="btnScan1" class="btn-scan-small" onclick="scan('bandejaSube')" disabled>
+                        <i class="fa-solid fa-qrcode"></i>
+                    </button>
+                </div>
+                
+                <div id="seccionAlertaCruce">
+                    <p style="color: #d63031; font-size: 13px; font-weight: 600; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE</p>
+                    <select id="motivoCruce" onchange="toggleOtro(this.value)">
+                        <option value="">Justifica el cambio...</option>
+                        <option value="SIN_STOCK">Unidad sin disco asignado</option>
+                        <option value="DAÑADO">El asignado esta dañado o no lo lee</option>
+                        <option value="OTRO">Otro motivo...</option>
+                    </select>
+                    <input type="text" id="otroMotivoCruce" placeholder="Especifica el motivo detallado..." style="display:none; border-bottom: 1px solid #ff4d4d;">
+                </div>
             </div>
-            
-            <div id="seccionAlertaCruce">
-                <p style="color: #d63031; font-size: 13px; font-weight: 600; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE</p>
-                <select id="motivoCruce" onchange="toggleOtro(this.value)">
-                    <option value="">Justifica el cambio...</option>
-                    <option value="SIN_STOCK">Unidad sin disco asignado</option>
-                    <option value="DAÑADO">El asignado esta dañado o no lo lee</option>
-                    <option value="OTRO">Otro motivo...</option>
-                </select>
-                <input type="text" id="otroMotivoCruce" placeholder="Especifica el motivo detallado..." style="display:none; border-bottom: 1px solid #ff4d4d;">
+    
+            <div class="field-group">
+                <span class="label">Bandeja que BAJAS</span>
+                <div class="scan-wrapper">
+                    <input type="text" id="bandejaBaja" readonly placeholder="Primero llena los datos arriba">
+                    <button id="btnScan2" class="btn-scan-small" onclick="scan('bandejaBaja')" disabled>
+                        <i class="fa-solid fa-qrcode"></i>
+                    </button>
+                </div>
             </div>
         </div>
-
-        <div class="field-group">
-            <span class="label">Bandeja que BAJAS</span>
-            <div class="scan-wrapper">
-                <input type="text" id="bandejaBaja" readonly placeholder="Escanea QR de Bandeja que BAJAS">
-                <button class="btn-scan-small" onclick="scan('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
-            </div>
-        </div>
-
+        
         <div class="field-group" style="display: flex; justify-content: space-between; align-items: center;">
             <span class="label" style="margin:0;">¿Tuviste que formatear el disco que subiste?</span>
             <select id="formateo" style="width: auto;" onchange="toggleMotivoForm(this.value)">
@@ -228,6 +234,38 @@
             }
         }
 
+        function validarProgreso() {
+            const tecnico = document.getElementById('tecnico').value;
+            const eco = document.getElementById('eco').value;
+            const seccionEscaneo = document.getElementById('seccionEscaneo');
+            const btnScan1 = document.getElementById('btnScan1');
+            const btnScan2 = document.getElementById('btnScan2');
+            const inputSube = document.getElementById('bandejaSube');
+            const inputBaja = document.getElementById('bandejaBaja');
+        
+            // REGLAS: Técnico >= 7 caracteres Y Unidad == 5 caracteres
+            const tecnicoValido = tecnico.length >= 7;
+            const ecoValido = eco.length === 5;
+        
+            if (tecnicoValido && ecoValido) {
+                // DESBLOQUEAR
+                seccionEscaneo.style.opacity = "1";
+                seccionEscaneo.style.pointerEvents = "auto";
+                btnScan1.disabled = false;
+                btnScan2.disabled = false;
+                inputSube.placeholder = "Escanea QR de Bandeja que SUBES";
+                inputBaja.placeholder = "Escanea QR de Bandeja que BAJAS";
+            } else {
+                // BLOQUEAR
+                seccionEscaneo.style.opacity = "0.3";
+                seccionEscaneo.style.pointerEvents = "none";
+                btnScan1.disabled = true;
+                btnScan2.disabled = true;
+                inputSube.placeholder = "Faltan datos arriba...";
+                inputBaja.placeholder = "Faltan datos arriba...";
+            }
+        }
+        
         function toggleOtro(val) { document.getElementById('otroMotivoCruce').style.display = (val === 'OTRO') ? 'block' : 'none'; }
         function toggleMotivoForm(val) { document.getElementById('divMotivoForm').style.display = (val === 'SI') ? 'block' : 'none'; }
 
