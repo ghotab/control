@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de Cambios de Discos</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root { --primary-color: #34495e; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; background-color: #ebf0f1; }
+        .container { width: 100%; max-width: 480px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); box-sizing: border-box; }
+        
+        .header-banner { padding: 15px; border-radius: 10px; color: white; margin-bottom: 20px; background-color: var(--primary-color); text-align: center; }
+        
+        .label { font-weight: bold; display: block; margin-top: 15px; font-size: 14px; color: #2c3e50; }
+        input, select, button { width: 100%; height: 48px; margin-top: 5px; border-radius: 8px; border: 1px solid #bdc3c7; font-size: 16px; box-sizing: border-box; }
+        
+        .btn-scan { background: #7f8c8d; color: white; border: none; margin-top: 8px; height: 40px; font-weight: bold; }
+        .btn-save { background: #27ae60; color: white; border: none; font-weight: bold; margin-top: 25px; height: 60px; font-size: 18px; cursor: pointer; }
+        .btn-save:disabled { background: #bdc3c7; }
+        
+        #reader { width: 100% !important; border-radius: 10px; margin-top: 10px; overflow: hidden; }
+        
+        /* Alerta de Cruce */
+        #seccionAlertaCruce { display:none; background-color: #fdf2f2; padding: 12px; border-radius: 8px; border: 2px solid #e74c3c; margin-top: 10px; }
+        .justificacion-field { border: 2px solid #e74c3c !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="banner" class="header-banner">
+        <h2 style="margin:0;">Control de CCTV</h2>
+        <small id="subtitulo">Logística de Bandejas</small>
+    </div>
+
+    <span class="label">Base Operativa:</span>
+    <select id="base" onchange="cambiarEstiloBase(this.value)">
+        <option value="">Selecciona tu base...</option>
+        <option value="ATLA">Atlacomulco (ATLA)</option>
+        <option value="COLI">Colima (COLI)</option>
+        <option value="GDLJ">Guadalajara (GDLJ)</option>
+        <option value="GUZM">Ciudad Guzmán (GUZM)</option>
+        <option value="JILO">Jilotepec (JILO)</option>
+        <option value="MORE">Morelia (MORE)</option>
+        <option value="OFOC">Occidente (OFOC)</option>
+        <option value="TOLU">Toluca (TOLU)</option>
+        <option value="TSAT">Saturno (TSAT)</option>
+    </select>
+
+    <span class="label">Clave de Colaborador (7-10 dígitos):</span>
+    <input type="number" id="tecnico" placeholder="Ej: 1004567">
+
+    <span class="label">Económico del Autobús (5 dígitos):</span>
+    <input type="number" id="eco" placeholder="Ej: 58012" oninput="validarContenido()">
+
+    <div id="reader"></div>
+
+    <span class="label">📥 Bandeja que SUBE:</span>
+    <input type="text" id="bandejaSube" readonly placeholder="Escanea QR de subida">
+    <button class="btn-scan" onclick="scan('bandejaSube')">📸 Escanear QR de Bandeja que SUBES</button>
+
+    <div id="seccionAlertaCruce" style="display:none; background-color: #fff4f4; padding: 15px; border-radius: 10px; border: 2px solid #e74c3c; margin-top: 10px;">
+        <p style="color: #c0392b; font-weight: bold; margin: 0 0 8px 0; font-size: 14px;">⚠️ DISCO AJENO DETECTADO</p>
+        <p style="font-size: 12px; margin-bottom: 8px;">El disco escaneado no pertenece a la unidad <span id="unidadEsperada" style="font-weight:bold;"></span>.</p>
+        <select id="motivoCruce" onchange="toggleOtro(this.value)" class="justificacion-field">
+            <option value="">-- Selecciona por qué usas este disco --</option>
+            <option value="SIN_STOCK">La unidad no tiene disco</option>
+            <option value="DAÑADO">El asignado está dañado o no lee</option>
+            <option value="OTRO">Otro motivo (especificar)</option>
+        </select>
+        <input type="text" id="otroMotivoCruce" placeholder="Escribe el motivo detallado..." style="display:none; margin-top:8px;" class="justificacion-field">
+    </div>
+
+    <span class="label">📤 Bandeja que BAJA:</span>
+    <input type="text" id="bandejaBaja" readonly placeholder="Escanea QR de bajada">
+    <button class="btn-scan" onclick="scan('bandejaBaja')">📸 Escanear QR de Bandeja que BAJAS</button>
+
+    <span class="label">¿Tuviste que formatear el disco que subiste?</span>
+    <select id="formateo" onchange="toggleMotivoForm(this.value)">
+        <option value="NO">No se formateó</option>
+        <option value="SI">Sí, se formateó</option>
+    </select>
+    <input type="text" id="motivoFormateo" placeholder="¿Por qué formateaste?" style="display:none; margin-top:8px; border: 1px solid #e67e22;">
+
+    <span class="label">Estatus LED DVR después del cambio:</span>
+    <select id="ledStatus">
+        <option value="OK">🟢 OK (Grabando)</option>
+        <option value="FALLA">🔴 FALLA (No graba / Rojo)</option>
+    </select>
+
+    <button id="btnEnviar" class="btn-save" onclick="enviar()">💾 GUARDAR CAMBIO</button>
+</div>
+
+<script>
+    const html5QrCode = new Html5Qrcode("reader");
+    // URL DE TU GOOGLE SCRIPT AQUÍ:
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
+
+    function cambiarEstiloBase(base) {
+      const banner = document.getElementById('banner');
+      const subtitulo = document.getElementById('subtitulo');
+    
+      // Paleta de colores corporativa y funcional
+      const colors = { 
+          'ATLA': '#2980b9', // Morado
+          'COLI': '#27ae60', // Azul Brillante
+          'GDLJ': '#03a9f4', // Azul Oscuro (Midnight)
+          'GUZM': '#fb605d', // Naranja Quemado
+          'JILO': '#c0392b', // Verde Esmeralda
+          'MORE': '#00205b', // Rojo Intenso
+          'OFOC': '#035eae', // Verde Turquesa
+          'TOLU': '#0b3e6e', // Gris Concreto
+          'TSAT': '#3daf4f'  // Amarillo (Saturno)
+      };
+
+      const color = colors[base] || '#34495e'; // Color por defecto si no hay selección
+      banner.style.backgroundColor = color;
+    
+      // Ajuste de contraste para el color amarillo de Saturno
+      // if(base === 'TSAT') {
+      //    banner.style.color = 'black';
+      //    subtitulo.style.color = '#333';
+      // } else {
+      //   banner.style.color = 'white';
+      //   subtitulo.style.color = 'white';
+      // }
+    }
+
+    function scan(id) {
+        const config = { fps: 15, qrbox: 250 };
+        html5QrCode.start({ facingMode: "environment" }, config, (text) => {
+            document.getElementById(id).value = text;
+            html5QrCode.stop();
+            validarContenido();
+        });
+    }
+
+    function validarContenido() {
+        const eco = document.getElementById('eco').value;
+        const qr = document.getElementById('bandejaSube').value;
+        const alerta = document.getElementById('seccionAlertaCruce');
+        
+        if(eco && qr) {
+            const unidadEnQR = qr.split('-')[1]; // Extrae UNIDAD de BASE-UNIDAD-DX-SERIE
+            alerta.style.display = (unidadEnQR !== eco) ? "block" : "none";
+        }
+    }
+
+    function toggleOtro(val) { document.getElementById('otroMotivoCruce').style.display = (val === 'OTRO') ? 'block' : 'none'; }
+    function toggleMotivoForm(val) { document.getElementById('motivoFormateo').style.display = (val === 'SI') ? 'block' : 'none'; }
+
+    async function enviar() {
+        const btn = document.getElementById('btnEnviar');
+        const form = {
+            base: document.getElementById('base').value,
+            tecnico: document.getElementById('tecnico').value,
+            eco: document.getElementById('eco').value,
+            bandejaSube: document.getElementById('bandejaSube').value,
+            bandejaBaja: document.getElementById('bandejaBaja').value,
+            formateo: document.getElementById('formateo').value,
+            motivo: document.getElementById('motivoFormateo').value,
+            ledStatus: document.getElementById('ledStatus').value,
+            justificacionCruce: document.getElementById('motivoCruce').value
+        };
+
+        // Lógica de validación
+        if(!form.base || !form.tecnico || !form.eco || !form.bandejaSube) {
+            alert("❌ Faltan datos críticos."); return;
+        }
+
+        // Validación de justificación cruce
+        if(document.getElementById('seccionAlertaCruce').style.display === "block") {
+            if(!form.justificacionCruce) { alert("❌ Debes justificar el uso de un disco ajeno."); return; }
+            if(form.justificacionCruce === 'OTRO') form.justificacionCruce = "OTRO: " + document.getElementById('otroMotivoCruce').value;
+        }
+
+        btn.disabled = true; btn.innerText = "ENVIANDO...";
+
+        try {
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(form) });
+            alert("✅ Registro guardado con éxito.");
+            location.reload();
+        } catch (e) {
+            alert("❌ Error de conexión. Reintenta.");
+            btn.disabled = false; btn.innerText = "💾 GUARDAR CAMBIO";
+        }
+    }
+</script>
+</body>
+</html>
