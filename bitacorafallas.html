@@ -150,7 +150,7 @@
             };
 
             if(!datos.unidad || !datos.conductor || !datos.falla) {
-                alert("Por favor completa todos los campos.");
+                alert("Todos los datos son requeridos. Completelos por favor.");
                 return;
             }
 
@@ -158,7 +158,7 @@
             btn.disabled = true;
 
             try {
-                await fetch("TU_URL_APPS_SCRIPT", {
+                await fetch("https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec", {
                     method: "POST",
                     mode: "no-cors",
                     body: JSON.stringify(datos)
