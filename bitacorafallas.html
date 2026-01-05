@@ -1,0 +1,29 @@
+<style>
+    body { font-size: 24px; padding: 40px; }
+    input { font-size: 40px !important; padding: 20px; width: 100%; border-radius: 15px; border: 2px solid #ccc; }
+    .label-gigante { font-weight: bold; font-size: 30px; display: block; margin-bottom: 10px; }
+    select { font-size: 30px !important; padding: 20px; width: 100%; }
+    .btn-enviar { background: #27ae60; color: white; font-size: 40px; padding: 30px; border-radius: 20px; width: 100%; margin-top: 40px; }
+    .btn-falla { border: 2px solid #0085ff; padding: 20px; margin: 5px; border-radius: 10px; display: inline-block; font-size: 20px; cursor: pointer; }
+</style>
+
+<div class="form-tablet">
+    <span class="label-gigante">NÚMERO ECONÓMICO (5 DÍGITOS)</span>
+    <input type="number" id="eco" placeholder="00000">
+    
+    <span class="label-gigante" style="margin-top:30px;">CLAVE CONDUCTOR (NÓMINA)</span>
+    <input type="number" id="nomina" placeholder="Ej. 1234567">
+
+    <span class="label-gigante" style="margin-top:30px;">¿QUÉ FALLA TIENE?</span>
+    <select id="fallaSelect" onchange="checkOtro(this.value)">
+        <option value="CÁMARA APAGADA">Cámara apagada</option>
+        <option value="ERROR DISCO">Error de disco</option>
+        <option value="MONITOR NEGRO">Monitor en negro</option>
+        <option value="BOLETERA NO IMPRIME">Boletera no imprime</option>
+        <option value="FALLA GPS">Falla de GPS</option>
+        <option value="OTRO">OTRO (ESPECIFICAR)</option>
+    </select>
+    <input type="text" id="otroFalla" style="display:none; margin-top:10px;" placeholder="Escriba la falla aquí">
+
+    <button class="btn-enviar" onclick="enviarFalla()">ENVIAR REPORTE</button>
+</div>
