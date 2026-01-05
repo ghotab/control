@@ -2,245 +2,170 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERADORES: Bitácora de Fallas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reporte de Falla - Any.do Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root {
-            --primary: #0085ff;
-            --success: #27ae60;
-            --text: #1a1a1a;
+            --anydo-blue: #0085ff;
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #2c2c2c;
+            --text-sec: #909090;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
+            background-color: var(--bg-color);
+            margin: 0; padding: 40px 20px;
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--text-main);
+        }
+
+        /* Encabezado Estilo Any.do */
+        .header-section {
+            width: 100%; max-width: 700px;
+            text-align: left; margin-bottom: 40px; padding: 0 10px;
+        }
+
+        h1 { font-size: 48px; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
+        p.subtitle { font-size: 22px; color: var(--text-sec); margin: 10px 0 0 0; }
+
+        .form-container { width: 100%; max-width: 700px; }
+
+        /* Tarjetas de Input Estilo Any.do */
+        .field-card {
+            background: var(--card-bg);
+            border-radius: 24px;
             padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid #edf2f7;
+            display: flex; flex-direction: column;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            font-size: 50px;
-            font-weight: 900;
-            color: var(--primary);
-            margin-top: 0;
-            text-align: center;
-            line-height: 1;
-        }
-
-        .instruccion {
-            font-size: 24px;
-            color: #666;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        label {
-            display: block;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--text);
-            text-transform: uppercase;
+        .label {
+            font-size: 16px; font-weight: 600; color: var(--anydo-blue);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;
         }
 
         input, select, textarea {
-            width: 100%;
-            background: #f9f9f9;
-            border: 4px solid #e0e0e0;
-            border-radius: 20px;
-            padding: 25px;
-            font-size: 35px; /* TAMAÑO GIGANTE */
-            font-weight: 700;
-            box-sizing: border-box;
-            margin-bottom: 30px;
-            font-family: inherit;
+            border: none; font-size: 32px; font-weight: 600;
+            color: var(--text-main); outline: none; background: transparent;
+            font-family: inherit; width: 100%;
         }
 
-        input:focus, select:focus {
-            border-color: var(--primary);
-            outline: none;
-            background: white;
+        input::placeholder { color: #d1d1d1; }
+
+        /* Estilo para los botones de selección rápida (opcional) */
+        select {
+            appearance: none; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%230085ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right center;
         }
 
-        .opciones-falla {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
+        textarea { font-size: 24px; margin-top: 10px; border-top: 1px solid #f0f0f0; padding-top: 15px; }
+
+        .btn-submit {
+            width: 100%; background: var(--anydo-blue); color: white;
+            border: none; padding: 30px; border-radius: 24px;
+            font-size: 30px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 12px 24px rgba(0, 133, 255, 0.3);
+            margin-top: 20px; transition: transform 0.2s;
         }
 
-        .btn-falla {
-            padding: 20px;
-            background: white;
-            border: 3px solid #e0e0e0;
-            border-radius: 15px;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-        }
+        .btn-submit:active { transform: scale(0.97); }
 
-        .btn-falla.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+        /* Pantalla de Éxito */
+        #success-view {
+            display: none; text-align: center; margin-top: 100px;
         }
-
-        .btn-enviar {
-            width: 100%;
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 35px;
-            font-size: 45px;
-            font-weight: 900;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 10px 0 #1e8449;
-            transition: all 0.1s;
-        }
-
-        .btn-enviar:active {
-            transform: translateY(10px);
-            box-shadow: 0 0 0 #1e8449;
-        }
-
-        /* Pantalla de éxito */
-        #success-screen {
-            display: none;
-            text-align: center;
-            padding: 50px;
-        }
-
-        .check-icon {
-            font-size: 150px;
-            color: var(--success);
-        }
+        .success-icon { font-size: 120px; color: #27ae60; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container" id="main-form">
-    <h1>Bitácora de Fallas</h1>
-    <p class="instruccion">Por favor, llena los datos de tu unidad</p>
+    <div id="form-view" class="form-container">
+        <div class="header-section">
+            <h1>Nueva Falla</h1>
+            <p class="subtitle">Ingresa los datos del reporte</p>
+        </div>
 
-    <label>Número de Unidad</label>
-    <input type="number" id="eco" placeholder="P. ej. 35002" 
-           oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5)">
+        <div class="field-card">
+            <span class="label"><i class="fa-solid fa-bus"></i> Número de Unidad</span>
+            <input type="number" id="eco" placeholder="Ej. 34059" oninput="limitChar(this, 5)">
+        </div>
 
-    <label>Clave de Conductor</label>
-    <input type="number" id="conductor" placeholder="P. ej. 66000129"
-           oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10)">
+        <div class="field-card">
+            <span class="label"><i class="fa-solid fa-id-card"></i> Clave de Conductor</span>
+            <input type="number" id="conductor" placeholder="Ej. 66000129" oninput="limitChar(this, 10)">
+        </div>
 
-    <label>3. ¿Qué falla tiene?</label>
-    <select id="fallaSelect" onchange="checkOtro(this.value)">
-        <option value="CÁMARA APAGADA">Encender Boletera</option>
-        <option value="ERROR DISCO">Apagar Boletera</option>
-        <option value="MONITOR NEGRO">No Cambia de Seccion</option>
-        <option value="BOLETERA NO IMPRIME">Revisar Impresora</option>
-        <option value="FALLA GPS">No Imprime Corte Final</option>
-        <option value="FALLA GPS">Revisar Escaner</option>
-        <option value="FALLA GPS">No Abre Viaje</option>
-        <option value="FALLA GPS">Se Cierra Aplicacion</option>
-        <option value="OTRO">OTRO (ESPECIFICAR)</option>
-    </select>
-    <input type="text" id="otroFalla" style="display:none; margin-top:10px;" placeholder="Escriba la falla aquí">
-    
-    <textarea id="otraFalla" placeholder="Escribe aquí la falla..." style="display:none;"></textarea>
+        <div class="field-card">
+            <span class="label"><i class="fa-solid fa-circle-exclamation"></i> ¿Qué falla tiene?</span>
+            <select id="falla" onchange="toggleOtro(this.value)">
+                <option value="">Seleccionar...</option>
+                <option value="CAMARA APAGADA">Cámara Apagada</option>
+                <option value="ERROR DE DISCO">Error de Disco</option>
+                <option value="MONITOR NEGRO">Monitor en Negro</option>
+                <option value="BOLETERA">Falla en Boletera</option>
+                <option value="GPS">GPS no marca</option>
+                <option value="OTRO">Otro Motivo...</option>
+            </select>
+            <textarea id="otraFalla" placeholder="Explica el problema aquí..." style="display:none;"></textarea>
+        </div>
 
-    <button class="btn-enviar" onclick="enviar()">Enviar Reporte</button>
-</div>
+        <button class="btn-submit" onclick="enviarReporte()">Enviar Reporte</button>
+    </div>
 
-<div class="container" id="success-screen">
-    <div class="check-icon">✅</div>
-    <h1 style="color: var(--success);">¡Listo!</h1>
-    <p style="font-size: 30px;">Tu reporte fue enviado.</p>
-    <button class="btn-enviar" style="background: var(--primary); box-shadow: 0 10px 0 #0056b3;" 
-            onclick="location.reload()">Nuevo Reporte</button>
-</div>
+    <div id="success-view" class="form-container">
+        <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <h1 style="color: #27ae60;">¡Enviado!</h1>
+        <p class="subtitle">El técnico ya puede ver tu reporte.</p>
+        <button class="btn-submit" style="background: #f0f0f0; color: var(--text-main); box-shadow: none; margin-top: 50px;" onclick="location.reload()">Nuevo Reporte</button>
+    </div>
 
-<script>
-    function toggleOtro(val) {
-        const txt = document.getElementById('otraFalla');
-        txt.style.display = (val === 'OTRO') ? 'block' : 'none';
-    }
-
-    async function enviar() {
-        const btn = document.querySelector('.btn-enviar');
-        const eco = document.getElementById('eco').value;
-        const conductor = document.getElementById('conductor').value;
-        const falla = document.getElementById('falla').value;
-        const otraFalla = document.getElementById('otraFalla').value;
-
-        if(!eco || !conductor || !falla) {
-            alert("⚠️ Por favor, llene todos los datos");
-            return;
+    <script>
+        function limitChar(el, max) {
+            if(el.value.length > max) el.value = el.value.slice(0, max);
         }
 
-        const datos = {
-            accion: "NUEVO",
-            unidad: eco,
-            conductor: conductor,
-            falla: (falla === 'OTRO') ? otraFalla : falla
-        };
-
-        btn.disabled = true;
-        btn.innerText = "ENVIANDO...";
-
-        try {
-            await fetch("TU_URL_DE_APPS_SCRIPT", {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify(datos)
-            });
-            document.getElementById('main-form').style.display = 'none';
-            document.getElementById('success-screen').style.display = 'block';
-        } catch (e) {
-            alert("Error de conexión. Intente de nuevo.");
-            btn.disabled = false;
-            btn.innerText = "GUARDAR REPORTE";
+        function toggleOtro(val) {
+            document.getElementById('otraFalla').style.display = (val === 'OTRO') ? 'block' : 'none';
         }
-    }
-</script>
 
+        async function enviarReporte() {
+            const btn = document.querySelector('.btn-submit');
+            const datos = {
+                accion: "NUEVO",
+                unidad: document.getElementById('eco').value,
+                conductor: document.getElementById('conductor').value,
+                falla: document.getElementById('falla').value === 'OTRO' ? 
+                       document.getElementById('otraFalla').value : document.getElementById('falla').value
+            };
+
+            if(!datos.unidad || !datos.conductor || !datos.falla) {
+                alert("Por favor completa todos los campos.");
+                return;
+            }
+
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            try {
+                await fetch("TU_URL_APPS_SCRIPT", {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify(datos)
+                });
+                document.getElementById('form-view').style.display = 'none';
+                document.getElementById('success-view').style.display = 'block';
+            } catch (e) {
+                alert("Error de conexión");
+                btn.disabled = false;
+                btn.innerText = "Enviar Reporte";
+            }
+        }
+    </script>
 </body>
 </html>
-
-
-
-<div class="form-tablet">
-    <span class="label-gigante">AUTOBUS A 5 DÍGITOS)</span>
-    <input type="number" id="eco" placeholder="P. ej. 58081">
-    
-    <span class="label-gigante" style="margin-top:30px;">CLAVE CONDUCTOR</span>
-    <input type="number" id="nomina" placeholder="Ej. 66000158">
-
-    <span class="label-gigante" style="margin-top:30px;">¿QUÉ FALLA TIENE?</span>
-    <select id="fallaSelect" onchange="checkOtro(this.value)">
-        <option value="CÁMARA APAGADA">Encender Boletera</option>
-        <option value="ERROR DISCO">Apagar Boletera</option>
-        <option value="MONITOR NEGRO">No Cambia de Seccion</option>
-        <option value="BOLETERA NO IMPRIME">Revisar Impresora</option>
-        <option value="FALLA GPS">No Imprime Corte Final</option>
-        <option value="FALLA GPS">Revisar Escaner</option>
-        <option value="FALLA GPS">No Abre Viaje</option>
-        <option value="FALLA GPS">Se Cierra Aplicacion</option>
-        <option value="OTRO">OTRO (ESPECIFICAR)</option>
-    </select>
-    <input type="text" id="otroFalla" style="display:none; margin-top:10px;" placeholder="Escriba la falla aquí">
-
-    <button class="btn-enviar" onclick="enviarFalla()">ENVIAR REPORTE</button>
-</div>
