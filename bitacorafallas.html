@@ -8,19 +8,22 @@
 </style>
 
 <div class="form-tablet">
-    <span class="label-gigante">NÚMERO ECONÓMICO (5 DÍGITOS)</span>
-    <input type="number" id="eco" placeholder="00000">
+    <span class="label-gigante">AUTOBUS A 5 DÍGITOS)</span>
+    <input type="number" id="eco" placeholder="P. ej. 58081">
     
-    <span class="label-gigante" style="margin-top:30px;">CLAVE CONDUCTOR (NÓMINA)</span>
-    <input type="number" id="nomina" placeholder="Ej. 1234567">
+    <span class="label-gigante" style="margin-top:30px;">CLAVE CONDUCTOR</span>
+    <input type="number" id="nomina" placeholder="Ej. 66000158">
 
     <span class="label-gigante" style="margin-top:30px;">¿QUÉ FALLA TIENE?</span>
     <select id="fallaSelect" onchange="checkOtro(this.value)">
-        <option value="CÁMARA APAGADA">Cámara apagada</option>
-        <option value="ERROR DISCO">Error de disco</option>
-        <option value="MONITOR NEGRO">Monitor en negro</option>
-        <option value="BOLETERA NO IMPRIME">Boletera no imprime</option>
-        <option value="FALLA GPS">Falla de GPS</option>
+        <option value="CÁMARA APAGADA">Encender Boletera</option>
+        <option value="ERROR DISCO">Apagar Boletera</option>
+        <option value="MONITOR NEGRO">No Cambia de Seccion</option>
+        <option value="BOLETERA NO IMPRIME">Revisar Impresora</option>
+        <option value="FALLA GPS">No Imprime Corte Final</option>
+        <option value="FALLA GPS">Revisar Escaner</option>
+        <option value="FALLA GPS">No Abre Viaje</option>
+        <option value="FALLA GPS">Se Cierra Aplicacion</option>
         <option value="OTRO">OTRO (ESPECIFICAR)</option>
     </select>
     <input type="text" id="otroFalla" style="display:none; margin-top:10px;" placeholder="Escriba la falla aquí">
