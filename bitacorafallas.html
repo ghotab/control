@@ -92,6 +92,22 @@
         </div>
 
         <div class="field-card">
+            <span class="label"><i class="fa-solid fa-location-dot"></i> Selecciona la base de atención</span>
+            <select id="baseFalla">
+                <option value="">Seleccionar Base...</option>
+                <option value="ATLA">Atlacomulco</option>
+                <option value="COLI">Colima</option>
+                <option value="GUZM">Ciudad Guzmán</option>
+                <option value="GDLJ">Guadalajara</option>
+                <option value="JILO">Jilotepec</option>
+                <option value="MORE">Morelia</option>
+                <option value="OFOC">Occidente</option>
+                <option value="TSAT">Saturno</option>
+                <option value="TOLU">Toluca</option>
+            </select>
+        </div>
+
+        <div class="field-card">
             <span class="label"><i class="fa-solid fa-bus"></i> Número de Autobús</span>
             <input type="number" id="eco" placeholder="Ej. 34059" oninput="limitChar(this, 5)">
         </div>
@@ -143,13 +159,14 @@
             const btn = document.querySelector('.btn-submit');
             const datos = {
                 accion: "NUEVO",
+                base: document.getElementById('baseFalla').value,
                 unidad: document.getElementById('eco').value,
                 conductor: document.getElementById('conductor').value,
                 falla: document.getElementById('falla').value === 'OTRO' ? 
                        document.getElementById('otraFalla').value : document.getElementById('falla').value
             };
 
-            if(!datos.unidad || !datos.conductor || !datos.falla) {
+            if(!datos.base || !datos.unidad || !datos.conductor || !datos.falla) {
                 alert("Todos los datos son requeridos. Completelos por favor.");
                 return;
             }
