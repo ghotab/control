@@ -1,11 +1,225 @@
-<style>
-    body { font-size: 24px; padding: 40px; }
-    input { font-size: 40px !important; padding: 20px; width: 100%; border-radius: 15px; border: 2px solid #ccc; }
-    .label-gigante { font-weight: bold; font-size: 30px; display: block; margin-bottom: 10px; }
-    select { font-size: 30px !important; padding: 20px; width: 100%; }
-    .btn-enviar { background: #27ae60; color: white; font-size: 40px; padding: 30px; border-radius: 20px; width: 100%; margin-top: 40px; }
-    .btn-falla { border: 2px solid #0085ff; padding: 20px; margin: 5px; border-radius: 10px; display: inline-block; font-size: 20px; cursor: pointer; }
-</style>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPERADORES: Bitácora de Fallas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0085ff;
+            --success: #27ae60;
+            --text: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 50px;
+            font-weight: 900;
+            color: var(--primary);
+            margin-top: 0;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .instruccion {
+            font-size: 24px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        label {
+            display: block;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: #f9f9f9;
+            border: 4px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 25px;
+            font-size: 35px; /* TAMAÑO GIGANTE */
+            font-weight: 700;
+            box-sizing: border-box;
+            margin-bottom: 30px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: white;
+        }
+
+        .opciones-falla {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn-falla {
+            padding: 20px;
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-falla.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-enviar {
+            width: 100%;
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 35px;
+            font-size: 45px;
+            font-weight: 900;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #1e8449;
+            transition: all 0.1s;
+        }
+
+        .btn-enviar:active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #1e8449;
+        }
+
+        /* Pantalla de éxito */
+        #success-screen {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .check-icon {
+            font-size: 150px;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-form">
+    <h1>Bitácora de Fallas</h1>
+    <p class="instruccion">Por favor, llena los datos de tu unidad</p>
+
+    <label>Número de Unidad</label>
+    <input type="number" id="eco" placeholder="P. ej. 35002" 
+           oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5)">
+
+    <label>Clave de Conductor</label>
+    <input type="number" id="conductor" placeholder="P. ej. 66000129"
+           oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10)">
+
+    <label>3. ¿Qué falla tiene?</label>
+    <select id="fallaSelect" onchange="checkOtro(this.value)">
+        <option value="CÁMARA APAGADA">Encender Boletera</option>
+        <option value="ERROR DISCO">Apagar Boletera</option>
+        <option value="MONITOR NEGRO">No Cambia de Seccion</option>
+        <option value="BOLETERA NO IMPRIME">Revisar Impresora</option>
+        <option value="FALLA GPS">No Imprime Corte Final</option>
+        <option value="FALLA GPS">Revisar Escaner</option>
+        <option value="FALLA GPS">No Abre Viaje</option>
+        <option value="FALLA GPS">Se Cierra Aplicacion</option>
+        <option value="OTRO">OTRO (ESPECIFICAR)</option>
+    </select>
+    <input type="text" id="otroFalla" style="display:none; margin-top:10px;" placeholder="Escriba la falla aquí">
+    
+    <textarea id="otraFalla" placeholder="Escribe aquí la falla..." style="display:none;"></textarea>
+
+    <button class="btn-enviar" onclick="enviar()">Enviar Reporte</button>
+</div>
+
+<div class="container" id="success-screen">
+    <div class="check-icon">✅</div>
+    <h1 style="color: var(--success);">¡Listo!</h1>
+    <p style="font-size: 30px;">Tu reporte fue enviado.</p>
+    <button class="btn-enviar" style="background: var(--primary); box-shadow: 0 10px 0 #0056b3;" 
+            onclick="location.reload()">Nuevo Reporte</button>
+</div>
+
+<script>
+    function toggleOtro(val) {
+        const txt = document.getElementById('otraFalla');
+        txt.style.display = (val === 'OTRO') ? 'block' : 'none';
+    }
+
+    async function enviar() {
+        const btn = document.querySelector('.btn-enviar');
+        const eco = document.getElementById('eco').value;
+        const conductor = document.getElementById('conductor').value;
+        const falla = document.getElementById('falla').value;
+        const otraFalla = document.getElementById('otraFalla').value;
+
+        if(!eco || !conductor || !falla) {
+            alert("⚠️ Por favor, llene todos los datos");
+            return;
+        }
+
+        const datos = {
+            accion: "NUEVO",
+            unidad: eco,
+            conductor: conductor,
+            falla: (falla === 'OTRO') ? otraFalla : falla
+        };
+
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
+
+        try {
+            await fetch("TU_URL_DE_APPS_SCRIPT", {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(datos)
+            });
+            document.getElementById('main-form').style.display = 'none';
+            document.getElementById('success-screen').style.display = 'block';
+        } catch (e) {
+            alert("Error de conexión. Intente de nuevo.");
+            btn.disabled = false;
+            btn.innerText = "GUARDAR REPORTE";
+        }
+    }
+</script>
+
+</body>
+</html>
+
+
 
 <div class="form-tablet">
     <span class="label-gigante">AUTOBUS A 5 DÍGITOS)</span>
