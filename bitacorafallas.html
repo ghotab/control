@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reporte de Falla - Any.do Edition</title>
+    <title>Bitácora de Fallas</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -87,12 +87,12 @@
 
     <div id="form-view" class="form-container">
         <div class="header-section">
-            <h1>Nueva Falla</h1>
+            <h1>Bitácora de Fallas</h1>
             <p class="subtitle">Ingresa los datos del reporte</p>
         </div>
 
         <div class="field-card">
-            <span class="label"><i class="fa-solid fa-bus"></i> Número de Unidad</span>
+            <span class="label"><i class="fa-solid fa-bus"></i> Número de Autobús</span>
             <input type="number" id="eco" placeholder="Ej. 34059" oninput="limitChar(this, 5)">
         </div>
 
@@ -102,14 +102,19 @@
         </div>
 
         <div class="field-card">
-            <span class="label"><i class="fa-solid fa-circle-exclamation"></i> ¿Qué falla tiene?</span>
+            <span class="label"><i class="fa-solid fa-circle-exclamation"></i> ¿Cuál es la falla?</span>
             <select id="falla" onchange="toggleOtro(this.value)">
                 <option value="">Seleccionar...</option>
-                <option value="CAMARA APAGADA">Cámara Apagada</option>
-                <option value="ERROR DE DISCO">Error de Disco</option>
-                <option value="MONITOR NEGRO">Monitor en Negro</option>
-                <option value="BOLETERA">Falla en Boletera</option>
-                <option value="GPS">GPS no marca</option>
+                <option value="ENCENDER EQUIPO">Encender Equipo</option>
+                <option value="APAGAR EQUIPO">Apagar Equipo</option>
+                <option value="NO ABRE VIAJE">No Abre Viaje</option>
+                <option value="NO IMPRIME LOS CORTES">No Imprime mis Cortes</option>
+                <option value="NO CAMBIA DE SECCION">No Cambia de Seccion</option    
+                <option value="BOLETERA LENTA">Boletera Lenta</option>
+                <option value="NO IMPRIME BOLETOS">No Imprime Boletos</option>
+                <option value="IMPRIME BOLETOS DE MAS">Imprime Boletos de Más</option>
+                <option value="BOLETERA NO RESPONDE">Boletera Trabada / No Responde</option>
+                <option value="SE APAGA BOLETERA">Se Apaga o Reinicia Boletera en Ruta</option>
                 <option value="OTRO">Otro Motivo...</option>
             </select>
             <textarea id="otraFalla" placeholder="Explica el problema aquí..." style="display:none;"></textarea>
