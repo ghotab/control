@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendientes de Atención</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --anydo-blue: #0085ff; --bg: #ffffff; --text: #2c2c2c; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
+        
+        .header { margin-bottom: 30px; padding-top: 20px; }
+        h1 { font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -1px; }
+        .count { color: var(--anydo-blue); font-size: 18px; font-weight: 600; }
+
+        .task-list { margin-top: 20px; }
+        
+        /* Card de Falla Estilo Any.do */
+        .task-card {
+            display: flex; align-items: center;
+            padding: 18px; margin-bottom: 12px;
+            border-radius: 16px; border: 1px solid #f0f0f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.2s; cursor: pointer;
+        }
+        .task-card:active { transform: scale(0.98); background: #f9f9f9; }
+        
+        .circle { 
+            width: 24px; height: 24px; border: 2px solid #d1d1d1; 
+            border-radius: 50%; margin-right: 15px; flex-shrink: 0;
+        }
+
+        .task-info { flex-grow: 1; }
+        .task-title { font-size: 17px; font-weight: 600; display: block; }
+        .task-sub { font-size: 13px; color: #909090; }
+
+        /* Modal de Atención */
+        #modal {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.98); z-index: 100;
+            padding: 40px 20px; box-sizing: border-box;
+        }
+        .field { margin-bottom: 25px; }
+        .label { font-size: 12px; font-weight: 700; color: var(--anydo-blue); text-transform: uppercase; }
+        input, textarea { 
+            width: 100%; border: none; border-bottom: 2px solid #f0f0f0; 
+            padding: 10px 0; font-size: 18px; outline: none; font-family: inherit;
+        }
+        .btn-close { 
+            background: var(--anydo-blue); color: white; border: none; 
+            padding: 20px; width: 100%; border-radius: 14px; font-size: 18px; font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Pendientes de Atención</h1>
+        <span class="count" id="contador">Cargando reportes...</span>
+    </div>
+
+    <div class="task-list" id="lista">
+        </div>
+
+    <div id="modal">
+        <div style="margin-bottom: 30px;" onclick="cerrarModal()">
+            <i class="fa-solid fa-xmark" style="font-size: 24px; color: #ccc;"></i>
+        </div>
+        <h2 id="modalUnidad" style="font-size: 28px; margin-bottom: 5px;">Unidad</h2>
+        <p id="modalFalla" style="color: #909090; margin-bottom: 40px;">Descripción de la falla</p>
+
+        <div class="field">
+            <span class="label">Tu Clave de Colaborador</span>
+            <input type="number" id="tecNomina" placeholder="Ej. 1005098">
+        </div>
+        <div class="field">
+            <span class="label">Comentarios de Reparación</span>
+            <textarea id="tecComentarios" placeholder="¿Qué se le hizo a la unidad?"></textarea>
+        </div>
+
+        <button class="btn-close" onclick="guardarAtencion()">Finalizar Tarea</button>
+    </div>
+
+    <script>
+        const scriptURL = "TU_URL_DE_APPS_SCRIPT";
+        let idSeleccionado = "";
+
+        async function cargarPendientes() {
+            try {
+                const res = await fetch(scriptURL);
+                const data = await res.json();
+                const lista = document.getElementById('lista');
+                const cont = document.getElementById('contador');
+                
+                lista.innerHTML = "";
+                cont.innerText = `${data.length} fallas activas`;
+
+                data.forEach(item => {
+                    lista.innerHTML += `
+                        <div class="task-card" onclick="abrirAtencion('${item.id}', '${item.eco}', '${item.falla}')">
+                            <div class="circle"></div>
+                            <div class="task-info">
+                                <span class="task-title">Unidad ${item.eco}</span>
+                                <span class="task-sub">${item.falla}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color:#eee"></i>
+                        </div>
+                    `;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function abrirAtencion(id, eco, falla) {
+            idSeleccionado = id;
+            document.getElementById('modalUnidad').innerText = "Unidad " + eco;
+            document.getElementById('modalFalla').innerText = falla;
+            document.getElementById('modal').style.display = "block";
+        }
+
+        function cerrarModal() { document.getElementById('modal').style.display = "none"; }
+
+        async function guardarAtencion() {
+            const btn = document.querySelector('.btn-close');
+            const datos = {
+                accion: "ATENDER",
+                id: idSeleccionado,
+                tecnico: document.getElementById('tecNomina').value,
+                comentarios: document.getElementById('tecComentarios').value
+            };
+
+            if(!datos.tecnico) return alert("Ingresa tu clave de empleado");
+
+            btn.disabled = true; btn.innerText = "Guardando...";
+
+            await fetch(scriptURL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(datos)
+            });
+
+            cerrarModal();
+            cargarPendientes(); // Recarga la lista
+        }
+
+        cargarPendientes();
+    </script>
+</body>
+</html>
