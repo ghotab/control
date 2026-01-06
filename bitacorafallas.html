@@ -174,15 +174,22 @@
             btn.innerText = "Guardando...";
             btn.disabled = true;
 
+            // SUSTITUYE TU BLOQUE TRY/CATCH POR ESTE:
             try {
                 await fetch("https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec", {
                     method: "POST",
-                    mode: "no-cors",
+                    mode: "no-cors", // Mantenemos no-cors para evitar problemas de pre-flight
+                    headers: {
+                        "Content-Type": "text/plain" // Google prefiere esto para peticiones no-cors
+                    },
                     body: JSON.stringify(datos)
                 });
+                
+                // Si llega aquí, asumimos éxito (en no-cors no podemos leer la respuesta real)
                 document.getElementById('form-view').style.display = 'none';
                 document.getElementById('success-view').style.display = 'block';
             } catch (e) {
+                console.error("Error:", e);
                 alert("Error de conexión");
                 btn.disabled = false;
                 btn.innerText = "Enviar Reporte";
