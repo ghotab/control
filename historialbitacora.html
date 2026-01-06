@@ -161,14 +161,16 @@
     
         cargarTodo();
         
-        function formatFechaInteligente(fecha) {
-            if (!fecha) return "---";
+        function formatFechaInteligente(fechaa) {
+            if (!fechaa) return "---";
             const ahora = new Date();
-            const registro = new Date(fecha);
+            const registro = new Date(fechaa);
             
-            if (isNaN(registro.getTime())) return fecha;
+            if (isNaN(registro.getTime())) return fechaa;
         
             const diferenciaSegundos = Math.floor((ahora - registro) / 1000);
+
+            if (diferenciaSegundos < 60 && diferenciaSegundos >= 0) return 'hace un momento';
             
             // Si tiene menos de 24 horas, mostramos tiempo relativo
             if (diferenciaSegundos < 86400) {
