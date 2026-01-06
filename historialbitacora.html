@@ -117,19 +117,11 @@
             let html = "";
             corte.forEach(r => {
                 const statusClass = r.estatus === 'ABIERTO' ? 'open' : 'closed';
-                //Logica de Fecha
-                let fechaR = "Fecha No Disponible";
-                if (r.fechaReporte){
-                    const d = new Date(r.fechaReporte);
-                    // Verificamos si la fecha es valida, si no mostrar el original
-                    fechaR = isNaN(d.getTime()) ? r.fechaReporte : d.toLocaleString();
-                }
-                
-                let fechaA = "Pendiente";
-                if (r.fechaAtencion){
-                    const dAtenc = new Date (r.fechaAtencion);
-                    fechaA = isNaN(dAtenc.getTime()) ? r.fechaAtencion : dAtenc.toLocaleString();
-                }
+
+                // Aplicamos la lógica híbrida
+                const txtReporte = formatFechaInteligente(r.fecha);
+                const txtAtencion = r.fechaAtencion ? formatFechaInteligente(r.fechaAtencion) : "Pendiente";
+               
                     
                 html += `
                     <div class="history-card">
@@ -137,14 +129,14 @@
                         <div style="float:right; font-weight:700; color:#999">#${r.eco}</div>
                         
                         <div class="timeline-item">
-                            <span class="date">Reportado: ${fechaR}</span>
+                            <span class="date">Reportado: ${txtReporte}</span>
                             <p class="detail"><strong>Falla:</strong> ${r.falla}</p>
                         </div>
                         
                         <div class="timeline-item" style="border:none">
-                            <span class="date">Atendido: ${fechaA}</span>
+                            <span class="date">Atendido: ${txtAtencion}</span>
                             <p class="detail"><strong>Técnico:</strong> ${r.tecnico || '---'}<br>
-                               <span style="font-size:13px; color:#666">${r.comentarios || 'En espera...'}</span>
+                               <span style="font-size:13px; color:#666">${r.comentarios || 'En espera de atención...'}</span>
                             </p>
                         </div>
                     </div>
@@ -168,34 +160,42 @@
         }
     
         cargarTodo();
-        function tiempoRelativo(fecha) {
+        
+        function formatFechaInteligente(fecha) {
             if (!fecha) return "---";
             const ahora = new Date();
             const registro = new Date(fecha);
             
-            // Si la fecha es inválida, devolvemos el texto original
             if (isNaN(registro.getTime())) return fecha;
         
-            const segundos = Math.floor((ahora - registro) / 1000);
+            const diferenciaSegundos = Math.floor((ahora - registro) / 1000);
             
-            // Intervalos en segundos
-            const intervalos = {
-                año: 31536000,
-                mes: 2592000,
-                semana: 604800,
-                día: 86400,
-                hora: 3600,
-                minuto: 60
-            };
+            // Si tiene menos de 24 horas, mostramos tiempo relativo
+            if (diferenciaSegundos < 86400) {
+                if (diferenciaSegundos < 60) return 'hace un momento';
+                
+                const intervalos = {
+                    hora: 3600,
+                    minuto: 60
+                };
         
-            if (segundos < 60) return 'hace un momento';
-            
-            for (let unidad in intervalos) {
-                const cociente = Math.floor(segundos / intervalos[unidad]);
-                if (cociente >= 1) {
-                    return 'hace ' + cociente + ' ' + unidad + (cociente > 1 ? (unidad === 'mes' ? 'es' : 's') : '');
+                for (let unidad in intervalos) {
+                    const cociente = Math.floor(diferenciaSegundos / intervalos[unidad]);
+                    if (cociente >= 1) {
+                        return 'hace ' + cociente + ' ' + unidad + (cociente > 1 ? 's' : '');
+                    }
                 }
-            }
+            } 
+            
+            // Si tiene más de 24 horas, mostramos Fecha y Hora exacta
+            return registro.toLocaleString('es-MX', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
         }
         
     </script>
