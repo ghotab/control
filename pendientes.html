@@ -115,6 +115,8 @@
             const filtrados = reportesCache.filter(item => {
                 const coincideBase = (baseSeleccionada === "TODAS" || item.base === baseSeleccionada);
                 const estaAbierto = (item.estatus === "ABIERTO");
+
+                return coincideBase && estaAbierto;
             });
 
             if(filtrados.length === 0) {
