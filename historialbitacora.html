@@ -117,9 +117,20 @@
             let html = "";
             corte.forEach(r => {
                 const statusClass = r.estatus === 'ABIERTO' ? 'open' : 'closed';
-                const fechaR = new Date(r.fechaReporte).toLocaleString();
-                const fechaA = r.fechaAtencion ? new Date(r.fechaAtencion).toLocaleString() : "Pendiente";
-    
+                //Logica de Fecha
+                let fechaR = "Fecha No Disponible";
+                if (r.fechaReporte){
+                    const d = new Date(r.fechaReporte);
+                    // Verificamos si la fecha es valida, si no mostrar el original
+                    fechaR = isNaN(d.getTime()) ? r.fechaReporte : d.toLocaleString();
+                }
+                
+                let fechaA = "Pendiente";
+                if (r.fechaAtencion){
+                    const dAtenc = new Date (r.fechaAtencion);
+                    fechaA = isNaN(dAtenc.getTime()) ? r.fechaAtencion : dAtenc.toLocaleString();
+                }
+                    
                 html += `
                     <div class="history-card">
                         <div class="status-pill ${statusClass}">${r.estatus}</div>
