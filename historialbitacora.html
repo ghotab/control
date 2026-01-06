@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitacora de Fallas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --anydo-blue: #0085ff; --bg: #f8f9fa; --text: #2c2c2c; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        
+        .search-container {
+            background: white; padding: 25px; border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px;
+            position: sticky; top: 10px; z-index: 10;
+        }
+        
+        .label-sm { font-size: 12px; font-weight: 700; color: var(--anydo-blue); text-transform: uppercase; margin-bottom: 10px; display: block; }
+        
+        .search-box { display: flex; align-items: center; gap: 15px; }
+        input#busquedaEco { 
+            border: none; font-size: 28px; font-weight: 800; width: 100%; outline: none;
+        }
+
+        .history-card {
+            background: white; border-radius: 20px; padding: 20px;
+            margin-bottom: 15px; border: 1px solid #edf2f7;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .status-pill {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; margin-bottom: 10px;
+        }
+        .open { background: #fff5f5; color: #ff4d4d; }
+        .closed { background: #f0fff4; color: #27ae60; }
+
+        .timeline-item { border-left: 2px solid #edf2f7; margin-left: 10px; padding-left: 20px; position: relative; }
+        .timeline-item::before { 
+            content: ''; position: absolute; left: -7px; top: 5px; 
+            width: 12px; height: 12px; border-radius: 50%; background: #d1d1d1;
+        }
+        .date { font-size: 12px; color: #909090; display: block; }
+        .detail { font-size: 15px; margin: 5px 0 15px 0; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <span class="label-sm">Historico de Fallas por Autobús</span>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; color: #ccc;"></i>
+            <input type="number" id="busquedaEco" placeholder="Número de Autobus. Ej. 55066" oninput="filtrarHistorial()">
+        </div>
+    </div>
+
+    <div id="resultados">
+        </div>
+
+    <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
+        let todosLosRegistros = [];
+
+        async function cargarTodo() {
+            try {
+                const res = await fetch(scriptURL);
+                todosLosRegistros = await res.json();
+            } catch (e) { console.error("Error cargando historial", e); }
+        }
+
+        function filtrarHistorial() {
+            const eco = document.getElementById('busquedaEco').value;
+            const container = document.getElementById('resultados');
+            container.innerHTML = "";
+
+            if (eco.length < 5) return; // Empezar a buscar solo al tener 5 dígitos
+
+            const filtrados = todosLosRegistros.filter(r => r.eco.toString().includes(eco));
+
+            if (filtrados.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#999; margin-top:50px;">No hay registros para la unidad ${eco}</p>`;
+                return;
+            }
+
+            filtrados.forEach(r => {
+                const statusClass = r.estatus === 'ABIERTO' ? 'open' : 'closed';
+                const fechaR = new Date(r.fechaReporte).toLocaleString();
+                const fechaA = r.fechaAtencion ? new Date(r.fechaAtencion).toLocaleString() : "Pendiente";
+
+                container.innerHTML += `
+                    <div class="history-card">
+                        <div class="status-pill ${statusClass}">${r.estatus}</div>
+                        <div style="float:right; font-weight:700; color:#999">#${r.eco}</div>
+                        
+                        <div class="timeline-item">
+                            <span class="date">Reportado: ${fechaR} (Cond: ${r.conductor})</span>
+                            <p class="detail"><strong>Falla:</strong> ${r.falla}</p>
+                        </div>
+                        
+                        <div class="timeline-item" style="border:none">
+                            <span class="date">Atendido: ${fechaA}</span>
+                            <p class="detail"><strong>Técnico:</strong> ${r.tecnico || '---'}<br>
+                               <span style="font-size:13px; color:#666">${r.comentarios || 'Esperando atención...'}</span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        cargarTodo();
+    </script>
+</body>
+</html>
