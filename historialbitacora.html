@@ -55,60 +55,107 @@
         </div>
     </div>
 
-    <div id="resultados">
-        </div>
+    <div id="resultados"><div>
+
+    <div id="pagination-container" style="text-align: center; margin: 30px 0; display: none;">
+        <button id="btnCargarMas" onclick="cargarMas()" 
+                style="background: white; border: 2px solid var(--anydo-blue); color: var(--anydo-blue); 
+                       padding: 15px 40px; border-radius: 50px; font-weight: 700; cursor: pointer;">
+            Cargar más registros
+        </button>
+    </div>
 
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
         let todosLosRegistros = [];
+        let filtradosGlobal=[]; // Para guardar el resultado de la busqueda
+        let registrosVisibles = 20; // Mostremos 20 cada vez
+        
 
         async function cargarTodo() {
+            const container = document.getElementById('resultados');
+            container.innerHTML = "<p style='text-align:center; color:var(--anydo-blue);'>Sincronizando historial...</p>";
+            
             try {
                 const res = await fetch(scriptURL);
                 todosLosRegistros = await res.json();
-            } catch (e) { console.error("Error cargando historial", e); }
+                container.innerHTML = "<p style='text-align:center; color:#ccc;'>Listo. Ingrese un económico para buscar.</p>";
+            } catch (e) { 
+                console.error("Error cargando historial", e); 
+            }
         }
 
         function filtrarHistorial() {
             const eco = document.getElementById('busquedaEco').value;
             const container = document.getElementById('resultados');
+            const pagination = document.getElementById('pagination-container');
             container.innerHTML = "";
 
-            if (eco.length < 5) return; // Empezar a buscar solo al tener 5 dígitos
-
-            const filtrados = todosLosRegistros.filter(r => r.eco.toString().includes(eco));
-
-            if (filtrados.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#999; margin-top:50px;">No hay registros para la unidad ${eco}</p>`;
-                return;
+            if (eco.length < 5) {
+                container.innerHTML = "";
+                pagination.style.display = "none";
+                return; // Empezar a buscar solo al tener 5 dígitos
             }
 
-            filtrados.forEach(r => {
+            // Filtramos y ordenamos. Todo se guarda hasta este momento en memoria
+            filtradosGlobal=todosLosRegistros
+                .filter(r => r.eco.toString().includes(eco))
+                .sort((a, b) => new Date(b.fechaReporte) - new Date(a.fechaReporte));
+
+                registrosVisibles = 20; //Reiniciamos el contador al buscar nueva unidad
+                renderizarPagina();
+            }
+
+            // ESTA ES LA FUNCIÓN NUEVA QUE REEMPLAZA TU BUCLE ANTERIOR
+        function renderizarPagina() {
+            const container = document.getElementById('resultados');
+            const pagination = document.getElementById('pagination-container');
+            
+            // Cortamos el pastel: solo mostramos desde el 0 hasta el número visible
+            const corte = filtradosGlobal.slice(0, registrosVisibles);
+            
+            let html = "";
+            corte.forEach(r => {
                 const statusClass = r.estatus === 'ABIERTO' ? 'open' : 'closed';
                 const fechaR = new Date(r.fechaReporte).toLocaleString();
                 const fechaA = r.fechaAtencion ? new Date(r.fechaAtencion).toLocaleString() : "Pendiente";
-
-                container.innerHTML += `
+    
+                html += `
                     <div class="history-card">
                         <div class="status-pill ${statusClass}">${r.estatus}</div>
                         <div style="float:right; font-weight:700; color:#999">#${r.eco}</div>
                         
                         <div class="timeline-item">
-                            <span class="date">Reportado: ${fechaR} (Cond: ${r.conductor})</span>
+                            <span class="date">Reportado: ${fechaR}</span>
                             <p class="detail"><strong>Falla:</strong> ${r.falla}</p>
                         </div>
                         
                         <div class="timeline-item" style="border:none">
                             <span class="date">Atendido: ${fechaA}</span>
                             <p class="detail"><strong>Técnico:</strong> ${r.tecnico || '---'}<br>
-                               <span style="font-size:13px; color:#666">${r.comentarios || 'Esperando atención...'}</span>
+                               <span style="font-size:13px; color:#666">${r.comentarios || 'En espera...'}</span>
                             </p>
                         </div>
                     </div>
                 `;
             });
+    
+            container.innerHTML = html;
+    
+            // Lógica del botón "Cargar más"
+            if (filtradosGlobal.length > registrosVisibles) {
+                pagination.style.display = "block";
+            } else {
+                pagination.style.display = "none";
+            }
         }
-
+    
+        // FUNCIÓN PARA EL BOTÓN
+        function cargarMas() {
+            registrosVisibles += 20;
+            renderizarPagina();
+        }
+    
         cargarTodo();
     </script>
 </body>
