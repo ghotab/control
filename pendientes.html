@@ -111,10 +111,11 @@
             const baseSeleccionada = document.getElementById('filtroBase').value;
             lista.innerHTML = "";
 
-            // Filtramos el array según la base elegida
-            const filtrados = reportesCache.filter(item => 
-                baseSeleccionada === "TODAS" || item.base === baseSeleccionada
-            );
+            // FILTRO DOBLE: Que sea de la base Y que el estatus sea "ABIERTO"
+            const filtrados = reportesCache.filter(item => {
+                const coincideBase = (baseSeleccionada === "TODAS" || item.base === baseSeleccionada);
+                const estaAbierto = (item.estatus === "ABIERTO");
+            });
 
             if(filtrados.length === 0) {
                 lista.innerHTML = "<p style='text-align:center; padding:40px; color:#ccc;'>No hay pendientes en esta base ✨</p>";
