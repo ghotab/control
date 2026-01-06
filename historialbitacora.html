@@ -168,6 +168,36 @@
         }
     
         cargarTodo();
+        function tiempoRelativo(fecha) {
+            if (!fecha) return "---";
+            const ahora = new Date();
+            const registro = new Date(fecha);
+            
+            // Si la fecha es inválida, devolvemos el texto original
+            if (isNaN(registro.getTime())) return fecha;
+        
+            const segundos = Math.floor((ahora - registro) / 1000);
+            
+            // Intervalos en segundos
+            const intervalos = {
+                año: 31536000,
+                mes: 2592000,
+                semana: 604800,
+                día: 86400,
+                hora: 3600,
+                minuto: 60
+            };
+        
+            if (segundos < 60) return 'hace un momento';
+            
+            for (let unidad in intervalos) {
+                const cociente = Math.floor(segundos / intervalos[unidad]);
+                if (cociente >= 1) {
+                    return 'hace ' + cociente + ' ' + unidad + (cociente > 1 ? (unidad === 'mes' ? 'es' : 's') : '');
+                }
+            }
+        }
+        
     </script>
 </body>
 </html>
