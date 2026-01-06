@@ -125,12 +125,14 @@
             }
 
             filtrados.forEach(item => {
+                const tiempoEspera = formatFechaInteligente(item.fecha);
+                
                 lista.innerHTML += `
                     <div class="task-card" onclick="abrirAtencion('${item.id}', '${item.eco}', '${item.falla}')">
                         <div class="circle"></div>
                         <div class="task-info">
                             <span class="task-title">Unidad ${item.eco} <span class="base-badge">${item.base}</span></span>
-                            <span class="task-sub">${item.falla}</span>
+                            <span class="task-sub">${item.falla} • <strong>${tiempoEspera}</strong></span>
                         </div>
                     </div>
                 `;
@@ -165,6 +167,28 @@
         }
 
         cargarDatos();
+
+        function formatFechaInteligente(fechaa) {
+            if (!fechaa) return "---";
+            const ahora = new Date();
+            const registro = new Date(fechaa);
+            if (isNaN(registro.getTime())) return fechaa;
+        
+            const diferenciaSegundos = Math.floor((ahora - registro) / 1000);
+            
+            if (diferenciaSegundos < 86400 && diferenciaSegundos >= 0) {
+                if (diferenciaSegundos < 60) return 'hace un momento';
+                const intervalos = { hora: 3600, minuto: 60 };
+                for (let unidad in intervalos) {
+                    const cociente = Math.floor(diferenciaSegundos / intervalos[unidad]);
+                    if (cociente >= 1) return 'hace ' + cociente + ' ' + unidad + (cociente > 1 ? 's' : '');
+                }
+            } 
+            return registro.toLocaleString('es-MX', {
+                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true
+            });
+        }
+        
     </script>
 </body>
 </html>
