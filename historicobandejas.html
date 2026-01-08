@@ -3,81 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historico de Bandejas</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>Historico de Cambios</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
-            --primary: #007aff; /* Azul Apple */
-            --bg: #ffffff;      /* Fondo Blanco Puro */
-            --card-bg: #ffffff;
+            --primary: #007aff;
+            --bg: #ffffff;
             --text-main: #000000;
-            --text-sub: #86868b; /* Gris Apple */
+            --text-sub: #86868b;
             --border: #f2f2f7;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
-            color: var(--text-main);
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
-            -webkit-font-smoothing: antialiased;
         }
 
         .container { width: 100%; max-width: 480px; }
 
-        /* Encabezado Estilo Index */
-        .header { margin-bottom: 35px; width: 100%; }
-        .header h1 { 
-            font-size: 38px; 
-            font-weight: 600; 
-            margin: 0; 
-            letter-spacing: -1.5px; 
-            line-height: 1;
-        }
-        .header p { 
-            color: var(--text-sub); 
-            margin-top: 10px; 
-            font-size: 17px; 
-            font-weight: 500;
-        }
+        .header h1 { font-size: 38px; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
+        .header p { color: var(--text-sub); margin: 8px 0 25px 0; font-size: 17px; font-weight: 500; }
 
-        /* Tabs - Más finas y limpias */
-        .tabs {
-            background: #f2f2f7;
-            padding: 5px;
-            border-radius: 14px;
-            display: flex;
-            margin-bottom: 20px;
-        }
-        .tab {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            background: transparent;
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--text-sub);
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .tab.active {
-            background: white;
-            color: #0085ff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
+        /* Pestañas */
+        .tabs { background: #f2f2f7; padding: 5px; border-radius: 14px; display: flex; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 12px; border: none; border-radius: 10px; background: transparent; font-weight: 700; color: var(--text-sub); cursor: pointer; }
+        .tab.active { background: white; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
-        /* Buscador Robusto */
-       .search-container { position: relative; display: flex; align-items: center; margin-bottom: 20px; }
+        /* Buscador Dual */
+        .search-container { position: relative; display: flex; align-items: center; margin-bottom: 20px; }
         .search-box {
             background: #f5f5f7; border-radius: 16px; padding: 18px 20px;
             display: flex; align-items: center; flex-grow: 1; transition: 0.3s;
         }
         .search-box input { border: none; outline: none; background: transparent; width: 100%; font-size: 17px; font-weight: 600; margin-left: 10px; }
-
+        
         /* Botón QR */
         .btn-qr {
             background: var(--primary); color: white; border: none;
@@ -85,74 +48,6 @@
             margin-left: 10px; cursor: pointer; display: none; /* Oculto por defecto */
             align-items: center; justify-content: center; font-size: 20px;
         }
-
-        
-        /* Cards Estilo Any.do Premium */
-        .card {
-            background: var(--card-bg);
-            border-radius: 28px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-            animation: fadeIn 0.4s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .label { 
-            font-size: 11px; 
-            font-weight: 800; 
-            color: var(--text-sub); 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px;
-        }
-        .value { font-size: 22px; font-weight: 800; display: block; margin-top: 2px; }
-        
-        .badge-motivo {
-            background: #f2f2f7;
-            color: #1d1d1f;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        /* El flujo de la bandeja */
-        .transfer-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f9f9fb;
-            padding: 18px;
-            border-radius: 20px;
-            margin: 15px 0;
-        }
-
-        .arrow { color: #c1c1c6; font-size: 16px; }
-
-        .footer-info {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-sub);
-            padding-top: 15px;
-            border-top: 1px solid #f2f2f7;
-        }
-
-        .empty-state {
-            text-align: center;
-            margin-top: 60px;
-            color: var(--text-sub);
-            font-weight: 600;
-        }
-
-        b { color: var(--primary); }
 
         /* Modal del Escáner */
         #reader-modal {
@@ -169,42 +64,37 @@
         .transfer-row { display: flex; align-items: center; justify-content: space-between; background: #f9f9fb; padding: 18px; border-radius: 20px; margin: 15px 0; }
         .footer-info { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; font-weight: 600; color: var(--text-sub); border-top: 1px solid var(--border); padding-top: 15px; }
         b { color: var(--primary); }
-        
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Historial de Cambios</h1>
-        <p>Bandejas y Unidades</p>
+        <h1>Historial</h1>
+        <p>Cambio de Bandejas</p>
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="setMode('ECO', this)">Por Unidad</button>
-        <button class="tab" onclick="setMode('SERIAL', this)">Por QR</button>
+        <button class="tab active" id="tabEco" onclick="setMode('ECO')">Unidad</button>
+        <button class="tab" id="tabSerial" onclick="setMode('SERIAL')">Codigo QR</button>
     </div>
 
     <div class="search-container">
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass" id="searchIcon"></i>
-            <input type="text" id="searchInput" placeholder="Economico a 5 dígitos..." maxlength="5" oninput="validarYBuscar()">
+            <input type="text" id="searchInput" placeholder="Escribir eco (5 dígitos)..." maxlength="5" oninput="validarYBuscar()">
         </div>
         <button class="btn-qr" id="btnQr" onclick="abrirEscaner()">
             <i class="fa-solid fa-qrcode"></i>
         </button>
     </div>
-    
-    <div id="resultados">
-        <div class="empty-state">Comienza digitando la unidad o escaneando un QR</div>
-    </div>
-    
-    <div id="reader-modal">
-        <div id="reader"></div>
-        <button class="btn-close-scanner" onclick="cerrarEscaner()">Cancelar</button>
-    </div>
-    
 
+    <div id="resultados"></div>
+</div>
+
+<div id="reader-modal">
+    <div id="reader"></div>
+    <button class="btn-close-scanner" onclick="cerrarEscaner()">Cancelar</button>
 </div>
 
 <script>
@@ -217,9 +107,7 @@
         try {
             const response = await fetch(scriptURL);
             todosLosRegistros = await response.json();
-        } catch (e) {
-            console.error("Error", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function setMode(modo) {
@@ -233,7 +121,7 @@
         document.getElementById('tabSerial').classList.toggle('active', modo === 'SERIAL');
         
         if (modo === 'ECO') {
-            input.placeholder = "Economico a 5 dígitos...";
+            input.placeholder = "Escribir eco (5 dígitos)...";
             input.type = "number";
             input.maxLength = 5;
             input.readOnly = false;
@@ -258,7 +146,7 @@
             else document.getElementById('resultados').innerHTML = "";
         }
     }
-    
+
     function buscar(query) {
         query = query.toUpperCase();
         let filtrados = todosLosRegistros.filter(r => {
@@ -290,7 +178,6 @@
             });
         }
     }
-    
 
     function renderizar(data, query) {
         const container = document.getElementById('resultados');
@@ -313,12 +200,6 @@
                 <div class="footer-info"><span>${r.tecnico}</span><span>${new Date(r.fecha).toLocaleDateString()}</span></div>
             </div>
         `).join('');
-    }
-
-    function highlight(text, query) {
-        if (!text) return "---";
-        if (modoBusqueda !== 'SERIAL') return text;
-        return text.toString().includes(query) ? `<b>${text}</b>` : text;
     }
 
     cargarDatos();
