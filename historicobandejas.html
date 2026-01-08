@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historico de Bandejas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --anydo-blue: #0085ff;
+            --bg: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #2c2c2c;
+            --text-sub: #909090;
+            --border: #edf2f7;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 500px; }
+
+        /* Encabezado */
+        .header { margin-bottom: 25px; width: 100%; }
+        .header h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1px; }
+        .header p { color: var(--text-sub); margin: 5px 0; }
+
+        /* Pestañas estilo Any.do */
+        .tabs {
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 12px;
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            font-weight: 600;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tab.active {
+            background: white;
+            color: var(--anydo-blue);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Input de búsqueda */
+        .search-box {
+            background: white;
+            border-radius: 18px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        /* Tarjetas de Resultado */
+        .card {
+            background: var(--card-bg);
+            border-radius: 22px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .label { font-size: 12px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
+        .value { font-size: 18px; font-weight: 700; display: block; }
+        
+        .badge-motivo {
+            background: #f0f4f8;
+            color: #4a5568;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .transfer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fafafa;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .arrow { color: var(--anydo-blue); font-size: 18px; }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-sub);
+            border-top: 1px solid #f1f1f1;
+            padding-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-sub);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Logistica de Bandejas</h1>
+        <p>Historial de movimientos y periodos</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="setMode('ECO', this)">Por Unidad</button>
+        <button class="tab" onclick="setMode('SERIAL', this)">Por QR</button>
+    </div>
+
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--anydo-blue);"></i>
+        <input type="text" id="searchInput" placeholder="Buscar económico..." oninput="buscar()">
+    </div>
+
+    <div id="resultados">
+        <div class="empty-state">Ingresa un número para comenzar</div>
+    </div>
+</div>
+
+<script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
+    let modoBusqueda = "ECO"; // O "SERIAL"
+    let todosLosRegistros = [];
+
+    // Cargar datos al inicio
+    async function cargarDatos() {
+        try {
+            const response = await fetch(scriptURL);
+            todosLosRegistros = await response.json();
+            console.log("Datos de bandejas listos");
+        } catch (e) {
+            console.error("Error cargando datos", e);
+        }
+    }
+
+    function setMode(modo, el) {
+        modoBusqueda = modo;
+        // UI
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('searchInput').placeholder = 
+            modo === 'ECO' ? "Buscar económico..." : "Buscar número de serie...";
+        buscar(); // Re-filtrar con el nuevo modo
+    }
+
+    function buscar() {
+        const query = document.getElementById('searchInput').value.trim().toUpperCase();
+        const container = document.getElementById('resultados');
+
+        if (query.length < 2) {
+            container.innerHTML = '<div class="empty-state">Ingresa al menos 2 caracteres</div>';
+            return;
+        }
+
+        // Filtrado dinámico según la pestaña
+        let filtrados = todosLosRegistros.filter(r => {
+            if (modoBusqueda === 'ECO') {
+                return r.economico && r.economico.toString().includes(query);
+            } else {
+                // Rastrear el serial tanto en lo que sube como en lo que baja
+                return (r.bSube && r.bSube.toString().includes(query)) || 
+                       (r.bBaja && r.bBaja.toString().includes(query));
+            }
+        });
+
+        // Ordenar: Más recientes primero
+        filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+        renderizar(filtrados, query);
+    }
+
+    function formatFechaInteligente(fecha) {
+        if (!fecha) return "---";
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return fecha;
+        return d.toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+    }
+
+    function renderizar(data, query) {
+        const container = document.getElementById('resultados');
+        if (data.length === 0) {
+            container.innerHTML = '<div class="empty-state">No se encontraron registros</div>';
+            return;
+        }
+
+        container.innerHTML = data.map(r => `
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="label">Unidad</span>
+                        <span class="value">#${r.economico}</span>
+                    </div>
+                    <span class="badge-motivo">${r.motivo || 'Cambio'}</span>
+                </div>
+
+                <div class="transfer-row">
+                    <div style="text-align: left;">
+                        <span class="label" style="color:#e53e3e">Baja</span>
+                        <span style="display:block; font-family:monospace; font-weight:600; font-size:14px; color: ${modoBusqueda==='SERIAL' && r.bBaja.includes(query) ? 'var(--anydo-blue)' : 'inherit'}">
+                            ${r.bBaja || 'N/A'}
+                        </span>
+                    </div>
+                    <div class="arrow"><i class="fa-solid fa-right-long"></i></div>
+                    <div style="text-align: right;">
+                        <span class="label" style="color:#38a169">Sube</span>
+                        <span style="display:block; font-family:monospace; font-weight:600; font-size:14px; color: ${modoBusqueda==='SERIAL' && r.bSube.includes(query) ? 'var(--anydo-blue)' : 'inherit'}">
+                            ${r.bSube || 'N/A'}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <span class="label">Justificación / LED</span>
+                    <p style="margin:5px 0; font-size:14px; color:#4a5568;">
+                        ${r.led || ''} ${r.justificacionCruce ? '• '+r.justificacionCruce : ''}
+                    </p>
+                </div>
+
+                <div class="footer-info">
+                    <span><i class="fa-solid fa-user-gear"></i> ${r.tecnico || 'S/T'}</span>
+                    <span><i class="fa-solid fa-calendar-day"></i> ${formatFechaInteligente(r.fecha)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    cargarDatos();
+</script>
+</body>
+</html>
