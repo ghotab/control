@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historico de Bandejas</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -20,7 +21,7 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
-            margin: 0; padding: 25px;
+            margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
             -webkit-font-smoothing: antialiased;
         }
@@ -49,7 +50,7 @@
             padding: 5px;
             border-radius: 14px;
             display: flex;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .tab {
             flex: 1;
@@ -70,30 +71,22 @@
         }
 
         /* Buscador Robusto */
+       .search-container { position: relative; display: flex; align-items: center; margin-bottom: 20px; }
         .search-box {
-            background: #f5f5f7;
-            border-radius: 16px;
-            padding: 18px 22px;
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-            transition: 0.3s;
+            background: #f5f5f7; border-radius: 16px; padding: 18px 20px;
+            display: flex; align-items: center; flex-grow: 1; transition: 0.3s;
         }
-        .search-box:focus-within {
-            background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
-        }
-        .search-box input {
-            border: none;
-            outline: none;
-            background: transparent;
-            width: 100%;
-            font-size: 17px;
-            font-weight: 600;
-            margin-left: 12px;
-            color: var(--text-main);
+        .search-box input { border: none; outline: none; background: transparent; width: 100%; font-size: 17px; font-weight: 600; margin-left: 10px; }
+
+        /* Botón QR */
+        .btn-qr {
+            background: var(--primary); color: white; border: none;
+            width: 55px; height: 55px; border-radius: 16px;
+            margin-left: 10px; cursor: pointer; display: none; /* Oculto por defecto */
+            align-items: center; justify-content: center; font-size: 20px;
         }
 
+        
         /* Cards Estilo Any.do Premium */
         .card {
             background: var(--card-bg);
@@ -160,6 +153,23 @@
         }
 
         b { color: var(--primary); }
+
+        /* Modal del Escáner */
+        #reader-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #reader { width: 300px; border-radius: 20px; overflow: hidden; background: white; }
+        .btn-close-scanner { margin-top: 20px; padding: 12px 25px; border-radius: 12px; border: none; background: white; font-weight: 700; }
+
+        /* Estilos de Tarjetas (Igual que el anterior) */
+        .card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
+        .label { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; }
+        .value { font-size: 22px; font-weight: 800; display: block; }
+        .transfer-row { display: flex; align-items: center; justify-content: space-between; background: #f9f9fb; padding: 18px; border-radius: 20px; margin: 15px 0; }
+        .footer-info { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; font-weight: 600; color: var(--text-sub); border-top: 1px solid var(--border); padding-top: 15px; }
+        b { color: var(--primary); }
+        
     </style>
 </head>
 <body>
@@ -175,20 +185,33 @@
         <button class="tab" onclick="setMode('SERIAL', this)">Por QR</button>
     </div>
 
-    <div class="search-box">
-        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-sub); font-size: 18px;"></i>
-        <input type="text" id="searchInput" placeholder="Escribir económico..." oninput="buscar()">
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass" id="searchIcon"></i>
+            <input type="text" id="searchInput" placeholder="Economico a 5 dígitos..." maxlength="5" oninput="validarYBuscar()">
+        </div>
+        <button class="btn-qr" id="btnQr" onclick="abrirEscaner()">
+            <i class="fa-solid fa-qrcode"></i>
+        </button>
     </div>
-
+    
     <div id="resultados">
         <div class="empty-state">Comienza digitando la unidad o escaneando un QR</div>
     </div>
+    
+    <div id="reader-modal">
+        <div id="reader"></div>
+        <button class="btn-close-scanner" onclick="cerrarEscaner()">Cancelar</button>
+    </div>
+    
+
 </div>
 
 <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
     let modoBusqueda = "ECO"; 
     let todosLosRegistros = [];
+    let html5QrCode;
 
     async function cargarDatos() {
         try {
@@ -199,81 +222,95 @@
         }
     }
 
-    function setMode(modo, el) {
+    function setMode(modo) {
         modoBusqueda = modo;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('searchInput').placeholder = 
-            modo === 'ECO' ? "Escribir económico..." : "Escribir serie...";
-        buscar();
+        const input = document.getElementById('searchInput');
+        const btnQr = document.getElementById('btnQr');
+        const searchIcon = document.getElementById('searchIcon');
+
+        // Reset UI
+        document.getElementById('tabEco').classList.toggle('active', modo === 'ECO');
+        document.getElementById('tabSerial').classList.toggle('active', modo === 'SERIAL');
+        
+        if (modo === 'ECO') {
+            input.placeholder = "Economico a 5 dígitos...";
+            input.type = "number";
+            input.maxLength = 5;
+            input.readOnly = false;
+            btnQr.style.display = "none";
+            searchIcon.style.display = "block";
+        } else {
+            input.placeholder = "Escanea el código QR...";
+            input.type = "text";
+            input.readOnly = true; // No manual para Serial
+            btnQr.style.display = "flex";
+            searchIcon.style.display = "none";
+        }
+        input.value = "";
+        document.getElementById('resultados').innerHTML = "";
     }
 
-    function buscar() {
-        const query = document.getElementById('searchInput').value.trim().toUpperCase();
-        const container = document.getElementById('resultados');
-
-        if (query.length < 2) {
-            container.innerHTML = '<div class="empty-state">Ingresa un número para filtrar</div>';
-            return;
+    function validarYBuscar() {
+        const input = document.getElementById('searchInput');
+        if (modoBusqueda === 'ECO') {
+            // Solo buscar cuando tenga 5 dígitos
+            if (input.value.length === 5) buscar(input.value);
+            else document.getElementById('resultados').innerHTML = "";
         }
-
+    }
+    
+    function buscar(query) {
+        query = query.toUpperCase();
         let filtrados = todosLosRegistros.filter(r => {
-            if (modoBusqueda === 'ECO') {
-                return r.economico && r.economico.toString().includes(query);
-            } else {
-                return (r.bSube && r.bSube.toString().includes(query)) || 
-                       (r.bBaja && r.bBaja.toString().includes(query));
-            }
+            if (modoBusqueda === 'ECO') return r.economico && r.economico.toString() === query;
+            return (r.bSube && r.bSube.includes(query)) || (r.bBaja && r.bBaja.includes(query));
         });
-
-        filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
         renderizar(filtrados, query);
     }
+
+    // LÓGICA DEL ESCÁNER
+    function abrirEscaner() {
+        document.getElementById('reader-modal').style.display = 'flex';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+                document.getElementById('searchInput').value = decodedText;
+                buscar(decodedText);
+                cerrarEscaner();
+            }
+        ).catch(err => alert("Error de cámara: " + err));
+    }
+
+    function cerrarEscaner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader-modal').style.display = 'none';
+            });
+        }
+    }
+    
 
     function renderizar(data, query) {
         const container = document.getElementById('resultados');
         if (data.length === 0) {
-            container.innerHTML = '<div class="empty-state">Sin resultados</div>';
+            container.innerHTML = '<div style="text-align:center; margin-top:40px; color:#86868b; font-weight:600;">Sin registros encontrados</div>';
             return;
         }
 
         container.innerHTML = data.map(r => `
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div>
-                        <span class="label">Unidad</span>
-                        <span class="value">#${r.economico}</span>
-                    </div>
+                    <div><span class="label">Unidad</span><span class="value">#${r.economico}</span></div>
                     <span class="badge-motivo">${r.motivo || 'Servicio'}</span>
                 </div>
-
                 <div class="transfer-row">
-                    <div>
-                        <span class="label" style="color:#ff3b30">Baja</span>
-                        <span style="display:block; font-family:monospace; font-weight:700; font-size:15px; margin-top:4px;">
-                            ${highlight(r.bBaja, query)}
-                        </span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right arrow"></i>
-                    <div style="text-align: right;">
-                        <span class="label" style="color:#34c759">Sube</span>
-                        <span style="display:block; font-family:monospace; font-weight:700; font-size:15px; margin-top:4px;">
-                            ${highlight(r.bSube, query)}
-                        </span>
-                    </div>
+                    <div><span class="label" style="color:#ff3b30">Baja</span><span style="display:block; font-family:monospace; font-weight:700; font-size:15px;">${r.bBaja || '---'}</span></div>
+                    <i class="fa-solid fa-chevron-right" style="color:#c1c1c6"></i>
+                    <div style="text-align: right;"><span class="label" style="color:#34c759">Sube</span><span style="display:block; font-family:monospace; font-weight:700; font-size:15px;">${r.bSube || '---'}</span></div>
                 </div>
-
-                <div style="margin: 15px 0;">
-                    <span class="label">Diagnóstico</span>
-                    <p style="margin:6px 0 0 0; font-size:15px; font-weight:500; line-height:1.4;">
-                        ${r.led || ''} ${r.justificacionCruce ? '<br><span style="color:var(--text-sub)">'+r.justificacionCruce+'</span>' : ''}
-                    </p>
-                </div>
-
-                <div class="footer-info">
-                    <span>${r.tecnico || '---'}</span>
-                    <span>${new Date(r.fecha).toLocaleDateString()}</span>
-                </div>
+                <div class="footer-info"><span>${r.tecnico}</span><span>${new Date(r.fecha).toLocaleDateString()}</span></div>
             </div>
         `).join('');
     }
