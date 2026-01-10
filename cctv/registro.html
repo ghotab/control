@@ -64,7 +64,19 @@
 
         <div class="form-group">
             <label>Modelo del DVR</label>
-            <input type="text" id="modelo" placeholder="Ej. Streamax X3" required>
+            <select id="modeloSelect" onchange="checkOtro(this.value)" required>
+                <option value="" disabled selected>Selecciona un modelo...</option>
+                <option value="MERIVA DVR HIBRIDO 4 AHD 1 IP">MERIVA DVR HIBRIDO 4 AHD 1 IP</option>
+                <option value="MERIVA DVR HIBRIDO 4 AHD 4 IP">MERIVA DVR HIBRIDO 4 AHD 4 IP</option>
+                <option value="MERIVA DVR 12 CANALES">MERIVA DVR 12 CANALES</option>
+                <option value="CAMARA DUAL">CAMARA DUAL</option>
+                <option value="OTRO">OTRO (Especificar)</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="groupOtro" style="display: none; animation: fadeIn 0.3s ease;">
+            <label>Especificar Modelo</label>
+            <input type="text" id="modeloOtro" placeholder="Escribe el modelo aquí...">
         </div>
 
         <div class="grid-2">
@@ -119,16 +131,37 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyP1il9LrJBMUOCM5Eoo9ZbwhoE8HJ_kZhlquSfiXATbdzkQto7n7NXdjnRbS_Hvccqag/exec';
     const form = document.getElementById('formCCTV');
 
+    // Función para mostrar/ocultar el campo manual
+    function checkOtro(val) {
+        const groupOtro = document.getElementById('groupOtro');
+        const inputOtro = document.getElementById('modeloOtro');
+        
+        if (val === 'OTRO') {
+            groupOtro.style.display = 'block';
+            inputOtro.required = true;
+            inputOtro.focus();
+        } else {
+            groupOtro.style.display = 'none';
+            inputOtro.required = false;
+            inputOtro.value = "";
+        }
+    }
+    
     form.addEventListener('submit', e => {
         e.preventDefault();
         const submitBtn = e.target.querySelector('button');
         submitBtn.disabled = true;
         submitBtn.innerText = 'Enviando...';
-
+        
+        // Lógica para capturar el modelo correcto
+        const modeloFinal = document.getElementById('modeloSelect').value === 'OTRO' 
+            ? document.getElementById('modeloOtro').value 
+            : document.getElementById('modeloSelect').value;
+        
         const datos = {
             autobus: document.getElementById('autobus').value,
             cctv: document.getElementById('cctv').value,
-            modelo: document.getElementById('modelo').value,
+            modelo: modeloFinal, // <--- Aquí enviamos el valor final
             camaras: document.getElementById('camaras').value,
             modSIM: document.getElementById('modSIM').value,
             modWIFI: document.getElementById('modWIFI').value,
