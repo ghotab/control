@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alta de Equipo CCTV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #007aff; --bg: #ffffff; --text-main: #1d1d1f; --text-sub: #86868b; --border: #f2f2f7; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 25px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 400px; }
+        
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
+        .header p { color: var(--text-sub); font-size: 17px; margin-top: 5px; }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; margin-left: 5px; }
+        
+        input, select {
+            width: 100%; padding: 16px; border-radius: 18px; border: 1px solid var(--border);
+            background: #f5f5f7; font-size: 16px; font-weight: 600; outline: none; box-sizing: border-box; transition: 0.2s;
+        }
+        input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,122,255,0.1); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; border: none; padding: 18px;
+            border-radius: 20px; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .btn-submit:active { transform: scale(0.97); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Alta de Equipo CCTV</h1>
+        <p>Alta en inventario</p>
+    </div>
+
+    <form id="formCCTV">
+        <div class="form-group">
+            <label>Número de Autobús</label>
+            <input type="number" id="autobus" placeholder="Ej. 55001" required maxlength="5">
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>¿Tiene CCTV?</label>
+                <select id="cctv">
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cámaras</label>
+                <input type="number" id="camaras" placeholder="0" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Modelo del DVR</label>
+            <input type="text" id="modelo" placeholder="Ej. Streamax X3" required>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Módulo SIM</label>
+                <select id="modSIM">
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Módulo WIFI</label>
+                <select id="modWIFI">
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Ethernet</label>
+                <select id="ethernet">
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>En Ceiba</label>
+                <select id="ceiba">
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Tipo de Comunicación</label>
+            <select id="comunicacion">
+                <option value="SIM">SIM (Datos móviles)</option>
+                <option value="WIFI">WIFI</option>
+                <option value="ETHERNET">Ethernet (Cableado)</option>
+                <option value="N/A">No aplica</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-submit">Guardar Registro</button>
+    </form>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyP1il9LrJBMUOCM5Eoo9ZbwhoE8HJ_kZhlquSfiXATbdzkQto7n7NXdjnRbS_Hvccqag/exec';
+    const form = document.getElementById('formCCTV');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const submitBtn = e.target.querySelector('button');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Enviando...';
+
+        const datos = {
+            autobus: document.getElementById('autobus').value,
+            cctv: document.getElementById('cctv').value,
+            modelo: document.getElementById('modelo').value,
+            camaras: document.getElementById('camaras').value,
+            modSIM: document.getElementById('modSIM').value,
+            modWIFI: document.getElementById('modWIFI').value,
+            ethernet: document.getElementById('ethernet').value,
+            ceiba: document.getElementById('ceiba').value,
+            comunicacion: document.getElementById('comunicacion').value
+        };
+
+        fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        }).then(() => {
+            alert('✅ Equipo registrado con éxito en la hoja CCTV');
+            form.reset();
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Guardar Registro';
+        }).catch(error => {
+            alert('❌ Error al registrar');
+            console.error('Error!', error.message);
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+</body>
+</html>
