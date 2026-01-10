@@ -32,6 +32,75 @@
             transition: transform 0.2s;
         }
         .btn-submit:active { transform: scale(0.97); }
+
+        /* Estilo para los Switches (Interruptores) */
+        .switch-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f5f5f7;
+            padding: 12px 18px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+        }
+    
+        .switch-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+    
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+    
+        .switch input { opacity: 0; width: 0; height: 0; }
+    
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #d1d1d6;
+            transition: .4s;
+            border-radius: 34px;
+        }
+    
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px; width: 22px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+    
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    
+        /* Sección Destacada para Conectividad */
+        .section-comms {
+            background: #f9f9fb;
+            border: 2px solid #e5e5ea;
+            padding: 20px;
+            border-radius: 25px;
+            margin-top: 20px;
+        }
+    
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: block;
+            letter-spacing: 1px;
+        }
+        
     </style>
 </head>
 <body>
@@ -44,21 +113,27 @@
 
     <form id="formCCTV">
         <div class="form-group">
-            <label>Número de Autobús</label>
-            <input type="number" id="autobus" placeholder="Ej. 55001" required maxlength="5">
+            <label>Número de Autobús a 5 Dígitos</label>
+            <input type="text" id="autobus" 
+                   placeholder="Ej. 55175" 
+                   inputmode="numeric" 
+                   maxlength="5"
+                   oninput="validarEco(this)"
+                   required>
+            <div id="ecoFeedback" style="font-size: 12px; margin-top: 8px; font-weight: 600; color: #ff3b30;">
+                <i class="fa-solid fa-circle-xmark"></i> Faltan dígitos (Escribe los 5)
+            </div>
         </div>
 
         <div class="grid-2">
             <div class="form-group">
-                <label>¿Tiene CCTV?</label>
-                <select id="cctv">
-                    <option value="SÍ">SÍ</option>
-                    <option value="NO">NO</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Cámaras</label>
-                <input type="number" id="camaras" placeholder="0" required>
+                <div class="switch-container">
+                    <span class="switch-label">¿Tiene CCTV Instalado?</span>
+                    <label class="switch">
+                        <input type="checkbox" id="cctv" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -79,57 +154,85 @@
             <input type="text" id="modeloOtro" placeholder="Escribe el modelo aquí...">
         </div>
 
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Módulo SIM</label>
-                <select id="modSIM">
-                    <option value="SÍ">SÍ</option>
-                    <option value="NO">NO</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Módulo WIFI</label>
-                <select id="modWIFI">
-                    <option value="SÍ">SÍ</option>
-                    <option value="NO">NO</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Ethernet</label>
-                <select id="ethernet">
-                    <option value="SÍ">SÍ</option>
-                    <option value="NO">NO</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>En Ceiba</label>
-                <select id="ceiba">
-                    <option value="SÍ">SÍ</option>
-                    <option value="NO">NO</option>
-                </select>
-            </div>
-        </div>
-
         <div class="form-group">
-            <label>Tipo de Comunicación</label>
-            <select id="comunicacion">
-                <option value="SIM">SIM (Datos móviles)</option>
-                <option value="WIFI">WIFI</option>
-                <option value="ETHERNET">Ethernet (Cableado)</option>
-                <option value="N/A">No aplica</option>
-            </select>
+            <label>Cantidad de Cámaras</label>
+            <input type="number" id="camaras" value="4">
         </div>
+        
+        <label>Módulos de Hardware</label>
+            <div class="grid-2">
+                <div class="switch-container">
+                    <span class="switch-label">SIM</span>
+                    <label class="switch"><input type="checkbox" id="modSIM"><span class="slider"></span></label>
+                </div>
+                <div class="switch-container">
+                    <span class="switch-label">WIFI</span>
+                    <label class="switch"><input type="checkbox" id="modWIFI"><span class="slider"></span></label>
+                </div>
+            </div>
+            <div class="switch-container">
+                <span class="switch-label">Puerto Ethernet Disponible</span>
+                <label class="switch"><input type="checkbox" id="ethernet"><span class="slider"></span></label>
+            </div>
+        
+            <div class="section-comms">
+                <span class="section-title">Estatus de Transmisión</span>
+                
+                <div class="switch-container" style="background: white;">
+                    <span class="switch-label">Visualización en CEIBA</span>
+                    <label class="switch">
+                        <input type="checkbox" id="ceiba">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+        
+                <div class="form-group" style="margin-top:15px;">
+                    <label>Medio de Comunicación</label>
+                    <select id="comunicacion">
+                        <option value="SIM">SIM (Datos móviles)</option>
+                        <option value="WIFI">WIFI (Patio)</option>
+                        <option value="ETHERNET">Ethernet</option>
+                        <option value="N/A">No aplica / Sin conexión</option>
+                    </select>
+                </div>
+            </div>
+        
+            <button type="submit" class="btn-submit">Guardar Registro</button>
+        </form>
 
-        <button type="submit" class="btn-submit">Guardar Registro</button>
-    </form>
+
 </div>
 
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyP1il9LrJBMUOCM5Eoo9ZbwhoE8HJ_kZhlquSfiXATbdzkQto7n7NXdjnRbS_Hvccqag/exec';
     const form = document.getElementById('formCCTV');
+
+    function validarEco(input) {
+        // Solo permitir números
+        input.value = input.value.replace(/[^0-9]/g, '');
+        
+        const feedback = document.getElementById('ecoFeedback');
+        const submitBtn = document.querySelector('.btn-submit');
+        
+        if (input.value.length === 5) {
+            feedback.style.color = "#34c759";
+            feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Formato correcto';
+            submitBtn.style.opacity = "1";
+            submitBtn.disabled = false;
+        } else {
+            feedback.style.color = "#ff3b30";
+            feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> El número debe ser de 5 dígitos';
+            submitBtn.style.opacity = "0.5";
+            submitBtn.disabled = true;
+        }
+    }
+
+    // Al cargar la página, deshabilitamos el botón por seguridad
+    window.onload = () => {
+        document.querySelector('.btn-submit').disabled = true;
+        document.querySelector('.btn-submit').style.opacity = "0.5";
+    };
+    
 
     // Función para mostrar/ocultar el campo manual
     function checkOtro(val) {
@@ -148,6 +251,13 @@
     }
     
     form.addEventListener('submit', e => {
+        const inputEco = document.getElementById('autobus');
+        if (inputEco.value.length !== 5) {
+            e.preventDefault();
+            alert("⚠️ Error: Para GHO, TUSA y demás, el económico DEBE ser de 5 dígitos completos.");
+            return;
+        }
+        
         e.preventDefault();
         const submitBtn = e.target.querySelector('button');
         submitBtn.disabled = true;
