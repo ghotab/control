@@ -125,15 +125,13 @@
             </div>
         </div>
 
-        <div class="grid-2">
-            <div class="form-group">
-                <div class="switch-container">
-                    <span class="switch-label">¿Tiene CCTV Instalado?</span>
-                    <label class="switch">
-                        <input type="checkbox" id="cctv" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+        <div class="form-group">
+            <div class="switch-container">
+                <span class="switch-label">¿Tiene CCTV Instalado?</span>
+                <label class="switch">
+                    <input type="checkbox" id="cctv" checked>
+                    <span class="slider"></span>
+                </label>
             </div>
         </div>
 
@@ -162,11 +160,11 @@
         <label>Módulos de Hardware</label>
             <div class="grid-2">
                 <div class="switch-container">
-                    <span class="switch-label">SIM</span>
+                    <span class="switch-label">Modulo SIM</span>
                     <label class="switch"><input type="checkbox" id="modSIM"><span class="slider"></span></label>
                 </div>
                 <div class="switch-container">
-                    <span class="switch-label">WIFI</span>
+                    <span class="switch-label">Modulo WIFI</span>
                     <label class="switch"><input type="checkbox" id="modWIFI"><span class="slider"></span></label>
                 </div>
             </div>
@@ -190,7 +188,7 @@
                     <label>Medio de Comunicación</label>
                     <select id="comunicacion">
                         <option value="SIM">SIM (Datos móviles)</option>
-                        <option value="WIFI">WIFI (Patio)</option>
+                        <option value="WIFI">WIFI</option>
                         <option value="ETHERNET">Ethernet</option>
                         <option value="N/A">No aplica / Sin conexión</option>
                     </select>
@@ -263,10 +261,9 @@
         submitBtn.disabled = true;
         submitBtn.innerText = 'Enviando...';
         
-        // Lógica para capturar el modelo correcto
+        const getVal = (id) => document.getElementById(id).checked ? "SÍ" : "NO";
         const modeloFinal = document.getElementById('modeloSelect').value === 'OTRO' 
-            ? document.getElementById('modeloOtro').value 
-            : document.getElementById('modeloSelect').value;
+            ? document.getElementById('modeloOtro').value : document.getElementById('modeloSelect').value;;
         
         const datos = {
             autobus: document.getElementById('autobus').value,
