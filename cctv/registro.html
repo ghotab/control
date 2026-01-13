@@ -205,10 +205,9 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyP1il9LrJBMUOCM5Eoo9ZbwhoE8HJ_kZhlquSfiXATbdzkQto7n7NXdjnRbS_Hvccqag/exec';
     const form = document.getElementById('formCCTV');
 
+    // Validación de 5 dígitos (GHO, TUSA, etc.)
     function validarEco(input) {
-        // Solo permitir números
         input.value = input.value.replace(/[^0-9]/g, '');
-        
         const feedback = document.getElementById('ecoFeedback');
         const submitBtn = document.querySelector('.btn-submit');
         
@@ -225,18 +224,17 @@
         }
     }
 
-    // Al cargar la página, deshabilitamos el botón por seguridad
+    // Inicialización de página
     window.onload = () => {
-        document.querySelector('.btn-submit').disabled = true;
-        document.querySelector('.btn-submit').style.opacity = "0.5";
+        const btn = document.querySelector('.btn-submit');
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
     };
-    
 
-    // Función para mostrar/ocultar el campo manual
+    // Lógica para opción "OTRO" en modelos
     function checkOtro(val) {
         const groupOtro = document.getElementById('groupOtro');
         const inputOtro = document.getElementById('modeloOtro');
-        
         if (val === 'OTRO') {
             groupOtro.style.display = 'block';
             inputOtro.required = true;
@@ -248,52 +246,66 @@
         }
     }
     
+    // ENVÍO DE FORMULARIO
     form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        const submitBtn = e.target.querySelector('.btn-submit');
         const inputEco = document.getElementById('autobus');
+
+        // Doble validación de seguridad para los 5 dígitos
         if (inputEco.value.length !== 5) {
-            e.preventDefault();
-            alert("⚠️ Error: Para GHO, TUSA y demás, el económico DEBE ser de 5 dígitos completos.");
+            alert("⚠️ Error: El económico DEBE ser de 5 dígitos completos.");
             return;
         }
         
-        e.preventDefault();
-        const submitBtn = e.target.querySelector('button');
         submitBtn.disabled = true;
-        submitBtn.innerText = 'Enviando...';
+        submitBtn.innerText = 'Guardando en Base de Datos...';
         
-        const getVal = (id) => document.getElementById(id).checked ? "SÍ" : "NO";
+        // Función ayudante para leer los Switches (Checkboxes)
+        const getSwitchVal = (id) => document.getElementById(id).checked ? "SÍ" : "NO";
+
+        // Determinar modelo final
         const modeloFinal = document.getElementById('modeloSelect').value === 'OTRO' 
-            ? document.getElementById('modeloOtro').value : document.getElementById('modeloSelect').value;;
+            ? document.getElementById('modeloOtro').value 
+            : document.getElementById('modeloSelect').value;
         
+        // Mapeo exacto de los datos para el Apps Script
         const datos = {
-            autobus: document.getElementById('autobus').value,
-            cctv: document.getElementById('cctv').value,
-            modelo: modeloFinal, // <--- Aquí enviamos el valor final
+            autobus: inputEco.value,
+            cctv: getSwitchVal('cctv'),
+            modelo: modeloFinal,
             camaras: document.getElementById('camaras').value,
-            modSIM: document.getElementById('modSIM').value,
-            modWIFI: document.getElementById('modWIFI').value,
-            ethernet: document.getElementById('ethernet').value,
-            ceiba: document.getElementById('ceiba').value,
+            modSIM: getSwitchVal('modSIM'),
+            modWIFI: getSwitchVal('modWIFI'),
+            ethernet: getSwitchVal('ethernet'),
+            ceiba: getSwitchVal('ceiba'),
             comunicacion: document.getElementById('comunicacion').value
         };
 
+        // Ejecución del envío
         fetch(scriptURL, {
             method: 'POST',
-            mode: 'no-cors',
+            mode: 'no-cors', // Evita errores de CORS en navegadores
             cache: 'no-cache',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
-        }).then(() => {
-            alert('✅ Equipo registrado con éxito en la hoja CCTV');
+        })
+        .then(() => {
+            alert('✅ Registro guardado exitosamente en CCTV');
             form.reset();
-            submitBtn.disabled = false;
+            // Resetear visualmente el validador y botón
+            validarEco(inputEco); 
             submitBtn.innerText = 'Guardar Registro';
-        }).catch(error => {
-            alert('❌ Error al registrar');
+        })
+        .catch(error => {
+            alert('❌ Error al conectar con el servidor');
             console.error('Error!', error.message);
             submitBtn.disabled = false;
+            submitBtn.innerText = 'Reintentar Guardar';
         });
     });
 </script>
+    
 </body>
 </html>
