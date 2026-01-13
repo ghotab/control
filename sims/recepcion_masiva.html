@@ -3,174 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carga Masiva de SIMS</title>
+    <title>Registro Masivo de SIMS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
     <style>
         :root { --primary: #007aff; --bg: #ffffff; --text-main: #1d1d1f; --text-sub: #86868b; --border: #f2f2f7; --green: #34c759; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 400px; }
         
-        .header { margin-bottom: 25px; }
-        .header h1 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -1px; }
-        .header p { color: var(--text-sub); font-size: 16px; margin-top: 5px; }
-
-        /* Contenedores tipo iPhone Settings */
-        .section-box { background: #f5f5f7; border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); }
-        label { display: block; font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; margin-left: 5px; }
+        /* Visor de Cámara Estilo iPhone */
+        #video-container { 
+            width: 100%; 
+            height: 250px; 
+            background: #000; 
+            border-radius: 25px; 
+            overflow: hidden; 
+            position: relative;
+            margin-bottom: 20px;
+            border: 4px solid var(--border);
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
         
-        input, select, textarea {
-            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
-            background: white; font-size: 16px; font-weight: 600; outline: none; box-sizing: border-box; margin-bottom: 10px;
+        /* Cuadro de enfoque */
+        .scanner-laser {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%; height: 2px;
+            background: rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 8px red;
+            animation: scanning 2s infinite;
         }
+        @keyframes scanning { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
 
-        /* Área de escaneo masivo */
-        .scan-area {
-            border: 2px dashed var(--primary);
-            background: #f0f7ff !important;
-            font-family: monospace;
-            font-size: 14px;
-            resize: none;
-        }
-
-        .counter-badge {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 4px 12px;
+        /* Lista de Escaneados */
+        .scanned-list {
+            background: #f5f5f7;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
-            margin-bottom: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
         }
+        .scan-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            font-weight: 600;
+            border-left: 4px solid var(--green);
+        }
+        
+        .counter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .badge { background: var(--primary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 13px; font-weight: 800; }
 
         .btn-submit {
-            width: 100%; background: var(--primary); color: white; border: none; padding: 18px;
-            border-radius: 18px; font-size: 17px; font-weight: 700; cursor: pointer; transition: 0.3s;
+            width: 100%; background: var(--text-main); color: white; border: none; padding: 18px;
+            border-radius: 20px; font-size: 17px; font-weight: 700; cursor: pointer;
         }
 
-        .btn-submit:disabled { background: #d1d1d6; cursor: not-allowed; }
-
-        .status-msg { margin-top: 15px; text-align: center; font-size: 14px; font-weight: 600; display: none; }
+        .section-box { background: #f5f5f7; border-radius: 20px; padding: 15px; margin-bottom: 15px; }
+        select, input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-top: 5px; font-size: 15px; font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>Entrada Masiva</h1>
-        <p>Registro de lote de SIMS</p>
+    <div class="header" style="text-align: center; margin-bottom: 15px;">
+        <h1 style="font-size: 24px; font-weight: 800; margin:0;">Registro Masivo de SIMs</h1>
+        <p style="color: var(--text-sub); margin: 5px 0;">Captura múltiple</p>
     </div>
 
-    <form id="formMasivo">
-        <div class="section-box">
-            <label>Datos del Proveedor</label>
-            <select id="compania" required>
-                <option value="Telcel">Telcel</option>
-                <option value="Yumovil">Yumovil</option>
-                <option value="ATT">ATT</option>
-                <option value="Unefon">Unefon</option>
-                <option value="Movistar">Movistar</option>
-            </select>
-            <input type="text" id="remitente" placeholder="¿Quién envía el lote?" required>
-            <label>Fecha de Recepción</label>
-            <input type="date" id="fechaRecibido" required>
-        </div>
+    <div id="video-container">
+        <video id="video"></video>
+        <div class="scanner-laser"></div>
+    </div>
 
-        <div class="section-box">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label>Lista de IMEIs</label>
-                <div id="badge" class="counter-badge">0 Detectadas</div>
+    <div class="section-box">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Datos del Proveedor</label>
+                <select id="compania">
+                    <option value="Telcel">Telcel</option>
+                    <option value="Yumovil">Yumovil</option>
+                    <option value="ATT">ATT</option>
+                    <option value="ATT">Movistar</option>
+                    <option value="ATT">Unefon</option>
+                </select>
             </div>
-            <textarea id="listaImeis" class="scan-area" rows="10" 
-                      placeholder="Escanea o pega aquí los IMEIs... (uno por línea)"></textarea>
-            <p style="font-size: 11px; color: var(--text-sub); margin-left: 5px;">
-                * Si usas escáner de pistola, los IMEIs se enlistarán solos.
-            </p>
+            
+            <input type="text" id="remitente" placeholder="¿Quién envía el lote?" style="margin-top: 10px;">
+            
+            <div>
+                <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Fecha de Recepción</label>
+                <input type="date" id="fechaRecibido">
+            </div>
         </div>
+        
+    </div>
 
-        <div class="section-box">
-            <label>Comentarios del Lote</label>
-            <input type="text" id="comentarios" placeholder="Ej: Lote mensual de 50 chips">
-        </div>
+    <div class="counter-header">
+        <span style="font-weight: 800; font-size: 14px;">SIMs Capturadas</span>
+        <span id="contador" class="badge">0</span>
+    </div>
+    
+    <div id="listaVisual" class="scanned-list">
+        <p id="placeholder-text" style="text-align:center; color: var(--text-sub); font-size: 13px;">Los IMEIs aparecerán aquí...</p>
+    </div>
 
-        <button type="submit" id="btnEnviar" class="btn-submit">Registrar Todo el Lote</button>
-        <div id="status" class="status-msg"></div>
-    </form>
+    <button type="button" class="btn-submit" onclick="enviarLote()">Registrar Lote Completo</button>
 </div>
 
 
 
 <script>
-    const scriptURL = 'TU_NUEVA_URL_DE_APPS_SCRIPT'; // <--- PEGA AQUÍ TU URL
-    const form = document.getElementById('formMasivo');
-    const txtArea = document.getElementById('listaImeis');
-    const badge = document.getElementById('badge');
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyT8ORsno-zyC1bIOSqG3nFNi4l_Rp6zL5GBtpO7T18kN33jBEeGKhvBbN-bwLm7xlnaw/exec';
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    let imeisCapturados = [];
 
-    // Poner fecha de hoy
     document.getElementById('fechaRecibido').valueAsDate = new Date();
 
-    // Contador de líneas en tiempo real
-    txtArea.addEventListener('input', () => {
-        const lineas = txtArea.value.split('\n').filter(l => l.trim() !== "");
-        badge.innerText = `${lineas.length} Detectadas`;
-        badge.style.background = lineas.length > 0 ? "var(--green)" : "var(--primary)";
-    });
+    // INICIAR CÁMARA AUTOMÁTICAMENTE
+    window.onload = () => {
+        codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+            if (result) {
+                const imei = result.text;
+                
+                // Evitar duplicados en la misma sesión
+                if (!imeisCapturados.includes(imei)) {
+                    imeisCapturados.push(imei);
+                    actualizarInterfaz(imei);
+                    
+                    // Feedback visual y táctil
+                    if (navigator.vibrate) navigator.vibrate(100);
+                }
+            }
+        });
+    };
 
-    form.addEventListener('submit', e => {
-        e.preventDefault();
-        
-        const lineas = txtArea.value.split('\n').filter(l => l.trim() !== "");
-        if (lineas.length === 0) {
-            alert("⚠️ Por favor, escanea al menos una SIM.");
-            return;
-        }
+    function actualizarInterfaz(nuevoImei) {
+        const lista = document.getElementById('listaVisual');
+        const placeholder = document.getElementById('placeholder-text');
+        if (placeholder) placeholder.remove();
 
-        const btn = document.getElementById('btnEnviar');
-        const status = document.getElementById('status');
+        const item = document.createElement('div');
+        item.className = 'scan-item';
+        item.innerHTML = `<span>${nuevoImei}</span> <i class="fa-solid fa-check-circle" style="color: var(--green);"></i>`;
+        lista.prepend(item);
+
+        document.getElementById('contador').innerText = imeisCapturados.length;
+    }
+
+    function enviarLote() {
+        if (imeisCapturados.length === 0) return alert("❌ No hay nada que registrar.");
         
+        const btn = document.querySelector('.btn-submit');
         btn.disabled = true;
-        btn.innerText = "Procesando Lote...";
-        status.style.display = "block";
-        status.style.color = "var(--primary)";
-        status.innerText = "⏳ Enviando datos a Google Sheets...";
+        btn.innerText = "Registrando las sims...";
 
         const datos = {
             accion: "RECEPCION",
-            imeis: lineas, // Enviamos el array
+            imeis: imeisCapturados,
             compania: document.getElementById('compania').value,
             remitente: document.getElementById('remitente').value,
             fecha: document.getElementById('fechaRecibido').value,
-            comentarios: document.getElementById('comentarios').value
+            comentarios: "Carga masiva vía cámara"
         };
 
         fetch(scriptURL, {
             method: 'POST',
             mode: 'no-cors',
-            cache: 'no-cache',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
         })
         .then(() => {
-            status.style.color = "var(--green)";
-            status.innerHTML = "✅ ¡Lote registrado con éxito!";
-            alert(`Se han registrado ${lineas.length} SIMS en el sistema.`);
-            form.reset();
-            badge.innerText = "0 Detectadas";
-            badge.style.background = "var(--primary)";
-            btn.disabled = false;
-            btn.innerText = "Registrar Todo el Lote";
-            document.getElementById('fechaRecibido').valueAsDate = new Date();
+            alert(`✅ ${imeisCapturados.length} SIMS registradas exitosamente.`);
+            location.reload();
         })
-        .catch(error => {
-            status.style.color = "red";
-            status.innerText = "❌ Error al enviar el lote.";
+        .catch(err => {
+            alert("Error al conectar con el servidor.");
             btn.disabled = false;
-            btn.innerText = "Reintentar Envío";
-            console.error('Error!', error.message);
         });
-    });
+    }
 </script>
-
 </body>
 </html>
