@@ -47,8 +47,8 @@
 
 <div class="container">
     <div class="header">
-        <h1>Asignación</h1>
-        <p>Vincular SIM a unidad</p>
+        <h1>Asignación de SIM</h1>
+        <p>Vincular SIM a autobus</p>
     </div>
 
     <form id="formAsignacion">
@@ -107,16 +107,37 @@
 
     // Lógica de búsqueda de los últimos 5 (Simulación por ahora)
     // En el futuro esto podría hacer un fetch al GS para validar que existe
-    function validarBusqueda(val) {
+    async function validarBusqueda(val) {
         const status = document.getElementById('statusBusqueda');
+        const imeiCompletoSpan = document.getElementById('imeiCompleto');
         const imeiHidden = document.getElementById('imeiReal');
-        
-        if(val.length >= 5) {
+    
+        if (val.length === 5) {
+            imeiCompletoSpan.innerText = "Buscando...";
             status.style.display = 'block';
-            document.getElementById('imeiCompleto').innerText = "......." + val;
-            imeiHidden.value = val; // Aquí Vicente podría poner el IMEI completo si lo tiene
+            status.style.background = '#f5f5f7'; // Color neutro mientras busca
+    
+            try {
+                // Llamamos al script pasando la acción buscar y el valor
+                const response = await fetch(`${scriptURL}?accion=buscar&q=${val}`);
+                const data = await response.json();
+    
+                if (data.encontrado) {
+                    status.style.background = '#e8f5e9'; // Verde suave
+                    imeiCompletoSpan.innerHTML = `<strong>${data.imei}</strong> (${data.compania})`;
+                    imeiHidden.value = data.imei;
+                } else {
+                    status.style.background = '#ffebee'; // Rojo suave
+                    imeiCompletoSpan.innerText = "No se encontró ninguna SIM";
+                    imeiHidden.value = "";
+                }
+            } catch (error) {
+                console.error("Error buscando:", error);
+                imeiCompletoSpan.innerText = "Error al conectar con la base de datos";
+            }
         } else {
             status.style.display = 'none';
+            imeiHidden.value = "";
         }
     }
 
