@@ -202,7 +202,7 @@
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyMuxH67AHrzkLmejBuC5pWEYmUhFrOED1A3lHqq448u3T55WbUIvvW9PRay7TzjwE8LQ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyGmucav-LR-8jz0rKrlzhyDUJfmMa9EK-M6Tj8_MiTHFbSC6QXSSV8piDLWBINXWwZGw/exec';
     const form = document.getElementById('formCCTV');
 
     // Validación de 5 dígitos (GHO, TUSA, etc.)
@@ -277,7 +277,7 @@
             modelo: modeloFinal,
             camaras: document.getElementById('camaras').value,
             modSIM: getSwitchVal('modSIM'),
-            modWIFI: getSwitchVal('modWIFI'),
+            modWIFI: getSwitchVal('modWIFI'), // Asegúrate que coincida con el ID del checkbox
             ethernet: getSwitchVal('ethernet'),
             ceiba: getSwitchVal('ceiba'),
             comunicacion: document.getElementById('comunicacion').value
