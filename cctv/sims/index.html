@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logística TAB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #007aff; /* Azul Apple */
+            --bg: #ffffff;      /* Blanco Puro */
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+            --border: #f2f2f7;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Encabezado Principal */
+        .header {
+            margin-bottom: 50px;
+            text-align: left;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .header p {
+            color: var(--text-sub);
+            margin-top: 12px;
+            font-size: 19px;
+            font-weight: 500;
+        }
+
+        /* Contenedor de Opciones */
+        .menu-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Tarjetas de Opción */
+        .menu-card {
+            background: white;
+            border-radius: 30px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-card:active {
+            transform: scale(0.96);
+            background: #f5f5f7;
+        }
+
+        /* Iconos circulares */
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 20px;
+        }
+
+        .blue { background: #e1f0ff; color: #007aff; }
+        .green { background: #e2f9eb; color: #34c759; }
+
+        /* Texto de la tarjeta */
+        .info h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .info span {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+
+        .arrow {
+            margin-left: auto;
+            color: #c1c1c6;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Logística de Conectividad a Bordo</h1>
+        <p>Selecciona una acción</p>
+    </div>
+
+    <div class="menu-options">
+        <a href="registro.html" class="menu-card">
+            <div class="icon-box blue">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+            <div class="info">
+                <h2>Registrar SIM</h2>
+                <span>Alta de chips de datos y estatus</span>
+            </div>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+        <a href="inventario.html" class="menu-card">
+            <div class="icon-box green">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <div class="info">
+                <h2>Consultar SIM</h2>
+                <span>Inventario maestro</span>
+            </div>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
