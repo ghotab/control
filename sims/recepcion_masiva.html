@@ -16,6 +16,7 @@
         .header h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
         .header p { color: var(--text-sub); font-size: 17px; margin-top: 5px; }
 
+        .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; margin-left: 5px; letter-spacing: 0.5px; }
         
         /* Visor de Cámara Estilo iPhone */
@@ -89,26 +90,29 @@
         <div class="scanner-laser"></div>
     </div>
 
-    <div class="section-box">
-        <div>
-            <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Datos del Proveedor</label>
-            <select id="compania">
-                <option value="Telcel">Telcel</option>
-                <option value="Yumovil">Yumovil</option>
-                <option value="ATT">ATT</option>
-                <option value="ATT">Movistar</option>
-                <option value="ATT">Unefon</option>
-            </select>
+    
+    <div class="form-group">
+        <label>Compañía</label>
+        <select id="compania" onchange="checkCompania(this.value)" required>
+            <option value="Yumovil">Yumovil</option>
+            <option value="Telcel">Telcel</option>
+            <option value="ATT">ATT</option>
+            <option value="Unefon">Unefon</option>
+            <option value="Movistar">Movistar</option>
+        </select>
+    </div>
+    
+    <div class="grid-2">
+        <div class="form-group">
+            <label>Fecha de Recepcion</label>
+            <input type="date" id="fechaRecibido" required>
         </div>
-        
-        <input type="text" id="remitente" placeholder="¿Quién envía el lote?" style="margin-top: 10px;">
-        
-        <div>
-            <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Fecha de Recepción</label>
-            <input type="date" id="fechaRecibido">
+        <div class="form-group">
+            <label>Remitente</label>
+            <input type="text" id="remitente" placeholder="Quién envía" required>
         </div>
     </div>
-        
+    
     
     <div class="counter-header">
         <span style="font-weight: 800; font-size: 14px;">SIMs Capturadas</span>
