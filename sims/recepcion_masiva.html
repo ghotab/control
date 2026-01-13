@@ -90,28 +90,26 @@
     </div>
 
     <div class="section-box">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-                <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Datos del Proveedor</label>
-                <select id="compania">
-                    <option value="Telcel">Telcel</option>
-                    <option value="Yumovil">Yumovil</option>
-                    <option value="ATT">ATT</option>
-                    <option value="ATT">Movistar</option>
-                    <option value="ATT">Unefon</option>
-                </select>
-            </div>
-            
-            <input type="text" id="remitente" placeholder="¿Quién envía el lote?" style="margin-top: 10px;">
-            
-            <div>
-                <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Fecha de Recepción</label>
-                <input type="date" id="fechaRecibido">
-            </div>
+        <div>
+            <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Datos del Proveedor</label>
+            <select id="compania">
+                <option value="Telcel">Telcel</option>
+                <option value="Yumovil">Yumovil</option>
+                <option value="ATT">ATT</option>
+                <option value="ATT">Movistar</option>
+                <option value="ATT">Unefon</option>
+            </select>
         </div>
         
+        <input type="text" id="remitente" placeholder="¿Quién envía el lote?" style="margin-top: 10px;">
+        
+        <div>
+            <label style="font-size: 11px; font-weight: 800; color: var(--text-sub);">Fecha de Recepción</label>
+            <input type="date" id="fechaRecibido">
+        </div>
     </div>
-
+        
+    
     <div class="counter-header">
         <span style="font-weight: 800; font-size: 14px;">SIMs Capturadas</span>
         <span id="contador" class="badge">0</span>
