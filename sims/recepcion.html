@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de SIMs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        :root { --primary: #007aff; --bg: #ffffff; --text-main: #1d1d1f; --text-sub: #86868b; --border: #f2f2f7; --green: #34c759; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 400px; }
+        
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
+        .header p { color: var(--text-sub); font-size: 17px; margin-top: 5px; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; margin-left: 5px; letter-spacing: 0.5px; }
+        
+        input, select, textarea {
+            width: 100%; padding: 14px; border-radius: 15px; border: 1px solid var(--border);
+            background: #f5f5f7; font-size: 16px; font-weight: 600; outline: none; box-sizing: border-box;
+        }
+
+        /* Botón de Escaneo */
+        .scan-btn {
+            background: #e1f0ff; color: var(--primary); border: none; padding: 10px;
+            border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 10px;
+            width: 100%; cursor: pointer;
+        }
+
+        /* Switches Estilo iOS */
+        .switch-container {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f5f5f7; padding: 12px 18px; border-radius: 16px; margin-bottom: 15px;
+        }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d1d6; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--green); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .btn-submit {
+            width: 100%; background: var(--text-main); color: white; border: none; padding: 18px;
+            border-radius: 20px; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px;
+        }
+
+        #video-container { display: none; width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Gestión de SIMs</h1>
+        <p>Entrada de Inventario</p>
+    </div>
+
+    <form id="formSIM">
+        <label>Identificación de SIM</label>
+        <button type="button" class="scan-btn" onclick="iniciarEscaneo()">
+            <i class="fa-solid fa-barcode"></i> Escanear Código de Barras
+        </button>
+        <div id="video-container">
+            <video id="video" style="width: 100%"></video>
+        </div>
+        <div class="form-group">
+            <input type="text" id="imei" placeholder="IMEI / ICCID" required>
+        </div>
+
+        <div class="form-group">
+            <label>Compañía</label>
+            <select id="compania" onchange="checkCompania(this.value)" required>
+                <option value="Telcel">Telcel</option>
+                <option value="Yumovil">Yumovil</option>
+                <option value="ATT">ATT</option>
+                <option value="Unefon">Unefon</option>
+                <option value="Movistar">Movistar</option>
+                <option value="Otro">Otro...</option>
+            </select>
+        </div>
+        <div class="form-group" id="groupOtroCompania" style="display:none;">
+            <input type="text" id="otraCompania" placeholder="Escribe la compañía">
+        </div>
+
+        <div class="switch-container">
+            <span style="font-weight:700;">¿SIM Activa?</span>
+            <label class="switch">
+                <input type="checkbox" id="estatus" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Fecha Recibido</label>
+                <input type="date" id="fechaRecibido" required>
+            </div>
+            <div class="form-group">
+                <label>Remitente</label>
+                <input type="text" id="remitente" placeholder="Quién envía" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Observaciones</label>
+            <textarea id="comentarios" rows="3" placeholder="Notas adicionales..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">Registrar en Inventario</button>
+    </form>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyT8ORsno-zyC1bIOSqG3nFNi4l_Rp6zL5GBtpO7T18kN33jBEeGKhvBbN-bwLm7xlnaw/exec';
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+
+    // Establecer fecha de hoy por defecto
+    document.getElementById('fechaRecibido').valueAsDate = new Date();
+
+    function checkCompania(val) {
+        document.getElementById('groupOtroCompania').style.display = (val === 'Otro') ? 'block' : 'none';
+    }
+
+    function iniciarEscaneo() {
+        const videoContainer = document.getElementById('video-container');
+        videoContainer.style.display = 'block';
+        codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+            if (result) {
+                document.getElementById('imei').value = result.text;
+                videoContainer.style.display = 'none';
+                codeReader.reset();
+                alert("Código detectado: " + result.text);
+            }
+        });
+    }
+
+    document.getElementById('formSIM').addEventListener('submit', e => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+
+        const companiaFinal = document.getElementById('compania').value === 'Otro' 
+            ? document.getElementById('otraCompania').value 
+            : document.getElementById('compania').value;
+
+        const datos = {
+            imei: document.getElementById('imei').value,
+            compania: companiaFinal,
+            estatus: document.getElementById('estatus').checked ? "ACTIVA" : "INACTIVA",
+            remitente: document.getElementById('remitente').value,
+            fecha: document.getElementById('fechaRecibido').value,
+            comentarios: document.getElementById('comentarios').value
+        };
+
+        fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos)})
+        .then(() => {
+            alert("✅ SIM registrada");
+            location.reload();
+        });
+    });
+</script>
+</body>
+</html>
