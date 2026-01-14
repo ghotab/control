@@ -194,20 +194,20 @@
 <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec"; 
     let idActual = "";
-
-    // CARGAR LISTA DE PENDIENTES
+    
+    // 1. CARGA AUTOMÁTICA
     async function cargarPendientes() {
         try {
             const res = await fetch(`${scriptURL}?accion=leerPendientes`);
             const tareas = await res.json();
             const lista = document.getElementById('taskList');
             lista.innerHTML = "";
-
+    
             if (tareas.length === 0) {
-                lista.innerHTML = "<p style='text-align:center; color:gray;'>No hay fallas pendientes.</p>";
+                lista.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay fallas pendientes.</p>";
                 return;
             }
-
+    
             tareas.forEach(t => {
                 lista.innerHTML += `
                     <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}')">
@@ -215,17 +215,23 @@
                             <h2>Unidad ${t[3]}</h2>
                             <p>Base: ${t[2]} • ID: ${t[0]}</p>
                         </div>
-                        <div class="status-badge">PENDIENTE</div>
+                        <div class="status-badge">${t[6]}</div>
                     </div>`;
             });
-            document.getElementById('sync-status').innerHTML = '<i class="fa-solid fa-check-circle"></i> Actualizado';
+            document.getElementById('sync-status').innerHTML = '<i class="fa-solid fa-check-circle"></i> Sincronizado';
         } catch (e) {
-            console.error(e);
-            document.getElementById('sync-status').innerHTML = '<span style="color:red;">Error de conexión</span>';
+            document.getElementById('sync-status').innerHTML = '<span style="color:red;">Error de red</span>';
         }
     }
-
-    // ABRIR MODAL
+    
+    // 2. CAMBIO DE TEXTO DEL BOTÓN DINÁMICO
+    function actualizarTextoBoton() {
+        const requiereFirma = document.getElementById('switchFirma').checked;
+        const btn = document.getElementById('btnPrincipal');
+        btn.innerText = requiereFirma ? "Confirmar y Generar QR" : "Guardar Reporte";
+    }
+    
+    // 3. ABRIR TAREA
     function abrirTarea(id, eco, base) {
         idActual = id;
         document.getElementById('modalTarea').style.display = 'flex';
@@ -235,16 +241,17 @@
         document.getElementById('step2').style.display = 'none';
         document.getElementById('qrSection').style.display = 'none';
         document.getElementById('claveTecnico').value = "";
+        actualizarTextoBoton(); // Resetear texto del botón
     }
-
-    // VALIDAR TÉCNICO Y CARGAR FALLA (STEP 1 -> STEP 2)
+    
+    // 4. VALIDAR TÉCNICO (ENTRAR AL DETALLE)
     async function validarTecnico() {
         const clave = document.getElementById('claveTecnico').value;
-        if(!clave) return alert("Por favor ingresa tu clave de colaborador.");
-
+        if(!clave) return alert("Ingresa tu clave de colaborador.");
+    
         const btn = document.querySelector('#step1 .btn-action');
-        btn.innerText = "Validando...";
-
+        btn.innerText = "Cargando...";
+    
         try {
             const res = await fetch(`${scriptURL}?accion=detalle&id=${idActual}`);
             const data = await res.json();
@@ -253,79 +260,72 @@
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
         } catch (e) {
-            alert("Error al cargar detalles");
+            alert("No se pudo obtener el detalle de la falla.");
         } finally {
             btn.innerText = "Ver Reporte de Conductor";
         }
     }
-
-    // Función para cambiar el texto del botón dinámicamente
-    function actualizarTextoBoton() {
-        const requiereFirma = document.getElementById('switchFirma').checked;
-        const btn = document.getElementById('btnPrincipal');
-        btn.innerText = requiereFirma ? "Confirmar y Generar QR" : "Guardar Reporte";
-    }
     
-    // PROCESAR ATENCIÓN Y MOSTRAR QR (STEP 2 -> STEP 3)
+    // 5. PROCESAR ATENCIÓN (EL PASO CRÍTICO)
     async function procesarAtencion() {
         const tecnico = document.getElementById('claveTecnico').value;
         const causa = document.getElementById('causaFalla').value;
-        const correctivo = document.getElementById('corrective').value; // Aquí hay un typo corregido abajo
+        const solucion = document.getElementById('correctivo').value; // Asegúrate que el ID sea 'correctivo'
         const tijera = document.getElementById('switchTijera').checked ? "SÍ" : "NO";
         const requiereFirma = document.getElementById('switchFirma').checked;
-
-        if(!causa || !correctivo) {
-            alert("⚠️ Debes completar la causa y el correctivo realizado.");
+    
+        if(!causa || !solucion) {
+            alert("Debes llenar la Causa y el Correctivo.");
             return;
         }
-
+    
         const btn = document.getElementById('btnPrincipal');
-        const textoOriginal = btn.innerText;
-        btn.innerText = "Guardando...";
+        btn.innerText = "Guardando en Excel...";
         btn.disabled = true;
-        
-
+    
+        // Estos nombres deben coincidir con tu GS (datos.id, datos.tecnico, etc.)
         const datos = {
             accion: "VALIDAR_TECNICO",
             id: idActual,
             tecnico: tecnico,
             tijera: tijera,
             causa: causa,
-            solucion: correctivo,
-            requiereFirma: requiereFirma // Enviamos este dato al GS
+            solucion: solucion,
+            requiereFirma: requiereFirma
         };
-
+    
         try {
-            await fetch(scriptURL, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
+            // Enviar al GS
+            await fetch(scriptURL, { 
+                method: "POST", 
+                mode: "no-cors", 
+                body: JSON.stringify(datos) 
+            });
             
-            if (requiereFirma) {
-                // Si requiere firma, mostramos el QR
-                document.getElementById('step2').style.display = 'none';
-                document.getElementById('qrSection').style.display = 'block';
-                console.log("Datos guardados. Esperando firma para el ID: " + idActual);
-                // Lógica futura: Generar QR real con ID de tarea
-            } else {
-                // Si NO requiere firma, cerramos de una vez
-                alert("✅ Reporte guardado y cerrado correctamente.");
-                location.reload();
-            }
+            // Como usamos no-cors, esperamos 1.5 segundos para dar tiempo al GS de procesar
+            setTimeout(() => {
+                if (requiereFirma) {
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('qrSection').style.display = 'block';
+                } else {
+                    alert("✅ Reporte finalizado con éxito.");
+                    location.reload(); // Recargar para limpiar y ver cambios
+                }
+            }, 1500);
+    
         } catch (e) {
-            alert("❌ Error al guardar datos.");
+            alert("Error al enviar. Intenta de nuevo.");
             btn.disabled = false;
-            btn.innerText = textoOriginal;
+            btn.innerText = "Reintentar Guardar";
         }
     }
-
-    // Cargar al inicio y refrescar cada 30 seg
+    
+    // Inicialización
     cargarPendientes();
     setInterval(cargarPendientes, 30000);
-
-    // Cerrar modal al hacer click fuera
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('modalTarea')) {
-            document.getElementById('modalTarea').style.display = "none";
-        }
-    }
+    
+    // Cerrar al tocar fuera
+    window.onclick = e => { if(e.target == document.getElementById('modalTarea')) document.getElementById('modalTarea').style.display="none"; }
 </script>
 
 </body>
