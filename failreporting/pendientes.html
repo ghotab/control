@@ -170,12 +170,12 @@
             <div class="switch-group">
                 <span style="font-weight: 600;">Requiere firma de conductor</span>
                 <label class="switch">
-                    <input type="checkbox" id="switchFirma" checked>
+                    <input type="checkbox" id="switchFirma" checked onchange="actualizarTextoBoton()">
                     <span class="slider"></span>
                 </label>
             </div>
 
-            <button class="btn-action" onclick="procesarAtencion()">Confirmar y Generar QR</button>
+            <button id="btnPrincipal" class="btn-action" onclick="procesarAtencion()">Confirmar y Generar QR</button>
         </div>
 
         <div id="qrSection" class="qr-section">
@@ -259,6 +259,13 @@
         }
     }
 
+    // Función para cambiar el texto del botón dinámicamente
+    function actualizarTextoBoton() {
+        const requiereFirma = document.getElementById('switchFirma').checked;
+        const btn = document.getElementById('btnPrincipal');
+        btn.innerText = requiereFirma ? "Confirmar y Generar QR" : "Guardar Reporte";
+    }
+    
     // PROCESAR ATENCIÓN Y MOSTRAR QR (STEP 2 -> STEP 3)
     async function procesarAtencion() {
         const tecnico = document.getElementById('claveTecnico').value;
@@ -267,7 +274,16 @@
         const tijera = document.getElementById('switchTijera').checked ? "SÍ" : "NO";
         const requiereFirma = document.getElementById('switchFirma').checked;
 
-        if(!causa || !correctivo) return alert("Debes completar la causa de la falla y las acciones correctivas.");
+        if(!causa || !correctivo) {
+            alert("⚠️ Debes completar la causa y el correctivo realizado.");
+            return;
+        }
+
+        const btn = document.getElementById('btnPrincipal');
+        const textoOriginal = btn.innerText;
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+        
 
         const datos = {
             accion: "VALIDAR_TECNICO",
@@ -275,25 +291,28 @@
             tecnico: tecnico,
             tijera: tijera,
             causa: causa,
-            solucion: document.getElementById('correctivo').value
+            solucion: correctivo,
+            requiereFirma: requiereFirma // Enviamos este dato al GS
         };
-
-        const btn = document.querySelector('#step2 .btn-action');
-        btn.innerText = "Guardando...";
 
         try {
             await fetch(scriptURL, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
             
             if (requiereFirma) {
+                // Si requiere firma, mostramos el QR
                 document.getElementById('step2').style.display = 'none';
                 document.getElementById('qrSection').style.display = 'block';
+                console.log("Datos guardados. Esperando firma para el ID: " + idActual);
                 // Lógica futura: Generar QR real con ID de tarea
             } else {
-                alert("Atención guardada correctamente.");
+                // Si NO requiere firma, cerramos de una vez
+                alert("✅ Reporte guardado y cerrado correctamente.");
                 location.reload();
             }
         } catch (e) {
-            alert("Error al guardar datos.");
+            alert("❌ Error al guardar datos.");
+            btn.disabled = false;
+            btn.innerText = textoOriginal;
         }
     }
 
