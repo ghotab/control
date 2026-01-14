@@ -3,192 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendientes de Atención</title>
+    <title>TAB Panel de Pendientes</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --anydo-blue: #0085ff; --bg: #ffffff; --text: #2c2c2c; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        
-        .header { margin-bottom: 20px; padding-top: 10px; }
-        h1 { font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -1px; }
-        
-        /* Selector de Base Estilo Minimalista */
-        .filter-container {
-            margin-top: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .filter-container select {
-            border: none; background: transparent; font-size: 16px; 
-            font-weight: 600; color: var(--anydo-blue); outline: none; flex-grow: 1;
+        :root {
+            --mac-bg: #f5f5f7;
+            --mac-card: rgba(255, 255, 255, 0.9);
+            --accent: #007aff;
+            --text: #1d1d1f;
+            --text-sec: #86868b;
+            --success: #34c759;
+            --warning: #ff9500;
+            --border: #e5e5ea;
         }
 
-        .task-list { margin-top: 20px; }
-        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--mac-bg);
+            color: var(--text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 800px; }
+
+        /* Header macOS Style */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; margin-bottom: 30px; margin-top: 20px;
+        }
+        .header h1 { font-size: 34px; font-weight: 700; letter-spacing: -1px; margin: 0; }
+        #sync-status { font-size: 13px; font-weight: 600; color: var(--success); transition: 0.3s; }
+
+        /* Lista de Tareas */
+        .task-list { display: grid; gap: 12px; width: 100%; }
+
         .task-card {
-            display: flex; align-items: center;
-            padding: 18px; margin-bottom: 12px;
-            border-radius: 16px; border: 1px solid #f0f0f0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            animation: fadeIn 0.3s ease;
+            background: var(--mac-card);
+            border-radius: 20px;
+            padding: 22px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .task-card:active { transform: scale(0.98); background: #fff; }
+
+        .task-info h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--text); }
+        .task-info p { margin: 4px 0 0; color: var(--text-sec); font-size: 14px; }
+
+        .status-badge {
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            background: #f2f2f7; color: var(--accent);
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .circle { 
-            width: 24px; height: 24px; border: 2px solid #d1d1d1; 
-            border-radius: 50%; margin-right: 15px; flex-shrink: 0;
+        /* Modal / Detalle de Tarea */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(15px);
+            justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: #fff; width: 100%; max-width: 500px; padding: 30px;
+            border-radius: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            position: relative; max-height: 90vh; overflow-y: auto;
         }
 
-        .task-info { flex-grow: 1; }
-        .task-title { font-size: 17px; font-weight: 600; display: block; }
-        .task-sub { font-size: 13px; color: #909090; }
-        .base-badge { font-size: 10px; background: #e0f0ff; color: var(--anydo-blue); padding: 2px 8px; border-radius: 6px; margin-left: 5px; }
+        /* Elements inside Modal */
+        label.section-label { 
+            display: block; font-size: 11px; font-weight: 800; color: var(--text-sec); 
+            text-transform: uppercase; margin-top: 20px; margin-bottom: 8px;
+        }
 
-        /* Modal y campos igual que el anterior... */
-        #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: white; z-index: 100; padding: 40px 20px; box-sizing: border-box; }
-        .field { margin-bottom: 25px; }
-        .label { font-size: 12px; font-weight: 700; color: var(--anydo-blue); text-transform: uppercase; }
-        input, textarea { width: 100%; border: none; border-bottom: 2px solid #f0f0f0; padding: 10px 0; font-size: 18px; outline: none; }
-        .btn-close { background: var(--anydo-blue); color: white; border: none; padding: 20px; width: 100%; border-radius: 14px; font-size: 18px; font-weight: 700; }
+        /* iPhone Switches */
+        .switch-group {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 0; border-bottom: 1px solid var(--mac-bg);
+        }
+        .switch { position: relative; display: inline-block; width: 51px; height: 31px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #e3e3e8; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        input[type="password"], textarea {
+            width: 100%; border: 1px solid var(--border); border-radius: 14px;
+            padding: 15px; font-size: 16px; margin-top: 5px; box-sizing: border-box;
+            background: #f9f9fb; font-family: inherit;
+        }
+
+        .btn-action {
+            width: 100%; background: var(--accent); color: white; border: none;
+            padding: 20px; border-radius: 18px; font-size: 18px; font-weight: 700; 
+            margin-top: 25px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.97); }
+
+        .qr-section { text-align: center; display: none; margin-top: 25px; }
+        #qrcode-container { 
+            margin: 20px auto; width: 180px; height: 180px; background: #fff;
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Estilo para reporte original en modal */
+        .report-summary {
+            background: #f2f2f7; padding: 15px; border-radius: 15px; margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="header">
-        <h1>Tareas Pendientes</h1>
-        <div class="filter-container">
-            <i class="fa-solid fa-location-dot" style="color: #adb5bd;"></i>
-            <select id="filtroBase" onchange="renderizarLista()">
-                <option value="TODAS">Todas las bases</option>
-                <option value="ATLA">Atlacomulco</option>
-                <option value="COLI">Colima</option>
-                <option value="GUZM">Ciudad Guzmán</option>
-                <option value="GDLJ">Guadalajara</option>
-                <option value="JILO">Jilotepec</option>
-                <option value="MORE">Morelia</option>
-                <option value="OFOC">Occidente</option>
-                <option value="TSAT">Saturno</option>
-                <option value="TOLU">Toluca</option>
-            </select>
-        </div>
+        <h1>Reportes de Operador Pendientes</h1>
+        <div id="sync-status"><i class="fa-solid fa-rotate"></i> Actualizado</div>
     </div>
 
-    <div class="task-list" id="lista">
+    <div id="taskList" class="task-list">
+        <p style="text-align: center; color: var(--text-sec);">Cargando reporte de fallas...</p>
+    </div>
+</div>
+
+<div id="modalTarea" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle" style="margin: 0; font-size: 28px;">Unidad</h2>
+        <p id="modalBase" style="color: var(--text-sec); margin-top: 5px; font-weight: 600;">Base</p>
+        
+        <hr style="border: 0; border-top: 1px solid var(--mac-bg); margin: 20px 0;">
+
+        <div id="step1">
+            <label class="section-label">Acceso Técnico</label>
+            <input type="password" id="claveTecnico" placeholder="Introduce tu clave de colaborador" inputmode="numeric">
+            <button class="btn-action" onclick="validarTecnico()">Ver Reporte de Conductor</button>
         </div>
 
-    <div id="modal">
-        <div onclick="cerrarModal()"><i class="fa-solid fa-xmark" style="font-size: 24px; color: #ccc;"></i></div>
-        <h2 id="modalUnidad" style="font-size: 28px; margin-top:20px;">Unidad</h2>
-        <p id="modalFalla" style="color: #909090; margin-bottom: 40px;"></p>
-        <div class="field"><span class="label">Clave de Colaborador</span><input type="number" id="tecNomina"></div>
-        <div class="field"><span class="label">Qué se le hizo al equipo</span><textarea id="tecComentarios"></textarea></div>
-        <button class="btn-close" onclick="guardarAtencion()">Finalizar Tarea</button>
+        <div id="step2" style="display:none;">
+            <div class="report-summary">
+                <label class="section-label" style="margin-top: 0;">Falla Reportada</label>
+                <div id="fallaTexto" style="font-size: 18px; font-weight: 600;">...</div>
+            </div>
+            
+            <div class="switch-group">
+                <span style="font-weight: 600;">¿Corte de boletos de tijera?</span>
+                <label class="switch">
+                    <input type="checkbox" id="switchTijera">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <label class="section-label">Causa de la Falla</label>
+            <textarea id="causaFalla" rows="2" placeholder="¿Qué originó el problema?"></textarea>
+
+            <label class="section-label">Correctivo Realizado</label>
+            <textarea id="correctivo" rows="2" placeholder="¿Qué solución aplicaste?"></textarea>
+
+            <div class="switch-group">
+                <span style="font-weight: 600;">Requiere firma de conductor</span>
+                <label class="switch">
+                    <input type="checkbox" id="switchFirma" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button class="btn-action" onclick="procesarAtencion()">Confirmar y Generar QR</button>
+        </div>
+
+        <div id="qrSection" class="qr-section">
+            <h3 style="margin-bottom: 5px;">Validación de Operador</h3>
+            <p style="font-size: 14px; color: var(--text-sec);">Solicita al conductor que escanee este código para firmar la recepción.</p>
+            <div id="qrcode-container">
+                <i class="fa-solid fa-qrcode" style="font-size: 120px; color: #333;"></i>
+            </div>
+            <div style="background: #fff3e0; padding: 10px; border-radius: 10px; color: var(--warning); font-size: 13px; font-weight: 600;">
+                <i class="fa-solid fa-hourglass-half"></i> Esperando firma digital...
+            </div>
+        </div>
     </div>
+</div>
 
-    <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
-        let reportesCache = []; // Para filtrar sin volver a consultar la DB
+<script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec"; // Reemplaza con tu URL de implementación
+    let idActual = "";
 
-        async function cargarDatos() {
-            const lista = document.getElementById('lista');
-            lista.innerHTML = "<p style='text-align:center; color:#999;'>Sincronizando con la nube...</p>";
-            try {
-                const res = await fetch(scriptURL);
-                reportesCache = await res.json();
-                renderizarLista();
-            } catch (e) { lista.innerHTML = "Error al cargar datos."; }
-        }
-
-        function renderizarLista() {
-            const lista = document.getElementById('lista');
-            const baseSeleccionada = document.getElementById('filtroBase').value;
+    // CARGAR LISTA DE PENDIENTES
+    async function cargarPendientes() {
+        try {
+            const res = await fetch(`${scriptURL}?accion=leerPendientes`);
+            const tareas = await res.json();
+            const lista = document.getElementById('taskList');
             lista.innerHTML = "";
 
-            // FILTRO DOBLE: Que sea de la base Y que el estatus sea "ABIERTO"
-            const filtrados = reportesCache.filter(item => {
-                const coincideBase = (baseSeleccionada === "TODAS" || item.base === baseSeleccionada);
-                const estaAbierto = (item.estatus === "ABIERTO");
-
-                return coincideBase && estaAbierto;
-            });
-
-            if(filtrados.length === 0) {
-                lista.innerHTML = "<p style='text-align:center; padding:40px; color:#ccc;'>No hay pendientes en esta base ✨</p>";
+            if (tareas.length === 0) {
+                lista.innerHTML = "<p style='text-align:center; color:gray;'>No hay fallas pendientes.</p>";
                 return;
             }
 
-            filtrados.forEach(item => {
-                const tiempoEspera = formatFechaInteligente(item.fecha);
-                
+            tareas.forEach(t => {
                 lista.innerHTML += `
-                    <div class="task-card" onclick="abrirAtencion('${item.id}', '${item.eco}', '${item.falla}')">
-                        <div class="circle"></div>
+                    <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}')">
                         <div class="task-info">
-                            <span class="task-title">Unidad ${item.eco} <span class="base-badge">${item.base}</span></span>
-                            <span class="task-sub">${item.falla} • <strong>${tiempoEspera}</strong></span>
+                            <h2>Unidad ${t[3]}</h2>
+                            <p>Base: ${t[2]} • ID: ${t[0]}</p>
                         </div>
-                    </div>
-                `;
+                        <div class="status-badge">PENDIENTE</div>
+                    </div>`;
             });
+            document.getElementById('sync-status').innerHTML = '<i class="fa-solid fa-check-circle"></i> Actualizado';
+        } catch (e) {
+            console.error(e);
+            document.getElementById('sync-status').innerHTML = '<span style="color:red;">Error de conexión</span>';
         }
+    }
 
-        function abrirAtencion(id, eco, falla) {
-            window.idSeleccionado = id;
-            document.getElementById('modalUnidad').innerText = "Unidad " + eco;
-            document.getElementById('modalFalla').innerText = falla;
-            document.getElementById('modal').style.display = "block";
+    // ABRIR MODAL
+    function abrirTarea(id, eco, base) {
+        idActual = id;
+        document.getElementById('modalTarea').style.display = 'flex';
+        document.getElementById('modalTitle').innerText = "Unidad " + eco;
+        document.getElementById('modalBase').innerText = "Base: " + base;
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('qrSection').style.display = 'none';
+        document.getElementById('claveTecnico').value = "";
+    }
+
+    // VALIDAR TÉCNICO Y CARGAR FALLA (STEP 1 -> STEP 2)
+    async function validarTecnico() {
+        const clave = document.getElementById('claveTecnico').value;
+        if(!clave) return alert("Por favor ingresa tu clave de colaborador.");
+
+        const btn = document.querySelector('#step1 .btn-action');
+        btn.innerText = "Validando...";
+
+        try {
+            const res = await fetch(`${scriptURL}?accion=detalle&id=${idActual}`);
+            const data = await res.json();
+            
+            document.getElementById('fallaTexto').innerText = data.falla;
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        } catch (e) {
+            alert("Error al cargar detalles");
+        } finally {
+            btn.innerText = "Ver Reporte de Conductor";
         }
+    }
 
-        function cerrarModal() { document.getElementById('modal').style.display = "none"; }
+    // PROCESAR ATENCIÓN Y MOSTRAR QR (STEP 2 -> STEP 3)
+    async function procesarAtencion() {
+        const tecnico = document.getElementById('claveTecnico').value;
+        const causa = document.getElementById('causaFalla').value;
+        const correctivo = document.getElementById('corrective').value; // Aquí hay un typo corregido abajo
+        const tijera = document.getElementById('switchTijera').checked ? "SÍ" : "NO";
+        const requiereFirma = document.getElementById('switchFirma').checked;
 
-        async function guardarAtencion() {
-            const btn = document.querySelector('.btn-close');
-            const datos = {
-                accion: "ATENDER",
-                id: window.idSeleccionado,
-                tecnico: document.getElementById('tecNomina').value,
-                comentarios: document.getElementById('tecComentarios').value
-            };
+        if(!causa || !correctivo) return alert("Debes completar la causa de la falla y las acciones correctivas.");
 
-            if(!datos.tecnico) return alert("Ingresa tu clave de colaborador");
-            btn.disabled = true; btn.innerText = "Guardando...";
+        const datos = {
+            accion: "VALIDAR_TECNICO",
+            id: idActual,
+            tecnico: tecnico,
+            tijera: tijera,
+            causa: causa,
+            solucion: document.getElementById('correctivo').value
+        };
 
+        const btn = document.querySelector('#step2 .btn-action');
+        btn.innerText = "Guardando...";
+
+        try {
             await fetch(scriptURL, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
             
-            cerrarModal();
-            cargarDatos(); // Recargar todo
+            if (requiereFirma) {
+                document.getElementById('step2').style.display = 'none';
+                document.getElementById('qrSection').style.display = 'block';
+                // Lógica futura: Generar QR real con ID de tarea
+            } else {
+                alert("Atención guardada correctamente.");
+                location.reload();
+            }
+        } catch (e) {
+            alert("Error al guardar datos.");
         }
+    }
 
-        cargarDatos();
+    // Cargar al inicio y refrescar cada 30 seg
+    cargarPendientes();
+    setInterval(cargarPendientes, 30000);
 
-        function formatFechaInteligente(fechaa) {
-            if (!fechaa) return "---";
-            const ahora = new Date();
-            const registro = new Date(fechaa);
-            if (isNaN(registro.getTime())) return fechaa;
-        
-            const diferenciaSegundos = Math.floor((ahora - registro) / 1000);
-            
-            if (diferenciaSegundos < 86400 && diferenciaSegundos >= 0) {
-                if (diferenciaSegundos < 60) return 'hace un momento';
-                const intervalos = { hora: 3600, minuto: 60 };
-                for (let unidad in intervalos) {
-                    const cociente = Math.floor(diferenciaSegundos / intervalos[unidad]);
-                    if (cociente >= 1) return 'hace ' + cociente + ' ' + unidad + (cociente > 1 ? 's' : '');
-                }
-            } 
-            return registro.toLocaleString('es-MX', {
-                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true
-            });
+    // Cerrar modal al hacer click fuera
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('modalTarea')) {
+            document.getElementById('modalTarea').style.display = "none";
         }
-        
-    </script>
+    }
+</script>
+
 </body>
 </html>
