@@ -3,63 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validación de Conductor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>Firma Digital</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f5f5f7; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; padding: 30px; border-radius: 30px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        h1 { font-size: 28px; letter-spacing: -1px; margin-bottom: 10px; }
-        p { color: #86868b; font-size: 16px; margin-bottom: 30px; }
-        .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 12px; font-weight: 700; color: #007aff; text-transform: uppercase; margin-bottom: 8px; }
-        input { width: 100%; padding: 20px; border-radius: 15px; border: 1px solid #e5e5ea; font-size: 24px; font-weight: 700; box-sizing: border-box; text-align: center; }
-        .btn-confirm { width: 100%; background: #007aff; color: white; border: none; padding: 20px; border-radius: 15px; font-size: 18px; font-weight: 700; cursor: pointer; }
-        #mensaje { margin-top: 20px; text-align: center; font-weight: 600; }
+        body { font-family: sans-serif; background: #f5f5f7; padding: 20px; text-align: center; }
+        .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 15px; font-size: 20px; border-radius: 10px; border: 1px solid #ddd; margin: 15px 0; text-align: center; }
+        .btn { background: #007aff; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="card" id="mainCard">
-        <h1>Confirmar Atención</h1>
-        <p>Introduce tu clave de conductor para finalizar el reporte de la unidad.</p>
-        
-        <div class="input-group">
-            <label>Clave de Conductor</label>
-            <input type="password" id="clave" inputmode="numeric" placeholder="••••••••">
-        </div>
-
-        <button class="btn-confirm" onclick="validarFirma()">Confirmar de Conformidad</button>
-        <div id="mensaje"></div>
+    <div class="box">
+        <h3>Confirmación de Servicio</h3>
+        <p>Introduce tu clave de conductor para validar la reparación de esta unidad.</p>
+        <input type="password" id="nip" placeholder="Ingresa tu Clave de Conductor" inputmode="numeric">
+        <button class="btn" onclick="enviarFirma()">Validar y Cerrar</button>
+        <p id="status"></p>
     </div>
 
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
-        // Obtenemos el ID de la falla desde la URL (?id=F-123456)
-        const urlParams = new URLSearchParams(window.location.search);
-        const idFalla = urlParams.get('id');
+        const idFalla = new URLSearchParams(window.location.search).get('id');
 
-        async function validarFirma() {
-            const clave = document.getElementById('clave').value;
-            const msg = document.getElementById('mensaje');
+        async function enviarFirma() {
+            const nip = document.getElementById('nip').value;
+            if(!nip) return alert("Escribe tu clave.");
             
-            if(!clave) return;
+            document.getElementById('status').innerText = "Validando...";
             
-            msg.innerText = "Verificando...";
-            
-            const response = await fetch(scriptURL, {
+            await fetch(scriptURL, {
                 method: "POST",
                 mode: "no-cors",
                 body: JSON.stringify({
                     accion: "firmarToken",
                     id: idFalla,
-                    claveConductor: clave
+                    claveConductor: nip
                 })
             });
 
-            // Como es no-cors, daremos un margen de tiempo y avisaremos al usuario
             setTimeout(() => {
-                msg.innerHTML = "<span style='color:#34c759;'>✔ Proceso enviado. Si tu clave es correcta, el reporte se cerrará en breve. Ya puedes cerrar esta ventana.</span>";
-                document.querySelector('.btn-confirm').style.display = 'none';
-                document.getElementById('clave').disabled = true;
+                alert("¡Gracias! Si los datos son correctos, el reporte se cerrará automáticamente.");
+                window.close();
             }, 1500);
         }
     </script>
