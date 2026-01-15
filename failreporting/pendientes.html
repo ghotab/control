@@ -210,8 +210,12 @@
         try {
             const res = await fetch(`${scriptURL}?accion=leerPendientes`);
             const tareas = await res.json();
+            
             const lista = document.getElementById('taskList');
+            const listaFirmas = document.getElementById('taskListFirmas');
+            
             lista.innerHTML = "";
+            listaFirmas.innerHTML = "";
     
             if (tareas.length === 0) {
                 lista.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay fallas pendientes.</p>";
@@ -227,7 +231,18 @@
                         </div>
                         <div class="status-badge">${t[6]}</div>
                     </div>`;
+                // Clasificamos por estatus
+                if (t[6] === "PENDIENTE") {
+                    listaPendientes.innerHTML += cardHTML;
+                } else if (t[6] === "ESPERANDO_FIRMA") {
+                    listaFirmas.innerHTML += cardHTML;
+                }
+                
             });
+            // Mensajes por si están vacíos
+            if (listaPendientes.innerHTML === "") listaPendientes.innerHTML = "<p style='text-align:center; color:gray;'>No hay trabajos nuevos.</p>";
+            if (listaFirmas.innerHTML === "") listaFirmas.innerHTML = "<p style='text-align:center; color:gray;'>No hay firmas pendientes.</p>";
+            
             document.getElementById('sync-status').innerHTML = '<i class="fa-solid fa-check-circle"></i> Sincronizado';
         } catch (e) {
             document.getElementById('sync-status').innerHTML = '<span style="color:red;">Error de red</span>';
