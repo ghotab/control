@@ -242,16 +242,40 @@
     }
     
     // 3. ABRIR TAREA
-    function abrirTarea(id, eco, base) {
+    function abrirTarea(id, eco, base,estatus) {
         idActual = id;
         document.getElementById('modalTarea').style.display = 'flex';
         document.getElementById('modalTitle').innerText = "Unidad " + eco;
         document.getElementById('modalBase').innerText = "Base: " + base;
-        document.getElementById('step1').style.display = 'block';
-        document.getElementById('step2').style.display = 'none';
-        document.getElementById('qrSection').style.display = 'none';
-        document.getElementById('claveTecnico').value = "";
-        actualizarTextoBoton(); // Resetear texto del botón
+
+        // Si la tarea ya fue atendida y espera firma
+        if (estatus === "ESPERANDO_FIRMA") {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('qrSection').style.display = 'block';
+            // --- BOTÓN SECRETO DE CIERRE FORZADO ---
+            // puedes forzar el cierre. 
+            const adminBtn = document.createElement("button");
+            adminBtn.innerText = "Cierre Administrativo (Gerencia)";
+            adminBtn.className = "btn-action";
+            adminBtn.style.background = "#ff3b30"; // Rojo macOS
+            adminBtn.onclick = () => cierreForzado(id);
+            
+            // Solo lo añadimos si no existe ya
+            if(!document.getElementById('btnAdmin')) {
+                adminBtn.id = 'btnAdmin';
+                document.getElementById('qrSection').appendChild(adminBtn);
+            }
+            
+            mostrarQR(id);
+        } else {
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('qrSection').style.display = 'none';
+            document.getElementById('claveTecnico').value = "";
+            actualizarTextoBoton(); // Resetear texto del botón
+        }
+            
     }
     
     // 4. VALIDAR TÉCNICO (ENTRAR AL DETALLE)
@@ -345,6 +369,22 @@
             alert("Error al enviar. Intenta de nuevo.");
             btn.disabled = false;
             btn.innerText = "Reintentar Guardar";
+        }
+    }
+
+    //Cierre forzado
+    async function cierreForzado(id) {
+        const pass = prompt("Introduce la clave gerencial para forzar el cierre:");
+        if (pass === "RR245a2177") { 
+            const datos = {
+                accion: "CIERRE_FORZADO",
+                id: id
+            };
+            await fetch(scriptURL, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
+            alert("Cierre administrativo realizado.");
+            location.reload();
+        } else {
+            alert("Clave incorrecta.");
         }
     }
     
