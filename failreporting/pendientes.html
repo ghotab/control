@@ -127,7 +127,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>Reportes de Operador Pendientes</h1>
+        <h1>Pendientes de Atención</h1>
         <div id="sync-status"><i class="fa-solid fa-rotate"></i> Actualizado</div>
     </div>
 
@@ -137,9 +137,11 @@
 
     <div class="header" style="margin-top: 40px;">
         <h1>Pendientes de Firma</h1>
+        <div id="sync-status"><i class="fa-solid fa-rotate"></i> Actualizado</div>
     </div>
     
     <div id="taskListFirmas" class="task-list">
+        <p style="text-align: center; color: var(--text-sec);">Cargando reportes pendientes de firma...</p>
     </div>
     
 </div>
@@ -218,34 +220,41 @@
             listaFirmas.innerHTML = "";
     
             if (tareas.length === 0) {
-                lista.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>No hay fallas pendientes.</p>";
+                lista.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Sin pendientes por atender.</p>";
+                listaFirmas.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Sin pendientes de firma.</p>";
                 return;
             }
     
             tareas.forEach(t => {
-                lista.innerHTML += `
-                    <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}')">
-                        <div class="task-info">
-                            <h2>Unidad ${t[3]}</h2>
-                            <p>Base: ${t[2]} • ID: ${t[0]}</p>
-                        </div>
-                        <div class="status-badge">${t[6]}</div>
-                    </div>`;
-                // Clasificamos por estatus
-                if (t[6] === "PENDIENTE") {
-                    listaPendientes.innerHTML += cardHTML;
-                } else if (t[6] === "ESPERANDO_FIRMA") {
+                // Normalizamos el estatus para evitar errores
+                let estatus = t[6] ? t[6].toString().toUpperCase().trim() : "";
+                
+                let cardHTML = `
+                <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}', '${estatus}')">
+                    <div class="task-info">
+                        <h2>Unidad ${t[3]}</h2>
+                        <p>Base: ${t[2]} • ID: ${t[0]}</p>
+                    </div>
+                    <div class="status-badge" style="background: ${estatus === 'ESPERANDO_FIRMA' ? '#ff9500' : '#f2f2f7'}; 
+                         color: ${estatus === 'ESPERANDO_FIRMA' ? 'white' : 'var(--accent)'};">
+                        ${estatus}
+                    </div>
+                </div>`;
+
+                // LA CLAVE: Aquí es donde se dividen
+                if (estatus === "PENDIENTE") {
+                    lista.innerHTML += cardHTML;
+                } else if (estatus === "ESPERANDO_FIRMA") {
                     listaFirmas.innerHTML += cardHTML;
                 }
-                
             });
-            // Mensajes por si están vacíos
-            if (listaPendientes.innerHTML === "") listaPendientes.innerHTML = "<p style='text-align:center; color:gray;'>No hay trabajos nuevos.</p>";
-            if (listaFirmas.innerHTML === "") listaFirmas.innerHTML = "<p style='text-align:center; color:gray;'>No hay firmas pendientes.</p>";
-            
-            document.getElementById('sync-status').innerHTML = '<i class="fa-solid fa-check-circle"></i> Sincronizado';
+    
+            // Mensajes de lista vacía
+            if (lista.innerHTML === "") lista.innerHTML = "<p style='padding:20px; color:gray; text-align:center;'>No hay reportes nuevos.</p>";
+            if (listaFirmas.innerHTML === "") listaFirmas.innerHTML = "<p style='padding:20px; color:gray; text-align:center;'>Todo firmado.</p>";
+    
         } catch (e) {
-            document.getElementById('sync-status').innerHTML = '<span style="color:red;">Error de red</span>';
+            console.error("Error cargando datos:", e);
         }
     }
     
@@ -257,40 +266,44 @@
     }
     
     // 3. ABRIR TAREA
-    function abrirTarea(id, eco, base,estatus) {
+   function abrirTarea(id, eco, base, estatus) {
         idActual = id;
-        document.getElementById('modalTarea').style.display = 'flex';
+        const modal = document.getElementById('modalTarea');
+        modal.style.display = 'flex';
         document.getElementById('modalTitle').innerText = "Unidad " + eco;
         document.getElementById('modalBase').innerText = "Base: " + base;
-
-        // Si la tarea ya fue atendida y espera firma
+        
+        // 1. Limpiamos visualmente el modal antes de decidir qué mostrar
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('qrSection').style.display = 'none';
+    
+        // 2. BLOQUEO DE EDICIÓN: Si ya fue atendida, solo mostramos el QR
         if (estatus === "ESPERANDO_FIRMA") {
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'none';
             document.getElementById('qrSection').style.display = 'block';
-            // --- BOTÓN SECRETO DE CIERRE FORZADO ---
-            // puedes forzar el cierre. 
-            const adminBtn = document.createElement("button");
-            adminBtn.innerText = "Cierre Administrativo (Gerencia)";
-            adminBtn.className = "btn-action";
-            adminBtn.style.background = "#ff3b30"; // Rojo macOS
-            adminBtn.onclick = () => cierreForzado(id);
             
-            // Solo lo añadimos si no existe ya
-            if(!document.getElementById('btnAdmin')) {
-                adminBtn.id = 'btnAdmin';
-                document.getElementById('qrSection').appendChild(adminBtn);
-            }
-            
+            // Generamos el QR para que el operador lo vea
             mostrarQR(id);
-        } else {
-            document.getElementById('step1').style.display = 'block';
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('qrSection').style.display = 'none';
-            document.getElementById('claveTecnico').value = "";
-            actualizarTextoBoton(); // Resetear texto del botón
-        }
+    
+            // Agregamos el botón de Cierre Administrativo (Solo visible para ti/Gerente)
+            // Eliminamos si ya existía para no duplicar
+            const btnPrevio = document.getElementById('btnCierreForzado');
+            if (btnPrevio) btnPrevio.remove();
+    
+            const btnForzado = document.createElement('button');
+            btnForzado.id = 'btnCierreForzado';
+            btnForzado.innerText = "Cierre Administrativo (Gerencia)";
+            btnForzado.className = "btn-action";
+            btnForzado.style.backgroundColor = "#ff3b30"; // Rojo macOS/iOS
+            btnForzado.style.marginTop = "20px";
+            btnForzado.onclick = () => cierreForzado(id);
             
+            document.getElementById('qrSection').appendChild(btnForzado);
+    
+        } else {
+            // 3. FLUJO NORMAL: Si es PENDIENTE, pedimos clave técnica
+            document.getElementById('step1').style.display = 'block';
+        }
     }
     
     // 4. VALIDAR TÉCNICO (ENTRAR AL DETALLE)
@@ -390,16 +403,38 @@
     //Cierre forzado
     async function cierreForzado(id) {
         const pass = prompt("Introduce la clave gerencial para forzar el cierre:");
+        
+        // Switch de validación de clave
         if (pass === "RR245a2177") { 
+            const btn = document.getElementById('btnCierreForzado');
+            btn.innerText = "Procesando...";
+            btn.disabled = true;
+    
             const datos = {
                 accion: "CIERRE_FORZADO",
                 id: id
             };
-            await fetch(scriptURL, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
-            alert("Cierre administrativo realizado.");
-            location.reload();
-        } else {
-            alert("Clave incorrecta.");
+    
+            try {
+                await fetch(scriptURL, { 
+                    method: "POST", 
+                    mode: "no-cors", 
+                    body: JSON.stringify(datos) 
+                });
+                
+                // Pausa de cortesía para que el GS termine de escribir
+                setTimeout(() => {
+                    alert("✅ El reporte ha sido finalizado administrativamente.");
+                    location.reload();
+                }, 1000);
+                
+            } catch (e) {
+                alert("Error de conexión al intentar cerrar.");
+                btn.disabled = false;
+                btn.innerText = "Cierre Administrativo (Gerencia)";
+            }
+        } else if (pass !== null) {
+            alert("❌ Clave incorrecta. Acceso denegado.");
         }
     }
     
