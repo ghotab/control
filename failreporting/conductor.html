@@ -159,6 +159,29 @@
     </div>
 
     <script>
+
+        // Al cargar la página, recuperamos la base guardada
+        window.addEventListener('load', () => {
+            const baseGuardada = localStorage.getItem('baseConfigurada');
+            if (baseGuardada) {
+                document.getElementById('baseFalla').value = baseGuardada;
+            }
+        });
+        
+        // Guardar la base automáticamente cuando cambie
+        document.getElementById('baseFalla').addEventListener('change', (e) => {
+            localStorage.setItem('baseConfigurada', e.target.value);
+        });
+
+        // Función para bloquear/desbloquear el selector (solo si tú quieres)
+        function toggleBloqueoBase() {
+            const select = document.getElementById('baseFalla');
+            select.disabled = !select.disabled;
+            // Cambiamos el color para que sepa que está bloqueado
+            select.style.opacity = select.disabled ? "0.6" : "1";
+        }
+        
+        
         function toggleOtro(val) {
             const textarea = document.getElementById('otraFalla');
             textarea.style.display = (val === 'OTRO') ? 'block' : 'none';
@@ -167,7 +190,13 @@
 
         async function enviarReporte() {
             const btn = document.querySelector('.btn-submit');
+            const base = document.getElementById('baseFalla').value;
             const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
+
+            if (!base) {
+                alert("⚠️ Por favor, selecciona la base antes de registrar la falla.");
+                return;
+            }
             
             const datos = {
                 accion: "NUEVO",
