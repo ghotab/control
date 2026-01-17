@@ -3,203 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitacora de Fallas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Historial de Mantenimiento</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --anydo-blue: #0085ff; --bg: #f8f9fa; --text: #2c2c2c; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        
-        .search-container {
-            background: white; padding: 25px; border-radius: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px;
-            position: sticky; top: 10px; z-index: 10;
-        }
-        
-        .label-sm { font-size: 12px; font-weight: 700; color: var(--anydo-blue); text-transform: uppercase; margin-bottom: 10px; display: block; }
-        
-        .search-box { display: flex; align-items: center; gap: 15px; }
-        input#busquedaEco { 
-            border: none; font-size: 28px; font-weight: 800; width: 100%; outline: none;
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --accent: #007aff;
+            --text-main: #000000;
+            --text-sec: #8e8e93;
+            --border: #e5e5ea;
+            --success: #34c759;
+            --warning: #ff9500;
+            --danger: #ff3b30;
         }
 
+        body {
+            font-family: '-apple-system', 'SF Pro Display', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* HEADER ESTILO IOS */
+        .header {
+            margin-bottom: 25px;
+            padding: 10px 5px;
+        }
+
+        .header h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .sync-info {
+            font-size: 13px;
+            color: var(--text-sec);
+            margin-top: 5px;
+        }
+
+        /* GRUPO DE AJUSTES/FILTROS */
+        .settings-group {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item:last-child { border-bottom: none; }
+
+        .setting-item label {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .setting-item select, .setting-item input {
+            border: none;
+            background: none;
+            color: var(--accent);
+            font-size: 16px;
+            font-weight: 500;
+            text-align: right;
+            outline: none;
+            width: 50%;
+        }
+
+        /* SEPARADORES DE FECHA */
+        .date-divider {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-sec);
+            margin: 25px 0 10px 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* TARJETAS DE HISTORIAL */
         .history-card {
-            background: white; border-radius: 20px; padding: 20px;
-            margin-bottom: 15px; border: 1px solid #edf2f7;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.2s;
         }
 
-        .status-pill {
-            display: inline-block; padding: 4px 12px; border-radius: 20px;
-            font-size: 11px; font-weight: 700; margin-bottom: 10px;
-        }
-        .open { background: #fff5f5; color: #ff4d4d; }
-        .closed { background: #f0fff4; color: #27ae60; }
+        .history-card:active { transform: scale(0.98); }
 
-        .timeline-item { border-left: 2px solid #edf2f7; margin-left: 10px; padding-left: 20px; position: relative; }
-        .timeline-item::before { 
-            content: ''; position: absolute; left: -7px; top: 5px; 
-            width: 12px; height: 12px; border-radius: 50%; background: #d1d1d1;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
         }
-        .date { font-size: 12px; color: #909090; display: block; }
-        .detail { font-size: 15px; margin: 5px 0 15px 0; font-weight: 500; }
+
+        .unit-eco {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .card-body p {
+            font-size: 14px;
+            margin: 4px 0;
+            color: #3a3a3c;
+            line-height: 1.4;
+        }
+
+        .card-footer {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #f2f2f7;
+            font-size: 11px;
+            color: var(--text-sec);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* BOTÓN VER MÁS */
+        .btn-more {
+            width: 100%;
+            background: var(--card-bg);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0 40px 0;
+            cursor: pointer;
+        }
+
+        .btn-more:active { background: #f9f9f9; }
+
+        /* ESTADOS DE ESTATUS */
+        .st-pendiente { color: var(--danger); background: #ffebeb; }
+        .st-esperando { color: var(--warning); background: #fff5e6; }
+        .st-finalizado { color: var(--success); background: #e8f9ee; }
     </style>
 </head>
 <body>
 
-    <div class="search-container">
-        <span class="label-sm">Historico de Fallas por Autobús</span>
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; color: #ccc;"></i>
-            <input type="number" id="busquedaEco" placeholder="Número de Autobus. Ej. 55066" oninput="filtrarHistorial()">
+<div class="container">
+    <div class="header">
+        <h1>Historial</h1>
+        <div id="sync-info" class="sync-info">Sincronizando con base de datos...</div>
+    </div>
+
+    <div class="settings-group">
+        <div class="setting-item">
+            <label>Base</label>
+            <select id="filtroBase" onchange="reiniciarPaginacion()">
+                <option value="TODAS">Todas las Bases</option>
+                <option value="ATLA">Atlacomulco</option>
+                <option value="COLI">Colima</option>
+                <option value="GUZM">Ciudad Guzmán</option>
+                <option value="GDLJ">Guadalajara</option>
+                <option value="JILO">Jilotepec</option>
+                <option value="MORE">Morelia</option>
+                <option value="OFOC">Occidente</option>
+                <option value="TSAT">Saturno</option>
+                <option value="TOLU">Toluca</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <label>Económico</label>
+            <input type="number" id="inputEco" placeholder="5 dígitos" oninput="evaluarBusquedaEco()">
         </div>
     </div>
 
-    <div id="resultados"><div>
+    <div id="historialList"></div>
 
-    <div id="pagination-container" style="text-align: center; margin: 30px 0; display: none;">
-        <button id="btnCargarMas" onclick="cargarMas()" 
-                style="background: white; border: 2px solid var(--anydo-blue); color: var(--anydo-blue); 
-                       padding: 15px 40px; border-radius: 50px; font-weight: 700; cursor: pointer;">
-            Cargar más registros
-        </button>
-    </div>
+    <button id="btnCargarMas" class="btn-more" onclick="cargarMas()" style="display:none;">Ver más registros</button>
+</div>
 
-    <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
-        let todosLosRegistros = [];
-        let filtradosGlobal=[]; // Para guardar el resultado de la busqueda
-        let registrosVisibles = 20; // Mostremos 20 cada vez
-        
+<script>
+    const scriptURL = "TU_URL_DE_APPS_SCRIPT"; // <--- PEGA TU URL AQUÍ
+    let todosLosRegistros = [];
+    let registrosFiltrados = [];
+    let cantidadMostrada = 20;
 
-        async function cargarTodo() {
-            const container = document.getElementById('resultados');
-            container.innerHTML = "<p style='text-align:center; color:var(--anydo-blue);'>Sincronizando historial...</p>";
-            
-            try {
-                const res = await fetch(scriptURL);
-                todosLosRegistros = await res.json();
-                container.innerHTML = "<p style='text-align:center; color:#ccc;'>Listo. Ingrese un económico para buscar.</p>";
-            } catch (e) { 
-                console.error("Error cargando historial", e); 
-            }
+    // 1. CARGA INICIAL
+    async function init() {
+        try {
+            const response = await fetch(`${scriptURL}?accion=leerHistorial`);
+            todosLosRegistros = await response.json();
+            reiniciarPaginacion();
+        } catch (e) {
+            document.getElementById('sync-info').innerText = "Error al cargar datos.";
         }
+    }
 
-        function filtrarHistorial() {
-            const eco = document.getElementById('busquedaEco').value;
-            const container = document.getElementById('resultados');
-            const pagination = document.getElementById('pagination-container');
-            container.innerHTML = "";
+    // 2. LÓGICA DE FILTROS
+    function evaluarBusquedaEco() {
+        const eco = document.getElementById('inputEco').value;
+        if (eco.length === 5 || eco.length === 0) {
+            reiniciarPaginacion();
+        }
+    }
 
-            if (eco.length < 5) {
-                container.innerHTML = "";
-                pagination.style.display = "none";
-                return; // Empezar a buscar solo al tener 5 dígitos
+    function reiniciarPaginacion() {
+        cantidadMostrada = 20;
+        aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+        const base = document.getElementById('filtroBase').value;
+        const eco = document.getElementById('inputEco').value;
+
+        registrosFiltrados = todosLosRegistros.filter(r => {
+            const matchBase = (base === "TODAS" || r[2].toString().trim() === base);
+            const matchEco = (eco === "" || r[3].toString().includes(eco));
+            return matchBase && matchEco;
+        });
+
+        renderizar();
+    }
+
+    // 3. RENDERIZADO ESTILO IPHONE
+    function renderizar() {
+        const lista = document.getElementById('historialList');
+        const btn = document.getElementById('btnCargarMas');
+        const ecoBuscado = document.getElementById('inputEco').value;
+        lista.innerHTML = "";
+
+        const subset = registrosFiltrados.slice(0, cantidadMostrada);
+        let ultimaFecha = "";
+
+        subset.forEach(r => {
+            const fechaRaw = r[1].toString().split('T')[0]; // Formato YYYY-MM-DD
+            const estatus = r[6].toString().trim().toUpperCase();
+            
+            // Si no hay búsqueda por eco, mostramos separadores de fecha
+            if (ecoBuscado === "" && fechaRaw !== ultimaFecha) {
+                lista.innerHTML += `<div class="date-divider">${formatearFecha(fechaRaw)}</div>`;
+                ultimaFecha = fechaRaw;
             }
 
-            // Filtramos y ordenamos. Todo se guarda hasta este momento en memoria
-            filtradosGlobal=todosLosRegistros
-                .filter(r => r.eco.toString().includes(eco))
-                .sort((a, b) => new Date(b.fechaReporte) - new Date(a.fechaReporte));
+            let claseEstatus = "st-pendiente";
+            if(estatus === "ESPERANDO_FIRMA") claseEstatus = "st-esperando";
+            if(estatus === "FINALIZADO") claseEstatus = "st-finalizado";
 
-                registrosVisibles = 20; //Reiniciamos el contador al buscar nueva unidad
-                renderizarPagina();
-            }
-
-            // ESTA ES LA FUNCIÓN NUEVA QUE REEMPLAZA TU BUCLE ANTERIOR
-        function renderizarPagina() {
-            const container = document.getElementById('resultados');
-            const pagination = document.getElementById('pagination-container');
-            
-            // Cortamos el pastel: solo mostramos desde el 0 hasta el número visible
-            const corte = filtradosGlobal.slice(0, registrosVisibles);
-            
-            let html = "";
-            corte.forEach(r => {
-                const statusClass = r.estatus === 'ABIERTO' ? 'open' : 'closed';
-
-                // Aplicamos la lógica híbrida
-                const txtReporte = formatFechaInteligente(r.fecha);
-                const txtAtencion = r.fechaAtencion ? formatFechaInteligente(r.fechaAtencion) : "Pendiente";
-               
-                    
-                html += `
-                    <div class="history-card">
-                        <div class="status-pill ${statusClass}">${r.estatus}</div>
-                        <div style="float:right; font-weight:700; color:#999">#${r.eco}</div>
-                        
-                        <div class="timeline-item">
-                            <span class="date">Reportado: ${txtReporte}</span>
-                            <p class="detail"><strong>Falla:</strong> ${r.falla}</p>
-                        </div>
-                        
-                        <div class="timeline-item" style="border:none">
-                            <span class="date">Atendido: ${txtAtencion}</span>
-                            <p class="detail"><strong>Técnico:</strong> ${r.tecnico || '---'}<br>
-                               <span style="font-size:13px; color:#666">${r.comentarios || 'En espera de atención...'}</span>
-                            </p>
-                        </div>
+            lista.innerHTML += `
+                <div class="history-card">
+                    <div class="card-header">
+                        <h2 class="unit-eco">Unidad ${r[3]}</h2>
+                        <span class="status-badge ${claseEstatus}">${estatus.replace('_', ' ')}</span>
                     </div>
-                `;
-            });
-    
-            container.innerHTML = html;
-    
-            // Lógica del botón "Cargar más"
-            if (filtradosGlobal.length > registrosVisibles) {
-                pagination.style.display = "block";
-            } else {
-                pagination.style.display = "none";
-            }
-        }
-    
-        // FUNCIÓN PARA EL BOTÓN
-        function cargarMas() {
-            registrosVisibles += 20;
-            renderizarPagina();
-        }
-    
-        cargarTodo();
-        
-        function formatFechaInteligente(fechaa) {
-            if (!fechaa) return "---";
-            const ahora = new Date();
-            const registro = new Date(fechaa);
-            
-            if (isNaN(registro.getTime())) return fechaa;
-        
-            const diferenciaSegundos = Math.floor((ahora - registro) / 1000);
+                    <div class="card-body">
+                        <p><b>Falla:</b> ${r[5]}</p>
+                        <p><b>Correctivo:</b> ${r[11] || '<em>Sin reporte aún</em>'}</p>
+                    </div>
+                    <div class="card-footer">
+                        <span><i class="fa-solid fa-wrench"></i> ${r[9] || 'Pendiente'}</span>
+                        <span>ID: ${r[0]}</span>
+                    </div>
+                </div>
+            `;
+        });
 
-            if (diferenciaSegundos < 60 && diferenciaSegundos >= 0) return 'hace un momento';
-            
-            // Si tiene menos de 24 horas, mostramos tiempo relativo
-            if (diferenciaSegundos < 86400) {
-                if (diferenciaSegundos < 60) return 'hace un momento';
-                
-                const intervalos = {
-                    hora: 3600,
-                    minuto: 60
-                };
-        
-                for (let unidad in intervalos) {
-                    const cociente = Math.floor(diferenciaSegundos / intervalos[unidad]);
-                    if (cociente >= 1) {
-                        return 'hace ' + cociente + ' ' + unidad + (cociente > 1 ? 's' : '');
-                    }
-                }
-            } 
-            
-            // Si tiene más de 24 horas, mostramos Fecha y Hora exacta
-            return registro.toLocaleString('es-MX', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-        }
-        
-    </script>
+        btn.style.display = (cantidadMostrada < registrosFiltrados.length) ? "block" : "none";
+        document.getElementById('sync-info').innerText = `${registrosFiltrados.length} registros encontrados`;
+    }
+
+    function cargarMas() {
+        cantidadMostrada += 20;
+        renderizar();
+    }
+
+    function formatearFecha(f) {
+        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const fecha = new Date(f + "T12:00:00");
+        return fecha.toLocaleDateString('es-ES', opciones);
+    }
+
+    // Iniciar app
+    init();
+</script>
+
 </body>
 </html>
