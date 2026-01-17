@@ -131,6 +131,23 @@
         <div id="sync-status"><i class="fa-solid fa-rotate"></i> Actualizado</div>
     </div>
 
+    <div class="header" style="margin-top: 20px;">
+        <label for="filtroBase" style="font-size: 12px; font-weight: 700; color: #86868b; display: block; margin-bottom: 8px; text-transform: uppercase;">Filtrar por Base</label>
+        <select id="filtroBase" onchange="guardarFiltroYRefrescar()" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e5e5ea; background: white; font-size: 16px; font-weight: 600; appearance: none;">
+            <option value="TODAS">📍 Todas las Bases</option>
+            <option value="ATLA">Atlacomulco</option>
+            <option value="COLI">Colima</option>
+            <option value="GUZM">Ciudad Guzmán</option>
+            <option value="GDLJ">Guadalajara</option>
+            <option value="JILO">Jilotepec</option>
+            <option value="MORE">Morelia</option>
+            <option value="OFOC">Occidente</option>
+            <option value="TSAT">Saturno</option>
+            <option value="TOLU">Toluca</option>
+        </select>
+    </div>
+    
+
     <div id="taskList" class="task-list">
         <p style="text-align: center; color: var(--text-sec);">Cargando reporte de fallas...</p>
     </div>
@@ -206,9 +223,24 @@
 <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec"; 
     let idActual = "";
+
+    // Al cargar la página, recuperar el filtro guardado
+    window.onload = () => {
+        const baseGuardada = localStorage.getItem('filtroBaseSeleccionada') || "TODAS";
+        document.getElementById('filtroBase').value = baseGuardada;
+        cargarPendientes();
+    };
+    
+    function guardarFiltroYRefrescar() {
+        const base = document.getElementById('filtroBase').value;
+        localStorage.setItem('filtroBaseSeleccionada', base); // Guardar en memoria
+        cargarPendientes(); // Refrescar lista inmediatamente
+    }
     
     // 1. CARGA AUTOMÁTICA
     async function cargarPendientes() {
+        const filtroBase = document.getElementById('filtroBase').value;
+        
         try {
             const res = await fetch(`${scriptURL}?accion=leerPendientes`);
             const tareas = await res.json();
@@ -226,26 +258,29 @@
             }
     
             tareas.forEach(t => {
+                const baseUnidad = t[2].toString().toUpperCase().trim();
                 // Normalizamos el estatus para evitar errores
                 let estatus = t[6] ? t[6].toString().toUpperCase().trim() : "";
-                
-                let cardHTML = `
-                <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}', '${estatus}')">
-                    <div class="task-info">
-                        <h2>Unidad ${t[3]}</h2>
-                        <p>Base: ${t[2]} • ID: ${t[0]}</p>
-                    </div>
-                    <div class="status-badge" style="background: ${estatus === 'ESPERANDO_FIRMA' ? '#ff9500' : '#f2f2f7'}; 
-                         color: ${estatus === 'ESPERANDO_FIRMA' ? 'white' : 'var(--accent)'};">
-                        ${estatus}
-                    </div>
-                </div>`;
 
-                // LA CLAVE: Aquí es donde se dividen
-                if (estatus === "PENDIENTE") {
-                    lista.innerHTML += cardHTML;
-                } else if (estatus === "ESPERANDO_FIRMA") {
-                    listaFirmas.innerHTML += cardHTML;
+                if (filtroBase === "TODAS" || baseUnidad === filtroBase) {
+                    let cardHTML = `
+                    <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}', '${estatus}')">
+                        <div class="task-info">
+                            <h2>Unidad ${t[3]}</h2>
+                            <p>Base: ${t[2]} • ID: ${t[0]}</p>
+                        </div>
+                        <div class="status-badge" style="background: ${estatus === 'ESPERANDO_FIRMA' ? '#ff9500' : '#f2f2f7'}; 
+                             color: ${estatus === 'ESPERANDO_FIRMA' ? 'white' : 'var(--accent)'};">
+                            ${estatus}
+                        </div>
+                    </div>`;
+
+                    // LA CLAVE: Aquí es donde se dividen
+                    if (estatus === "PENDIENTE") {
+                        lista.innerHTML += cardHTML;
+                    } else if (estatus === "ESPERANDO_FIRMA") {
+                        listaFirmas.innerHTML += cardHTML;
+                    }
                 }
             });
     
