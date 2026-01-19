@@ -145,6 +145,36 @@
             justify-content: space-between;
         }
 
+        .segmented-control {
+            display: flex;
+            background: #e3e3e8;
+            border-radius: 10px;
+            padding: 2px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .segmented-control input {
+            display: none;
+        }
+        
+        .segmented-control label {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            z-index: 1;
+        }
+        
+        .segmented-control input:checked + label {
+            background: white;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+        }
+
         /* BOTÓN VER MÁS */
         .btn-more {
             width: 100%;
@@ -175,9 +205,17 @@
         <div id="sync-info" class="sync-info">Sincronizando con base de datos...</div>
     </div>
 
+    <div class="segmented-control">
+        <input type="radio" name="tipoFiltro" id="btnBase" value="base" checked onchange="switchFiltro()">
+        <label for="btnBase">Base</label>
+        
+        <input type="radio" name="tipoFiltro" id="btnBus" value="bus" onchange="switchFiltro()">
+        <label for="btnBus">Autobús</label>
+    </div>
+    
     <div class="settings-group">
-        <div class="setting-item">
-            <label>Base</label>
+        <div id="wrapperBase" class="setting-item">
+            <label>Seleccionar Base</label>
             <select id="filtroBase" onchange="reiniciarPaginacion()">
                 <option value="TODAS">Todas las Bases</option>
                 <option value="ATLA">Atlacomulco</option>
@@ -191,8 +229,9 @@
                 <option value="TOLU">Toluca</option>
             </select>
         </div>
-        <div class="setting-item">
-            <label>Económico</label>
+        
+        <div id="wrapperEco" class="setting-item" style="display: none;">
+            <label>Número Económico</label>
             <input type="number" id="inputEco" placeholder="5 dígitos" oninput="evaluarBusquedaEco()">
         </div>
     </div>
@@ -218,6 +257,24 @@
             document.getElementById('sync-info').innerText = "Error al cargar datos.";
         }
     }
+
+    function switchFiltro() {
+        const esBase = document.getElementById('btnBase').checked;
+        const wBase = document.getElementById('wrapperBase');
+        const wEco = document.getElementById('wrapperEco');
+        
+        if (esBase) {
+            wBase.style.display = 'flex';
+            wEco.style.display = 'none';
+            document.getElementById('inputEco').value = ""; // Limpiamos búsqueda
+        } else {
+            wBase.style.display = 'none';
+            wEco.style.display = 'flex';
+            document.getElementById('filtroBase').value = "TODAS"; // Reset base
+        }
+        reiniciarPaginacion();
+    }
+    
 
     // 2. LÓGICA DE FILTROS
     function evaluarBusquedaEco() {
