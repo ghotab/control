@@ -2,68 +2,232 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historico de Cambios</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Historial de Bandejas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <style>
         :root {
-            --primary: #007aff;
-            --bg: #ffffff;
-            --text-main: #000000;
-            --text-sub: #86868b;
-            --border: #f2f2f7;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-blue: #007aff;
+            --ios-text: #000000;
+            --ios-sub: #8e8e93;
+            --ios-border: #d1d1d6;
+            --ios-red: #ff3b30;
+            --ios-green: #34c759;
+            --ios-gray: #e5e5ea;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
+            padding: 0;
+            color: var(--ios-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container { width: 100%; max-width: 480px; }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
 
-        .header h1 { font-size: 38px; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
-        .header p { color: var(--text-sub); margin: 8px 0 25px 0; font-size: 17px; font-weight: 500; }
+        /* Header Estilo iOS Large Title */
+        .header {
+            margin-bottom: 25px;
+            padding-top: 10px;
+        }
 
-        /* Pestañas */
-        .tabs { background: #f2f2f7; padding: 5px; border-radius: 14px; display: flex; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; border: none; border-radius: 10px; background: transparent; font-weight: 700; color: var(--text-sub); cursor: pointer; }
-        .tab.active { background: white; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .header h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -1px;
+        }
 
-        /* Buscador Dual */
-        .search-container { position: relative; display: flex; align-items: center; margin-bottom: 20px; }
+        .header p {
+            font-size: 17px;
+            color: var(--ios-sub);
+            margin: 4px 0 0 0;
+            font-weight: 400;
+        }
+
+        /* Segmented Control Nativo */
+        .tabs {
+            background: rgba(118, 118, 128, 0.12);
+            padding: 2px;
+            border-radius: 9px;
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 7px 0;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ios-text);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab.active {
+            background: white;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04);
+        }
+
+        /* Buscador Refinado */
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
         .search-box {
-            background: #f5f5f7; border-radius: 16px; padding: 18px 20px;
-            display: flex; align-items: center; flex-grow: 1; transition: 0.3s;
+            background: rgba(118, 118, 128, 0.12);
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
         }
-        .search-box input { border: none; outline: none; background: transparent; width: 100%; font-size: 17px; font-weight: 600; margin-left: 10px; }
-        
-        /* Botón QR */
+
+        .search-box i {
+            color: var(--ios-sub);
+            font-size: 16px;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-size: 17px;
+            margin-left: 8px;
+            outline: none;
+            color: var(--ios-text);
+        }
+
         .btn-qr {
-            background: var(--primary); color: white; border: none;
-            width: 55px; height: 55px; border-radius: 16px;
-            margin-left: 10px; cursor: pointer; display: none; /* Oculto por defecto */
-            align-items: center; justify-content: center; font-size: 20px;
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
 
-        /* Modal del Escáner */
+        .btn-qr:active { opacity: 0.7; }
+
+        /* Tarjetas estilo "Pass" */
+        .card {
+            background: var(--ios-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 0.5px solid var(--ios-border);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ios-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .value-eco {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .badge-motivo {
+            background: var(--ios-gray);
+            color: var(--ios-text);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .transfer-row {
+            background: var(--ios-bg);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+
+        .transfer-item span {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 0.5px solid var(--ios-border);
+            font-size: 13px;
+            color: var(--ios-sub);
+        }
+
+        .footer-info b { color: var(--ios-text); }
+
+        /* Escáner Modal iOS */
         #reader-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        #reader { width: 300px; border-radius: 20px; overflow: hidden; background: white; }
-        .btn-close-scanner { margin-top: 20px; padding: 12px 25px; border-radius: 12px; border: none; background: white; font-weight: 700; }
 
-        /* Estilos de Tarjetas (Igual que el anterior) */
-        .card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
-        .label { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; }
-        .value { font-size: 22px; font-weight: 800; display: block; }
-        .transfer-row { display: flex; align-items: center; justify-content: space-between; background: #f9f9fb; padding: 18px; border-radius: 20px; margin: 15px 0; }
-        .footer-info { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; font-weight: 600; color: var(--text-sub); border-top: 1px solid var(--border); padding-top: 15px; }
-        b { color: var(--primary); }
+        #reader { width: 300px; border-radius: 20px; overflow: hidden; }
+
+        .btn-close-scanner {
+            margin-top: 40px;
+            background: white;
+            color: black;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -75,16 +239,16 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active" id="tabEco" onclick="setMode('ECO')">Unidad</button>
-        <button class="tab" id="tabSerial" onclick="setMode('SERIAL')">Codigo QR</button>
+        <button class="tab active" id="tabEco" onclick="setMode('ECO')">Por Unidad</button>
+        <button class="tab" id="tabSerial" onclick="setMode('SERIAL')">Por Código QR</button>
     </div>
 
     <div class="search-container">
         <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass" id="searchIcon"></i>
-            <input type="text" id="searchInput" placeholder="Escribir eco (5 dígitos)..." maxlength="5" oninput="validarYBuscar()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Eco (5 dígitos)..." oninput="validarYBuscar()">
         </div>
-        <button class="btn-qr" id="btnQr" onclick="abrirEscaner()">
+        <button class="btn-qr" id="btnQr" style="display: none;" onclick="abrirEscaner()">
             <i class="fa-solid fa-qrcode"></i>
         </button>
     </div>
@@ -94,10 +258,11 @@
 
 <div id="reader-modal">
     <div id="reader"></div>
-    <button class="btn-close-scanner" onclick="cerrarEscaner()">Cancelar</button>
+    <button class="btn-close-scanner" onclick="cerrarEscaner()">Cerrar</button>
 </div>
 
 <script>
+    // URL DE TU PROYECTO
     const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
     let modoBusqueda = "ECO"; 
     let todosLosRegistros = [];
@@ -107,32 +272,28 @@
         try {
             const response = await fetch(scriptURL);
             todosLosRegistros = await response.json();
-        } catch (e) { console.error(e); }
+            console.log("Datos cargados:", todosLosRegistros.length);
+        } catch (e) { 
+            console.error("Error cargando datos:", e); 
+        }
     }
 
     function setMode(modo) {
         modoBusqueda = modo;
         const input = document.getElementById('searchInput');
         const btnQr = document.getElementById('btnQr');
-        const searchIcon = document.getElementById('searchIcon');
-
-        // Reset UI
+        
         document.getElementById('tabEco').classList.toggle('active', modo === 'ECO');
         document.getElementById('tabSerial').classList.toggle('active', modo === 'SERIAL');
         
         if (modo === 'ECO') {
-            input.placeholder = "Escribir eco (5 dígitos)...";
-            input.type = "number";
-            input.maxLength = 5;
+            input.placeholder = "Eco (5 dígitos)...";
             input.readOnly = false;
             btnQr.style.display = "none";
-            searchIcon.style.display = "block";
         } else {
-            input.placeholder = "Escanea el código QR...";
-            input.type = "text";
-            input.readOnly = true; // No manual para Serial
+            input.placeholder = "Toca el código para escanear...";
+            input.readOnly = true;
             btnQr.style.display = "flex";
-            searchIcon.style.display = "none";
         }
         input.value = "";
         document.getElementById('resultados').innerHTML = "";
@@ -140,10 +301,10 @@
 
     function validarYBuscar() {
         const input = document.getElementById('searchInput');
-        if (modoBusqueda === 'ECO') {
-            // Solo buscar cuando tenga 5 dígitos
-            if (input.value.length === 5) buscar(input.value);
-            else document.getElementById('resultados').innerHTML = "";
+        if (modoBusqueda === 'ECO' && input.value.length === 5) {
+            buscar(input.value);
+        } else if (input.value === "") {
+            document.getElementById('resultados').innerHTML = "";
         }
     }
 
@@ -151,24 +312,23 @@
         query = query.toUpperCase();
         let filtrados = todosLosRegistros.filter(r => {
             if (modoBusqueda === 'ECO') return r.economico && r.economico.toString() === query;
-            return (r.bSube && r.bSube.includes(query)) || (r.bBaja && r.bBaja.includes(query));
+            return (r.bandejaSube && r.bandejaSube.includes(query)) || (r.bandejaBaja && r.bandejaBaja.includes(query));
         });
-        renderizar(filtrados, query);
+        renderizar(filtrados);
     }
 
-    // LÓGICA DEL ESCÁNER
     function abrirEscaner() {
         document.getElementById('reader-modal').style.display = 'flex';
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start(
             { facingMode: "environment" }, 
-            { fps: 10, qrbox: { width: 250, height: 250 } },
+            { fps: 15, qrbox: 250 },
             (decodedText) => {
                 document.getElementById('searchInput').value = decodedText;
                 buscar(decodedText);
                 cerrarEscaner();
             }
-        ).catch(err => alert("Error de cámara: " + err));
+        ).catch(err => alert("Cámara no disponible"));
     }
 
     function cerrarEscaner() {
@@ -179,25 +339,39 @@
         }
     }
 
-    function renderizar(data, query) {
+    function renderizar(data) {
         const container = document.getElementById('resultados');
         if (data.length === 0) {
-            container.innerHTML = '<div style="text-align:center; margin-top:40px; color:#86868b; font-weight:600;">Sin registros encontrados</div>';
+            container.innerHTML = '<div style="text-align:center; padding-top:50px; color:#8e8e93;">No hay registros para esta unidad</div>';
             return;
         }
 
         container.innerHTML = data.map(r => `
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div><span class="label">Unidad</span><span class="value">#${r.economico}</span></div>
-                    <span class="badge-motivo">${r.motivo || 'Servicio'}</span>
+                <div class="card-header">
+                    <div>
+                        <span class="label">Unidad</span>
+                        <span class="value-eco">#${r.economico}</span>
+                    </div>
+                    <span class="badge-motivo">${r.ledStatus === 'OK' ? '✅ OK' : '⚠️ FALLA'}</span>
                 </div>
+                
                 <div class="transfer-row">
-                    <div><span class="label" style="color:#ff3b30">Baja</span><span style="display:block; font-family:monospace; font-weight:700; font-size:15px;">${r.bBaja || '---'}</span></div>
-                    <i class="fa-solid fa-chevron-right" style="color:#c1c1c6"></i>
-                    <div style="text-align: right;"><span class="label" style="color:#34c759">Sube</span><span style="display:block; font-family:monospace; font-weight:700; font-size:15px;">${r.bSube || '---'}</span></div>
+                    <div class="transfer-item">
+                        <span class="label" style="color:var(--ios-red)">BAJA</span>
+                        <span>${r.bandejaBaja ? r.bandejaBaja.split('-')[0] : '---'}</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-right-long" style="color:var(--ios-sub); opacity:0.5;"></i>
+                    <div class="transfer-item" style="text-align: right;">
+                        <span class="label" style="color:var(--ios-green)">SUBE</span>
+                        <span>${r.bandejaSube ? r.bandejaSube.split('-')[0] : '---'}</span>
+                    </div>
                 </div>
-                <div class="footer-info"><span>${r.tecnico}</span><span>${new Date(r.fecha).toLocaleDateString()}</span></div>
+
+                <div class="footer-info">
+                    <span><i class="fa-solid fa-user-circle"></i> <b>${r.tecnico}</b></span>
+                    <span>${new Date(r.fecha).toLocaleDateString()}</span>
+                </div>
             </div>
         `).join('');
     }
