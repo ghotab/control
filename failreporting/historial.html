@@ -175,6 +175,35 @@
             box-shadow: 0 3px 8px rgba(0,0,0,0.12);
         }
 
+        /* Estilo para el indicador de boletos manuales */
+        .material-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f2f2f7;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            margin-top: 5px;
+        }
+        .ticket-active {
+            background: #fff9e6;
+            color: #d97706;
+            border: 1px solid #fbbf24;
+        }
+        
+        .timeline-info {
+            font-size: 11px;
+            color: #8e8e93;
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+
         /* BOTÓN VER MÁS */
         .btn-more {
             width: 100%;
@@ -306,48 +335,72 @@
     function renderizar() {
         const lista = document.getElementById('historialList');
         const btn = document.getElementById('btnCargarMas');
-        const ecoBuscado = document.getElementById('inputEco').value;
+        // Eliminamos la restricción de ecoBuscado para que siempre muestre fechas
         lista.innerHTML = "";
-
+    
         const subset = registrosFiltrados.slice(0, cantidadMostrada);
         let ultimaFecha = "";
-
+    
         subset.forEach(r => {
-            const fechaRaw = r[1].toString().split('T')[0]; // Formato YYYY-MM-DD
+            const fechaReporteRaw = r[1].toString().split('T')[0]; // Columna B
             const estatus = r[6].toString().trim().toUpperCase();
+            const tecnico = r[8] || 'Pendiente'; // Columna J
+            const correctivo = r[11] || '<em>Sin reporte aún</em>'; 
+            const cortoBoleto = r[9]; 
+            const fechaAtencion = r[7] || '---'; 
             
-            // Si no hay búsqueda por eco, mostramos separadores de fecha
-            if (ecoBuscado === "" && fechaRaw !== ultimaFecha) {
-                lista.innerHTML += `<div class="date-divider">${formatearFecha(fechaRaw)}</div>`;
-                ultimaFecha = fechaRaw;
+            // El separador de fecha ahora aparece SIEMPRE para dar orden al historial
+            if (fechaReporteRaw !== ultimaFecha) {
+                lista.innerHTML += `<div class="date-divider"><i class="fa-regular fa-calendar-check"></i> ${formatearFecha(fechaReporteRaw)}</div>`;
+                ultimaFecha = fechaReporteRaw;
             }
-
+    
             let claseEstatus = "st-pendiente";
             if(estatus === "ESPERANDO_FIRMA") claseEstatus = "st-esperando";
             if(estatus === "FINALIZADO") claseEstatus = "st-finalizado";
-
+    
             lista.innerHTML += `
                 <div class="history-card">
                     <div class="card-header">
                         <h2 class="unit-eco">Unidad ${r[3]}</h2>
                         <span class="status-badge ${claseEstatus}">${estatus.replace('_', ' ')}</span>
                     </div>
+                    
                     <div class="card-body">
                         <p><b>Falla:</b> ${r[5]}</p>
-                        <p><b>Correctivo:</b> ${r[11] || '<em>Sin reporte aún</em>'}</p>
+                        <p><b>Correctivo:</b> ${correctivo}</p>
+                        
+                        ${(cortoBoleto === "SI" || cortoBoleto === "SÍ" || cortoBoleto === true) ? `
+                            <div style="display: inline-flex; align-items: center; gap: 5px; background: #fff9e6; color: #d97706; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-top: 8px; border: 1px solid #fbbf24;">
+                                <i class="fa-solid fa-scissors"></i> BOLETO DE TIJERA CORTADO
+                            </div>
+                        ` : ''}
                     </div>
-                    <div class="card-footer">
-                        <span><i class="fa-solid fa-wrench"></i> ${r[9] || 'Pendiente'}</span>
+    
+                    <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #f2f2f7; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="font-size: 11px; color: #3a3a3c;">
+                            <span style="color: #8e8e93; text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px;">Atendió</span>
+                            <i class="fa-solid fa-user-gear" style="color: #007aff;"></i> ${tecnico}
+                        </div>
+                        <div style="font-size: 11px; color: #3a3a3c;">
+                            <span style="color: #8e8e93; text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px;">Finalizado</span>
+                            <i class="fa-solid fa-clock-check" style="color: #34c759;"></i> ${fechaAtencion}
+                        </div>
+                    </div>
+    
+                    <div class="card-footer" style="margin-top: 10px;">
                         <span>ID: ${r[0]}</span>
+                        <span><i class="fa-solid fa-location-dot"></i> ${r[2]}</span>
                     </div>
                 </div>
             `;
         });
-
+    
         btn.style.display = (cantidadMostrada < registrosFiltrados.length) ? "block" : "none";
         document.getElementById('sync-info').innerText = `${registrosFiltrados.length} registros encontrados`;
     }
 
+    
     function cargarMas() {
         cantidadMostrada += 20;
         renderizar();
