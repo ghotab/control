@@ -4,217 +4,275 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cambio de Bandejas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode"></script>
     
     <style>
         :root {
-            --anydo-blue: #0085ff;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #2c2c2c;
-            --border-color: #e2e8f0;
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-text: #000000;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+            --ios-red: #ff3b30;
+            --ios-green: #34c759;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 0;
-            color: var(--text-main);
-            display: flex; flex-direction: column; align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
+            color: var(--ios-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Header similar al Menú */
+        /* Header estilo iPhone Settings */
         .header {
-            width: 100%; max-width: 500px;
-            padding: 30px 25px 10px 25px;
-            box-sizing: border-box;
-            background: white;
-            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 20px;
+            border-bottom: 0.5px solid var(--ios-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .btn-back {
-            color: var(--anydo-blue);
+            color: var(--ios-blue);
             text-decoration: none;
-            font-weight: 600;
-            display: flex; align-items: center; gap: 8px;
-            margin-bottom: 15px;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        h1 { font-size: 24px; margin: 0; font-weight: 600; }
+        h1 { font-size: 17px; font-weight: 600; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
 
         .form-container {
-            width: 100%; max-width: 500px;
-            padding: 20px; box-sizing: border-box;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 0 16px 100px 16px;
         }
 
-        .field-group {
-            background: white;
-            padding: 15px;
-            border-radius: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid var(--border-color);
-        }
-
-        .label {
+        /* Grupos de Ajustes Estilo iOS */
+        .ios-group-title {
             font-size: 13px;
-            font-weight: 600;
-            color: var(--anydo-blue);
+            color: var(--ios-label);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block; margin-bottom: 8px;
+            margin: 0 0 8px 16px;
+        }
+
+        .ios-group {
+            background: var(--ios-card);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .ios-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 0.5px solid var(--ios-border);
+            min-height: 44px;
+        }
+
+        .ios-row:last-child { border-bottom: none; }
+
+        .ios-label {
+            font-size: 16px;
+            width: 130px;
+            flex-shrink: 0;
         }
 
         input, select {
-            width: 100%;
+            flex: 1;
             border: none;
             font-size: 16px;
-            padding: 10px 0;
+            background: transparent;
             outline: none;
-            color: var(--text-main);
-            font-family: inherit;
+            color: var(--ios-text);
+            text-align: right;
         }
 
-        input::placeholder { color: #b1b1b1; }
+        input::placeholder { color: #c4c4c6; }
 
-        .scan-wrapper {
-            display: flex; align-items: center; gap: 10px;
-            border-top: 1px solid #f0f0f0; margin-top: 10px; padding-top: 10px;
+        /* Escaneo y QR */
+        .scan-container {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px;
         }
 
-        .btn-scan-small {
-            background: #f0f7ff;
-            color: var(--anydo-blue);
+        .scan-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .btn-scan-ios {
+            background: #e9e9eb;
+            color: var(--ios-blue);
             border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 13px; font-weight: 600;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
-        /* Alerta de Cruce Any.do Style */
-        #seccionAlertaCruce {
-            display:none;
-            background-color: #fff5f5;
-            padding: 15px; border-radius: 12px;
-            border-left: 4px solid #ff4d4d;
+        .btn-scan-ios:active { background: #d1d1d6; }
+
+        #reader { 
+            width: 100% !important; 
+            border-radius: 12px; 
+            overflow: hidden; 
             margin: 10px 0;
+            border: 1px solid var(--ios-border);
         }
 
+        /* Alertas */
+        #seccionAlertaCruce {
+            background: #fff2f2;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 1px solid #ffcfcf;
+        }
+
+        /* Botón de Acción Principal */
         .btn-save {
-            width: 100%;
-            background-color: var(--anydo-blue);
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 460px;
+            background-color: var(--ios-blue);
             color: white;
             border: none;
-            padding: 18px;
-            border-radius: 16px;
-            font-size: 17px; font-weight: 600;
-            margin-top: 20px;
-            box-shadow: 0 10px 20px rgba(0, 133, 255, 0.2);
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
             cursor: pointer;
+            z-index: 1000;
         }
 
-        #reader { width: 100% !important; border-radius: 12px; overflow: hidden; margin-top: 10px; }
+        .btn-save:disabled { background-color: #a2a2a2; box-shadow: none; }
+
+        /* Estilos específicos para selects de estatus */
+        .status-select { font-weight: 600; color: var(--ios-blue); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Volver</a>
-        <h1>Cambio de Bandejas</h1>
-    </div>
+        <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+        <h1>Bandejas</h1>
+        <div style="width: 50px;"></div> </div>
 
     <div class="form-container">
         
-        <div class="field-group">
-            <span class="label">Ubicación</span>
-            <select id="base" onchange="actualizarUI(this.value)">
-                <option value="">Selecciona Base...</option>
-                <option value="ATLA">Atlacomulco</option>
-                <option value="COLI">Colima</option>
-                <option value="GDLJ">Guadalajara</option>
-                <option value="GUZM">Ciudad Guzmán</option>
-                <option value="JILO">Jilotepec</option>
-                <option value="MORE">Morelia</option>
-                <option value="OFOC">Occidente</option>
-                <option value="TOLU">Toluca</option>
-                <option value="TSAT">Saturno</option>
-            </select>
-        </div>
-
-        <div class="field-group">
-            <span class="label">Colaborador</span>
-            <input type="number" id="tecnico" placeholder="Tu clave de colaborador" onkeyup="validarProgreso()" onchange="validarProgreso()">
-        </div>
-
-        <div class="field-group">
-            <span class="label">Autobús</span>
-            <input type="number" id="eco" placeholder="Económico a 5 dígitos" onkeyup="validarProgreso()" onchange="validarProgreso()">
+        <p class="ios-group-title">Información General</p>
+        <div class="ios-group">
+            <div class="ios-row">
+                <span class="ios-label">Ubicación</span>
+                <select id="base" onchange="actualizarUI(this.value)">
+                    <option value="">Seleccionar...</option>
+                    <option value="ATLA">Atlacomulco</option>
+                    <option value="COLI">Colima</option>
+                    <option value="GDLJ">Guadalajara</option>
+                    <option value="GUZM">Ciudad Guzmán</option>
+                    <option value="JILO">Jilotepec</option>
+                    <option value="MORE">Morelia</option>
+                    <option value="OFOC">Occidente</option>
+                    <option value="TOLU">Toluca</option>
+                    <option value="TSAT">Saturno</option>
+                </select>
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">Colaborador</span>
+                <input type="number" id="tecnico" placeholder="Clave" onkeyup="validarProgreso()">
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">Autobús</span>
+                <input type="number" id="eco" placeholder="Económico" onkeyup="validarProgreso()">
+            </div>
         </div>
 
         <div id="reader"></div>
 
-        <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: all 0.4s ease-in-out;">
-            <div class="field-group">
-                <span class="label">Bandeja que SUBES</span>
-                <div class="scan-wrapper">
-                        <input type="text" id="bandejaSube" readonly placeholder="Primero llena los datos de arriba">
-                    <button id="btnScan1" class="btn-scan-small" onclick="scan('bandejaSube')" disabled>
-                        <i class="fa-solid fa-qrcode"></i>
-                    </button>
+        <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: 0.3s;">
+            <p class="ios-group-title">Control de Bandejas</p>
+            <div class="ios-group">
+                <div class="ios-row scan-container">
+                    <div class="scan-action">
+                        <span class="ios-label">Sube (Nueva)</span>
+                        <button id="btnScan1" class="btn-scan-ios" onclick="scan('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
+                    </div>
+                    <input type="text" id="bandejaSube" readonly placeholder="Esperando escaneo..." style="text-align: left; font-size: 14px; color: var(--ios-label);">
+                    
+                    <div id="seccionAlertaCruce" style="display:none;">
+                        <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin-bottom: 8px;">⚠️ DISCO NO CORRESPONDE</p>
+                        <select id="motivoCruce" onchange="toggleOtro(this.value)" class="status-select">
+                            <option value="">Justificar cambio...</option>
+                            <option value="SIN_STOCK">Sin disco asignado</option>
+                            <option value="DAÑADO">Disco dañado</option>
+                            <option value="OTRO">Otro motivo...</option>
+                        </select>
+                        <input type="text" id="otroMotivoCruce" placeholder="Escribe el motivo..." style="display:none; text-align: left; border-bottom: 1px solid var(--ios-border); margin-top: 8px;">
+                    </div>
                 </div>
-                
-                <div id="seccionAlertaCruce">
-                    <p style="color: #d63031; font-size: 13px; font-weight: 600; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE</p>
-                    <select id="motivoCruce" onchange="toggleOtro(this.value)">
-                        <option value="">Justifica el cambio...</option>
-                        <option value="SIN_STOCK">Unidad sin disco asignado</option>
-                        <option value="DAÑADO">El asignado esta dañado o no lo lee</option>
-                        <option value="OTRO">Otro motivo...</option>
-                    </select>
-                    <input type="text" id="otroMotivoCruce" placeholder="Especifica el motivo detallado..." style="display:none; border-bottom: 1px solid #ff4d4d;">
-                </div>
-            </div>
-    
-            <div class="field-group">
-                <span class="label">Bandeja que BAJAS</span>
-                <div class="scan-wrapper">
-                    <input type="text" id="bandejaBaja" readonly placeholder="Primero llena los datos arriba">
-                    <button id="btnScan2" class="btn-scan-small" onclick="scan('bandejaBaja')" disabled>
-                        <i class="fa-solid fa-qrcode"></i>
-                    </button>
+
+                <div class="ios-row scan-container">
+                    <div class="scan-action">
+                        <span class="ios-label">Baja (Anterior)</span>
+                        <button id="btnScan2" class="btn-scan-ios" onclick="scan('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
+                    </div>
+                    <input type="text" id="bandejaBaja" readonly placeholder="Esperando escaneo..." style="text-align: left; font-size: 14px; color: var(--ios-label);">
                 </div>
             </div>
         </div>
         
-        <div class="field-group" style="display: flex; justify-content: space-between; align-items: center;">
-            <span class="label" style="margin:0;">¿Tuviste que formatear el disco que subiste?</span>
-            <select id="formateo" style="width: auto;" onchange="toggleMotivoForm(this.value)">
-                <option value="NO">No</option>
-                <option value="SI">Sí</option>
-            </select>
-        </div>
-        <div id="divMotivoForm" class="field-group" style="display:none;">
-            <span class="label">Especifica el motivo</span>
-            <input type="text" id="motivoFormateo" placeholder="Explica por qué...">
+        <p class="ios-group-title">Diagnóstico Final</p>
+        <div class="ios-group">
+            <div class="ios-row">
+                <span class="ios-label">¿Formateado?</span>
+                <select id="formateo" class="status-select" onchange="toggleMotivoForm(this.value)">
+                    <option value="NO">No</option>
+                    <option value="SI">Sí</option>
+                </select>
+            </div>
+            <div id="divMotivoForm" class="ios-row" style="display:none;">
+                <input type="text" id="motivoFormateo" placeholder="Explica por qué se formateó" style="text-align: left;">
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">Estatus LED</span>
+                <select id="ledStatus" class="status-select">
+                    <option value="OK">🟢 Grabando</option>
+                    <option value="FALLA">🔴 Falla / Error</option>
+                </select>
+            </div>
         </div>
 
-        <div class="field-group">
-            <span class="label">Estatus LED posterior al cambio</span>
-            <select id="ledStatus">
-                <option value="OK">🟢 Grabando Correctamente</option>
-                <option value="FALLA">🔴 No detecta disco / Falla</option>
-            </select>
-        </div>
-
-        <button id="btnEnviar" class="btn-save" onclick="enviar()">Guardar Cambio</button>
+        <button id="btnEnviar" class="btn-save" onclick="enviar()">Guardar Registro</button>
     </div>
 
     <script>
         const html5QrCode = new Html5Qrcode("reader");
-        const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; // REEMPLAZA ESTO
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
 
         function scan(id) {
             html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
@@ -240,32 +298,20 @@
             const seccionEscaneo = document.getElementById('seccionEscaneo');
             const btnScan1 = document.getElementById('btnScan1');
             const btnScan2 = document.getElementById('btnScan2');
-            const inputSube = document.getElementById('bandejaSube');
-            const inputBaja = document.getElementById('bandejaBaja');
-        
-            // REGLAS: Técnico >= 7 caracteres Y Unidad == 5 caracteres
+            
             const tecnicoValido = tecnico.length >= 7;
             const ecoValido = eco.length === 5;
         
             if (tecnicoValido && ecoValido) {
-                // DESBLOQUEAR
                 seccionEscaneo.style.opacity = "1";
                 seccionEscaneo.style.pointerEvents = "auto";
                 btnScan1.disabled = false;
                 btnScan2.disabled = false;
-                inputSube.placeholder = "Escanea QR de Bandeja que SUBES";
-                inputBaja.placeholder = "Escanea QR de Bandeja que BAJAS";
-                document.getElementById('eco').style.borderBottom = "2px solid #27ae60";
-                document.getElementById('tecnico').style.borderBottom = "2px solid #27ae60";
             } else {
-                // BLOQUEAR
                 seccionEscaneo.style.opacity = "0.3";
                 seccionEscaneo.style.pointerEvents = "none";
                 btnScan1.disabled = true;
                 btnScan2.disabled = true;
-                inputSube.placeholder = "Faltan datos arriba...";
-                inputBaja.placeholder = "Faltan datos arriba...";
-                document.getElementById('eco').style.borderBottom = "none";
             }
         }
         
@@ -286,15 +332,19 @@
                 justificacionCruce: document.getElementById('motivoCruce').value
             };
 
-            if(!datos.base || !datos.eco || !datos.bandejaSube) { alert("Completa los campos obligatorios"); return; }
+            if(!datos.base || !datos.eco || !datos.bandejaSube) { alert("⚠️ Completa los campos obligatorios"); return; }
             
-            btn.disabled = true; btn.innerText = "Guardando...";
+            btn.disabled = true; 
+            btn.innerText = "Sincronizando...";
+            
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
-                alert("✅ Registro guardado");
+                alert("✅ Registro guardado con éxito");
                 location.reload();
             } catch (e) {
-                alert("Error de conexión"); btn.disabled = false;
+                alert("❌ Error de conexión"); 
+                btn.disabled = false;
+                btn.innerText = "Guardar Registro";
             }
         }
     </script>
