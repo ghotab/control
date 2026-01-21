@@ -228,6 +228,40 @@
             font-weight: 600;
             font-size: 16px;
         }
+
+        /*Timeline*/
+        .trace-timeline {
+            margin: 15px 0;
+            padding-left: 10px;
+            border-left: 2px dashed #e5e5ea;
+        }
+        
+        .trace-point {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .trace-point i.install { color: #34c759; font-size: 18px; }
+        
+        .trace-main { font-size: 14px; font-weight: 600; margin: 0; }
+        .trace-sub { font-size: 12px; color: #8e8e93; margin: 0; }
+        
+        .duration-line {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        
+        .time-tag {
+            background: #f2f2f7;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #3a3a3c;
+        }
+        
     </style>
 </head>
 <body>
@@ -238,21 +272,26 @@
         <p>Cambio de Bandejas</p>
     </div>
 
-    <div class="tabs">
-        <button class="tab active" id="tabEco" onclick="setMode('ECO')">Por Unidad</button>
-        <button class="tab" id="tabSerial" onclick="setMode('SERIAL')">Por Código QR</button>
+    <div class="segmented-control">
+        <input type="radio" name="tipoFiltro" id="btnBus" value="bus" checked onchange="switchFiltro()">
+        <label for="btnBus">Por Autobús</label>
+        
+        <input type="radio" name="tipoFiltro" id="btnDisco" value="disco" onchange="switchFiltro()">
+        <label for="btnDisco">Por Bandeja/Disco</label>
     </div>
-
-    <div class="search-container">
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Eco (5 dígitos)..." oninput="validarYBuscar()">
+    
+    <div class="settings-group">
+        <div id="wrapperBus" class="setting-item">
+            <label>Económico</label>
+            <input type="number" id="inputBus" placeholder="5 dígitos" oninput="evaluarBusqueda()">
         </div>
-        <button class="btn-qr" id="btnQr" style="display: none;" onclick="abrirEscaner()">
-            <i class="fa-solid fa-qrcode"></i>
-        </button>
+    
+        <div id="wrapperDisco" class="setting-item" style="display: none;">
+            <label>ID de Bandeja</label>
+            <input type="text" id="inputDisco" placeholder="Ej. B-102" oninput="evaluarBusqueda()">
+        </div>
     </div>
-
+    
     <div id="resultados"></div>
 </div>
 
@@ -375,6 +414,58 @@
             </div>
         `).join('');
     }
+
+    function renderizarTrazabilidad() {
+        const lista = document.getElementById('historialList');
+        const modoDisco = document.getElementById('btnDisco').checked;
+        lista.innerHTML = "";
+    
+        const subset = registrosFiltrados.slice(0, cantidadMostrada);
+    
+        subset.forEach((r, index) => {
+            const estatus = r[6].toString().toUpperCase();
+            const fechaActual = new Date(r[1]);
+            
+            // Lógica de Tiempos: Buscamos el registro anterior para ver duración
+            let duracionHtml = "";
+            if (index < registrosFiltrados.length - 1) {
+                const fechaAnterior = new Date(registrosFiltrados[index + 1][1]);
+                const diffHoras = Math.abs(fechaActual - fechaAnterior) / 36e5;
+                duracionHtml = `<span class="time-tag"><i class="fa-regular fa-clock"></i> ${diffHoras.toFixed(1)} hrs en servicio</span>`;
+            }
+    
+            lista.innerHTML += `
+                <div class="history-card">
+                    <div class="card-header">
+                        <h2 class="unit-eco">${modoDisco ? 'En Autobús: ' + r[3] : 'Disco: ' + (r[12] || 'S/N')}</h2>
+                        <span class="status-badge ${getClase(estatus)}">${estatus}</span>
+                    </div>
+                    
+                    <div class="trace-timeline">
+                        <div class="trace-point">
+                            <i class="fa-solid fa-circle-arrow-up install"></i>
+                            <div>
+                                <p class="trace-main">Subió: ${r[1]}</p>
+                                <p class="trace-sub">Por: ${r[9]} (Técnico)</p>
+                            </div>
+                        </div>
+                        ${duracionHtml ? `<div class="duration-line">${duracionHtml}</div>` : ''}
+                    </div>
+    
+                    <div class="card-body">
+                        <p><b>Falla reportada:</b> ${r[5]}</p>
+                        <p><b>Trabajo realizado:</b> ${r[11]}</p>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <span><i class="fa-solid fa-location-dot"></i> ${r[2]}</span>
+                        <span>ID: ${r[0]}</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
 
     cargarDatos();
 </script>
