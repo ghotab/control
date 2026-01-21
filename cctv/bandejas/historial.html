@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Historial de Bandejas</title>
+    <title>Trazabilidad de Bandejas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    
     <style>
         :root {
             --ios-bg: #f2f2f7;
@@ -21,247 +19,56 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--ios-bg);
-            margin: 0;
-            padding: 0;
-            color: var(--ios-text);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px 16px;
-        }
-
-        /* Header Estilo iOS Large Title */
-        .header {
-            margin-bottom: 25px;
-            padding-top: 10px;
-        }
-
-        .header h1 {
-            font-size: 34px;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: -1px;
-        }
-
-        .header p {
-            font-size: 17px;
-            color: var(--ios-sub);
-            margin: 4px 0 0 0;
-            font-weight: 400;
-        }
-
-        /* Segmented Control Nativo */
-        .tabs {
-            background: rgba(118, 118, 128, 0.12);
-            padding: 2px;
-            border-radius: 9px;
-            display: flex;
-            margin-bottom: 20px;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 7px 0;
-            border: none;
-            border-radius: 7px;
-            background: transparent;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--ios-text);
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab.active {
-            background: white;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04);
-        }
-
-        /* Buscador Refinado */
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-box {
-            background: rgba(118, 118, 128, 0.12);
-            border-radius: 10px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            flex-grow: 1;
-        }
-
-        .search-box i {
-            color: var(--ios-sub);
-            font-size: 16px;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            width: 100%;
-            font-size: 17px;
-            margin-left: 8px;
-            outline: none;
+            margin: 0; padding: 0;
             color: var(--ios-text);
         }
 
-        .btn-qr {
-            background: var(--ios-blue);
-            color: white;
-            border: none;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            transition: opacity 0.2s;
+        .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; }
+
+        .header h1 { font-size: 34px; font-weight: 700; margin: 0; letter-spacing: -1px; }
+        .header p { color: var(--ios-sub); margin-bottom: 20px; }
+
+        /* Segmented Control */
+        .segmented-control {
+            display: flex; background: #e3e3e8; padding: 2px;
+            border-radius: 10px; margin-bottom: 20px;
+        }
+        .segmented-control input { display: none; }
+        .segmented-control label {
+            flex: 1; text-align: center; padding: 8px 0;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            border-radius: 8px; transition: 0.2s;
+        }
+        .segmented-control input:checked + label {
+            background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.12);
         }
 
-        .btn-qr:active { opacity: 0.7; }
+        /* Inputs */
+        .settings-group { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-border); }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-item input { border: none; text-align: right; color: var(--ios-blue); font-size: 16px; font-weight: 500; outline: none; width: 60%; }
 
-        /* Tarjetas estilo "Pass" */
-        .card {
-            background: var(--ios-card);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 0.5px solid var(--ios-border);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--ios-sub);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block;
-        }
-
-        .value-eco {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .badge-motivo {
-            background: var(--ios-gray);
-            color: var(--ios-text);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .transfer-row {
-            background: var(--ios-bg);
-            border-radius: 14px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 15px 0;
-        }
-
-        .transfer-item span {
-            font-family: 'SF Mono', 'Menlo', monospace;
-            font-size: 14px;
-            font-weight: 600;
-            display: block;
-            margin-top: 2px;
-        }
-
-        .footer-info {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            padding-top: 12px;
-            border-top: 0.5px solid var(--ios-border);
-            font-size: 13px;
-            color: var(--ios-sub);
-        }
-
-        .footer-info b { color: var(--ios-text); }
-
-        /* Escáner Modal iOS */
-        #reader-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: black;
-            z-index: 2000;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #reader { width: 300px; border-radius: 20px; overflow: hidden; }
-
-        .btn-close-scanner {
-            margin-top: 40px;
-            background: white;
-            color: black;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        /*Timeline*/
-        .trace-timeline {
-            margin: 15px 0;
-            padding-left: 10px;
-            border-left: 2px dashed #e5e5ea;
-        }
+        /* Card Trazabilidad */
+        .history-card { background: white; border-radius: 18px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .unit-eco { font-size: 18px; font-weight: 700; margin: 0; }
         
-        .trace-point {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-        
-        .trace-point i.install { color: #34c759; font-size: 18px; }
-        
+        /* Timeline */
+        .trace-timeline { margin: 15px 0; padding-left: 10px; border-left: 2px dashed var(--ios-border); }
+        .trace-point { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .trace-point i { color: var(--ios-green); font-size: 16px; }
         .trace-main { font-size: 14px; font-weight: 600; margin: 0; }
-        .trace-sub { font-size: 12px; color: #8e8e93; margin: 0; }
+        .trace-sub { font-size: 12px; color: var(--ios-sub); margin: 0; }
         
-        .duration-line {
-            margin: 10px 0;
-            padding-left: 30px;
-        }
-        
-        .time-tag {
-            background: #f2f2f7;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #3a3a3c;
-        }
-        
+        .time-tag { background: var(--ios-bg); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; margin: 5px 0 10px 25px; }
+
+        .card-body p { font-size: 13px; margin: 4px 0; color: #3c3c43; }
+        .card-footer { border-top: 0.5px solid var(--ios-gray); margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; font-size: 11px; color: var(--ios-sub); }
+
+        .btn-more { width: 100%; padding: 16px; background: white; border: 1px solid var(--ios-border); border-radius: 12px; color: var(--ios-blue); font-weight: 600; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -269,7 +76,7 @@
 <div class="container">
     <div class="header">
         <h1>Historial</h1>
-        <p>Cambio de Bandejas</p>
+        <p id="status-text">Cargando base de datos...</p>
     </div>
 
     <div class="segmented-control">
@@ -277,7 +84,7 @@
         <label for="btnBus">Por Autobús</label>
         
         <input type="radio" name="tipoFiltro" id="btnDisco" value="disco" onchange="switchFiltro()">
-        <label for="btnDisco">Por Bandeja/Disco</label>
+        <label for="btnDisco">Por Bandeja</label>
     </div>
     
     <div class="settings-group">
@@ -285,178 +92,110 @@
             <label>Económico</label>
             <input type="number" id="inputBus" placeholder="5 dígitos" oninput="evaluarBusqueda()">
         </div>
-    
         <div id="wrapperDisco" class="setting-item" style="display: none;">
-            <label>ID de Bandeja</label>
+            <label>ID Bandeja</label>
             <input type="text" id="inputDisco" placeholder="Ej. B-102" oninput="evaluarBusqueda()">
         </div>
     </div>
     
     <div id="resultados"></div>
-</div>
-
-<div id="reader-modal">
-    <div id="reader"></div>
-    <button class="btn-close-scanner" onclick="cerrarEscaner()">Cerrar</button>
+    <button id="btnVerMas" class="btn-more" onclick="verMas()">Cargar más registros</button>
 </div>
 
 <script>
-    // URL DE TU PROYECTO
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
-    let modoBusqueda = "ECO"; 
+    const scriptURL = "TU_URL_DE_EXEC_AQUI"; // <--- CAMBIA ESTO
     let todosLosRegistros = [];
-    let html5QrCode;
+    let filtrados = [];
+    let limite = 20;
 
     async function cargarDatos() {
         try {
-            const response = await fetch(scriptURL);
-            todosLosRegistros = await response.json();
-            console.log("Datos cargados:", todosLosRegistros.length);
-        } catch (e) { 
-            console.error("Error cargando datos:", e); 
+            const res = await fetch(`${scriptURL}?accion=leerHistorial`);
+            todosLosRegistros = await res.json();
+            document.getElementById('status-text').innerText = "Base de datos lista";
+        } catch (e) {
+            document.getElementById('status-text').innerText = "Error de conexión";
         }
     }
 
-    function setMode(modo) {
-        modoBusqueda = modo;
-        const input = document.getElementById('searchInput');
-        const btnQr = document.getElementById('btnQr');
-        
-        document.getElementById('tabEco').classList.toggle('active', modo === 'ECO');
-        document.getElementById('tabSerial').classList.toggle('active', modo === 'SERIAL');
-        
-        if (modo === 'ECO') {
-            input.placeholder = "Eco (5 dígitos)...";
-            input.readOnly = false;
-            btnQr.style.display = "none";
-        } else {
-            input.placeholder = "Toca el código para escanear...";
-            input.readOnly = true;
-            btnQr.style.display = "flex";
-        }
-        input.value = "";
-        document.getElementById('resultados').innerHTML = "";
+    function switchFiltro() {
+        const esBus = document.getElementById('btnBus').checked;
+        document.getElementById('wrapperBus').style.display = esBus ? 'flex' : 'none';
+        document.getElementById('wrapperDisco').style.display = esBus ? 'none' : 'flex';
+        document.getElementById('inputBus').value = "";
+        document.getElementById('inputDisco').value = "";
+        reiniciar();
     }
 
-    function validarYBuscar() {
-        const input = document.getElementById('searchInput');
-        if (modoBusqueda === 'ECO' && input.value.length === 5) {
-            buscar(input.value);
-        } else if (input.value === "") {
-            document.getElementById('resultados').innerHTML = "";
+    function evaluarBusqueda() {
+        const bus = document.getElementById('inputBus').value;
+        const disco = document.getElementById('inputDisco').value;
+        if (bus.length === 5 || disco.length >= 3 || (bus === "" && disco === "")) {
+            reiniciar();
         }
     }
 
-    function buscar(query) {
-        query = query.toUpperCase();
-        let filtrados = todosLosRegistros.filter(r => {
-            if (modoBusqueda === 'ECO') return r.economico && r.economico.toString() === query;
-            return (r.bandejaSube && r.bandejaSube.includes(query)) || (r.bandejaBaja && r.bandejaBaja.includes(query));
+    function reiniciar() {
+        limite = 20;
+        aplicarFiltro();
+    }
+
+    function aplicarFiltro() {
+        const bus = document.getElementById('inputBus').value;
+        const disco = document.getElementById('inputDisco').value.toUpperCase();
+        const esBus = document.getElementById('btnBus').checked;
+
+        filtrados = todosLosRegistros.filter(r => {
+            if (esBus) return bus === "" || r[3].toString().includes(bus);
+            // Columna 12 suele ser donde guardamos el ID de Bandeja (Correctivo/Extra)
+            return disco === "" || (r[12] && r[12].toString().toUpperCase().includes(disco));
         });
-        renderizar(filtrados);
+
+        renderizar();
     }
 
-    function abrirEscaner() {
-        document.getElementById('reader-modal').style.display = 'flex';
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 15, qrbox: 250 },
-            (decodedText) => {
-                document.getElementById('searchInput').value = decodedText;
-                buscar(decodedText);
-                cerrarEscaner();
-            }
-        ).catch(err => alert("Cámara no disponible"));
-    }
-
-    function cerrarEscaner() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                document.getElementById('reader-modal').style.display = 'none';
-            });
-        }
-    }
-
-    function renderizar(data) {
+    function renderizar() {
         const container = document.getElementById('resultados');
-        if (data.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding-top:50px; color:#8e8e93;">No hay registros para esta unidad</div>';
-            return;
-        }
+        const vista = filtrados.slice(0, limite);
+        container.innerHTML = "";
 
-        container.innerHTML = data.map(r => `
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <span class="label">Unidad</span>
-                        <span class="value-eco">#${r.economico}</span>
-                    </div>
-                    <span class="badge-motivo">${r.ledStatus === 'OK' ? '✅ OK' : '⚠️ FALLA'}</span>
-                </div>
-                
-                <div class="transfer-row">
-                    <div class="transfer-item">
-                        <span class="label" style="color:var(--ios-red)">BAJA</span>
-                        <span>${r.bandejaBaja ? r.bandejaBaja.split('-')[0] : '---'}</span>
-                    </div>
-                    <i class="fa-solid fa-arrow-right-long" style="color:var(--ios-sub); opacity:0.5;"></i>
-                    <div class="transfer-item" style="text-align: right;">
-                        <span class="label" style="color:var(--ios-green)">SUBE</span>
-                        <span>${r.bandejaSube ? r.bandejaSube.split('-')[0] : '---'}</span>
-                    </div>
-                </div>
-
-                <div class="footer-info">
-                    <span><i class="fa-solid fa-user-circle"></i> <b>${r.tecnico}</b></span>
-                    <span>${new Date(r.fecha).toLocaleDateString()}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function renderizarTrazabilidad() {
-        const lista = document.getElementById('historialList');
-        const modoDisco = document.getElementById('btnDisco').checked;
-        lista.innerHTML = "";
-    
-        const subset = registrosFiltrados.slice(0, cantidadMostrada);
-    
-        subset.forEach((r, index) => {
-            const estatus = r[6].toString().toUpperCase();
-            const fechaActual = new Date(r[1]);
+        vista.forEach((r, i) => {
+            const estatus = r[6];
+            const discoID = r[12] || "S/N";
             
-            // Lógica de Tiempos: Buscamos el registro anterior para ver duración
-            let duracionHtml = "";
-            if (index < registrosFiltrados.length - 1) {
-                const fechaAnterior = new Date(registrosFiltrados[index + 1][1]);
-                const diffHoras = Math.abs(fechaActual - fechaAnterior) / 36e5;
-                duracionHtml = `<span class="time-tag"><i class="fa-regular fa-clock"></i> ${diffHoras.toFixed(1)} hrs en servicio</span>`;
+            // Cálculo de tiempo entre registros (Trazabilidad)
+            let tiempoServicio = "";
+            if (i < filtrados.length - 1) {
+                const actual = new Date(r[1]);
+                const anterior = new Date(filtrados[i+1][1]);
+                const diff = Math.abs(actual - anterior) / 36e5;
+                tiempoServicio = `<div class="time-tag"><i class="fa-regular fa-clock"></i> Estuvo en servicio: ${diff.toFixed(1)} hrs</div>`;
             }
-    
-            lista.innerHTML += `
+
+            container.innerHTML += `
                 <div class="history-card">
                     <div class="card-header">
-                        <h2 class="unit-eco">${modoDisco ? 'En Autobús: ' + r[3] : 'Disco: ' + (r[12] || 'S/N')}</h2>
-                        <span class="status-badge ${getClase(estatus)}">${estatus}</span>
+                        <h2 class="unit-eco">${document.getElementById('btnBus').checked ? 'Unidad ' + r[3] : 'Bandeja ' + discoID}</h2>
+                        <span style="font-size:10px; font-weight:700; color:var(--ios-blue)">${estatus}</span>
                     </div>
-                    
+
                     <div class="trace-timeline">
                         <div class="trace-point">
-                            <i class="fa-solid fa-circle-arrow-up install"></i>
+                            <i class="fa-solid fa-circle-check"></i>
                             <div>
-                                <p class="trace-main">Subió: ${r[1]}</p>
-                                <p class="trace-sub">Por: ${r[9]} (Técnico)</p>
+                                <p class="trace-main">Movimiento: ${r[1]}</p>
+                                <p class="trace-sub">Técnico: ${r[9]}</p>
                             </div>
                         </div>
-                        ${duracionHtml ? `<div class="duration-line">${duracionHtml}</div>` : ''}
+                        ${tiempoServicio}
                     </div>
-    
+
                     <div class="card-body">
-                        <p><b>Falla reportada:</b> ${r[5]}</p>
-                        <p><b>Trabajo realizado:</b> ${r[11]}</p>
+                        <p><b>Bandeja/Disco:</b> ${discoID}</p>
+                        <p><b>Falla:</b> ${r[5]}</p>
+                        <p><b>Solución:</b> ${r[11]}</p>
                     </div>
-                    
+
                     <div class="card-footer">
                         <span><i class="fa-solid fa-location-dot"></i> ${r[2]}</span>
                         <span>ID: ${r[0]}</span>
@@ -464,8 +203,14 @@
                 </div>
             `;
         });
+
+        document.getElementById('btnVerMas').style.display = limite < filtrados.length ? 'block' : 'none';
     }
-    
+
+    function verMas() {
+        limite += 20;
+        renderizar();
+    }
 
     cargarDatos();
 </script>
