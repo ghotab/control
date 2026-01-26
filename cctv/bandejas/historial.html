@@ -103,7 +103,7 @@
 </div>
 
 <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; // <--- CAMBIA ESTO
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
     let todosLosRegistros = [];
     let filtrados = [];
     let limite = 20;
@@ -111,31 +111,32 @@
     async function cargarDatos() {
         const statusText = document.getElementById('status-text');
         try {
+            statusText.innerText = "Sincronizando registros...";
             const res = await fetch(`${scriptURL}?accion=leerHistorial`);
-            todosLosRegistros = await res.json();
-            statusText.innerText = "Base de datos lista (" + todosLosRegistros.length + " registros)";
-            // Al cargar, mostramos todo por defecto
-            reiniciar();
+            const data = await res.json();
+            
+            if (data && data.length > 0) {
+                todosLosRegistros = data;
+                statusText.innerText = "Base de datos lista (" + todosLosRegistros.length + " registros)";
+                aplicarFiltro(); 
+            } else {
+                statusText.innerText = "Sin registros en la base de datos.";
+            }
         } catch (e) {
-            statusText.innerText = "Error de conexión. Revisa la URL.";
+            statusText.innerText = "Error de conexión con el servidor.";
         }
     }
 
     function switchFiltro() {
-        const esBus = document.getElementById('btnBus').checked;
-        document.getElementById('wrapperBus').style.display = esBus ? 'flex' : 'none';
-        document.getElementById('wrapperDisco').style.display = esBus ? 'none' : 'flex';
+        document.getElementById('wrapperBus').style.display = document.getElementById('btnBus').checked ? 'flex' : 'none';
+        document.getElementById('wrapperDisco').style.display = document.getElementById('btnDisco').checked ? 'flex' : 'none';
         document.getElementById('inputBus').value = "";
         document.getElementById('inputDisco').value = "";
         reiniciar();
     }
 
     function evaluarBusqueda() {
-        const bus = document.getElementById('inputBus').value;
-        const disco = document.getElementById('inputDisco').value;
-        if (bus.length === 5 || disco.length >= 10 || (bus === "" && disco === "")) {
-            reiniciar();
-        }
+        reiniciar();
     }
 
     function reiniciar() {
@@ -153,13 +154,15 @@
         } else {
             filtrados = todosLosRegistros.filter(r => {
                 if (esBus) {
-                    // Columna D es r[3] (Económico)
-                    return r[3] && r[3].toString().includes(bus);
+                    // Filtro de BUS: Sigue siendo parcial para facilitar la búsqueda
+                    const valorEco = r[3] ? r[3].toString() : "";
+                    return valorEco.includes(bus);
                 } else {
-                    // Columna E es r[4] (Bandeja Sube) o Columna F es r[5] (Bandeja Baja)
-                    const sube = r[4] ? r[4].toString().toUpperCase() : "";
-                    const baja = r[5] ? r[5].toString().toUpperCase() : "";
-                    return sube.includes(disco) || baja.includes(disco);
+                    // FILTRO ESTRICTO DE BANDEJA: 
+                    // Debe ser exactamente igual a r[4] (Sube) o r[5] (Baja)
+                    const valSube = r[4] ? r[4].toString().toUpperCase().trim() : "";
+                    const valBaja = r[5] ? r[5].toString().toUpperCase().trim() : "";
+                    return valSube === disco || valBaja === disco;
                 }
             });
         }
@@ -172,65 +175,69 @@
         container.innerHTML = "";
 
         if (vista.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:gray; margin-top:50px;">Sin resultados encontrados.</p>`;
+            container.innerHTML = `
+                <div style="text-align:center; color:#8e8e93; margin-top:50px; padding: 20px;">
+                    <i class="fa-solid fa-filter-circle-xmark" style="font-size:40px; opacity:0.2;"></i>
+                    <p style="margin-top:15px;">No hay coincidencias exactas para esta búsqueda.</p>
+                </div>`;
             return;
         }
 
         vista.forEach((r, i) => {
-            // r[0]=Fecha, r[1]=Base, r[2]=Técnico, r[3]=Eco, r[4]=Sube, r[5]=Baja, r[7]=Motivo, r[8]=LED
             const fecha = r[0];
-            const eco = r[3];
-            const bandejaSube = r[4] || "---";
-            const bandejaBaja = r[5] || "---";
-            const tecnico = r[2];
             const base = r[1];
+            const tecnico = r[2];
+            const eco = r[3];
+            const sSube = r[4] || "---";
+            const sBaja = r[5] || "---";
+            const motivo = r[7] || "Movimiento";
             const led = r[8] === "OK" ? "✅" : "⚠️";
 
-            // Trazabilidad de tiempo (comparando con el registro anterior del mismo item)
             let tiempoServicio = "";
             if (i < filtrados.length - 1) {
-                const actual = new Date(r[0]);
-                const anterior = new Date(filtrados[i+1][0]);
-                const diff = Math.abs(actual - anterior) / 36e5;
-                if (!isNaN(diff)) {
-                    tiempoServicio = `<div class="time-tag"><i class="fa-regular fa-clock"></i> Estuvo en servicio: ${diff.toFixed(1)} hrs</div>`;
+                const fActual = new Date(r[0]);
+                const fAnterior = new Date(filtrados[i+1][0]);
+                const diffHrs = Math.abs(fActual - fAnterior) / 36e5;
+                if (!isNaN(diffHrs)) {
+                    tiempoServicio = `<div class="time-tag"><i class="fa-regular fa-clock"></i> Estuvo en servicio: ${diffHrs.toFixed(1)} hrs</div>`;
                 }
             }
 
             container.innerHTML += `
-                <div class="history-card">
+                <div class="card" style="margin-bottom:16px;">
                     <div class="card-header">
-                        <h2 class="unit-eco">Unidad ${eco}</h2>
-                        <span style="font-size:12px; font-weight:700;">${led} ${r[7] || ''}</span>
+                        <div>
+                            <span class="label">Unidad</span>
+                            <span class="value-eco">#${eco}</span>
+                        </div>
+                        <span class="badge-motivo">${led} ${motivo}</span>
                     </div>
 
                     <div class="trace-timeline">
                         <div class="trace-point">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check" style="color:var(--ios-green)"></i>
                             <div>
-                                <p class="trace-main">Movimiento el: ${fecha}</p>
-                                <p class="trace-sub">Realizado por: ${tecnico}</p>
+                                <p class="trace-main">${fecha}</p>
+                                <p class="trace-sub">Tec: ${tecnico}</p>
                             </div>
                         </div>
                         ${tiempoServicio}
                     </div>
-
-                    <div class="card-body">
-                        <div style="display:flex; justify-content:space-between; background:#f8f8f8; padding:10px; border-radius:10px;">
-                            <div style="text-align:center; flex:1;">
-                                <span style="font-size:10px; color:red; font-weight:bold;">BAJA</span>
-                                <div style="font-weight:700;">${bandejaBaja}</div>
-                            </div>
-                            <div style="align-self:center; opacity:0.3;"><i class="fa-solid fa-arrow-right"></i></div>
-                            <div style="text-align:center; flex:1;">
-                                <span style="font-size:10px; color:green; font-weight:bold;">SUBE</span>
-                                <div style="font-weight:700;">${bandejaSube}</div>
-                            </div>
+                    
+                    <div class="transfer-row">
+                        <div class="transfer-item">
+                            <span class="label" style="color:var(--ios-red)">BAJA</span>
+                            <span style="font-size:11px; font-weight:bold; word-break:break-all;">${sBaja}</span>
+                        </div>
+                        <i class="fa-solid fa-right-left" style="color:var(--ios-sub); opacity:0.3;"></i>
+                        <div class="transfer-item" style="text-align: right;">
+                            <span class="label" style="color:var(--ios-green)">SUBE</span>
+                            <span style="font-size:11px; font-weight:bold; word-break:break-all;">${sSube}</span>
                         </div>
                     </div>
 
-                    <div class="card-footer">
-                        <span><i class="fa-solid fa-location-dot"></i> Base: ${base}</span>
+                    <div class="footer-info">
+                        <span><i class="fa-solid fa-location-dot"></i> <b>${base}</b></span>
                     </div>
                 </div>
             `;
@@ -244,7 +251,7 @@
         renderizar();
     }
 
-    cargarDatos();
+    window.onload = cargarDatos;
 </script>
 </body>
 </html>
