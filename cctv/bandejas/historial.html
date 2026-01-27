@@ -10,65 +10,68 @@
             --ios-bg: #f2f2f7;
             --ios-card: #ffffff;
             --ios-blue: #007aff;
-            --ios-text: #000000;
-            --ios-sub: #8e8e93;
-            --ios-border: #d1d1d6;
-            --ios-red: #ff3b30;
             --ios-green: #34c759;
-            --ios-gray: #e5e5ea;
+            --ios-red: #ff3b30;
+            --ios-gray: #8e8e93;
+            --ios-sep: #c6c6c8;
         }
-
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
+    
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--ios-bg);
-            margin: 0; padding: 0;
-            color: var(--ios-text);
+            margin: 0; padding: 20px; color: #000;
         }
-
-        .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; }
-
-        .header h1 { font-size: 34px; font-weight: 700; margin: 0; letter-spacing: -1px; }
-        .header p { color: var(--ios-sub); margin-bottom: 20px; }
-
-        /* Segmented Control */
-        .segmented-control {
-            display: flex; background: #e3e3e8; padding: 2px;
-            border-radius: 10px; margin-bottom: 20px;
+    
+        /* Estilo Grupos de Ajustes iPhone */
+        .ios-group {
+            background: var(--ios-card);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
         }
-        .segmented-control input { display: none; }
-        .segmented-control label {
-            flex: 1; text-align: center; padding: 8px 0;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            border-radius: 8px; transition: 0.2s;
+    
+        .ios-row {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 0.5px solid var(--ios-sep);
         }
-        .segmented-control input:checked + label {
-            background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+        .ios-row:last-child { border-bottom: none; }
+    
+        input[type="text"] {
+            border: none; outline: none; width: 100%; font-size: 17px; background: transparent;
         }
-
-        /* Inputs */
-        .settings-group { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-border); }
-        .setting-item:last-child { border-bottom: none; }
-        .setting-item input { border: none; text-align: right; color: var(--ios-blue); font-size: 16px; font-weight: 500; outline: none; width: 60%; }
-
-        /* Card Trazabilidad */
-        .history-card { background: white; border-radius: 18px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .unit-eco { font-size: 18px; font-weight: 700; margin: 0; }
+    
+        /* Tarjetas de Historial tipo Mensaje/Card */
+        .history-card {
+            background: var(--ios-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+    
+        .unit-header {
+            display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
+        }
+    
+        .unit-number { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
         
-        /* Timeline */
-        .trace-timeline { margin: 15px 0; padding-left: 10px; border-left: 2px dashed var(--ios-border); }
-        .trace-point { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-        .trace-point i { color: var(--ios-green); font-size: 16px; }
-        .trace-main { font-size: 14px; font-weight: 600; margin: 0; }
-        .trace-sub { font-size: 12px; color: var(--ios-sub); margin: 0; }
-        
-        .time-tag { background: var(--ios-bg); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; margin: 5px 0 10px 25px; }
-
-        .card-body p { font-size: 13px; margin: 4px 0; color: #3c3c43; }
-        .card-footer { border-top: 0.5px solid var(--ios-gray); margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; font-size: 11px; color: var(--ios-sub); }
-
-        .btn-more { width: 100%; padding: 16px; background: white; border: 1px solid var(--ios-border); border-radius: 12px; color: var(--ios-blue); font-weight: 600; margin-top: 10px; display: none; }
+        .timeline-box {
+            border-left: 2px solid var(--ios-blue);
+            margin-left: 5px; padding-left: 15px; position: relative;
+        }
+    
+        .status-pill {
+            font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600; text-transform: uppercase;
+        }
+    
+        .time-stats {
+            background: #f8f8fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 13px;
+        }
+    
+        .label-mini { font-size: 10px; color: var(--ios-gray); font-weight: bold; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -105,113 +108,92 @@
 <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
     let todosLosRegistros = [];
-    let filtrados = [];
-    let limite = 20;
 
     async function cargarDatos() {
-        const statusText = document.getElementById('status-text');
-        try {
-            statusText.innerText = "⏳ Conectando con Excel...";
-            const res = await fetch(`${scriptURL}?accion=leerHistorial`);
-            const data = await res.json();
-            
-            if (data && data.length > 0) {
-                todosLosRegistros = data;
-                statusText.innerText = "✅ " + todosLosRegistros.length + " registros listos";
-                filtrados = todosLosRegistros;
-                renderizar();
-            } else {
-                statusText.innerText = "❌ La hoja está vacía o el nombre 'Historial' está mal.";
-            }
-        } catch (e) {
-            statusText.innerText = "❌ Error: ¿Publicaste el script como 'Cualquier persona'?";
-            console.error(e);
-        }
+        document.getElementById('status-text').innerText = "Actualizando...";
+        const res = await fetch(`${scriptURL}?accion=leerHistorial`);
+        todosLosRegistros = await res.json();
+        document.getElementById('status-text').innerText = "Sincronizado";
+        renderizar();
     }
 
-    function evaluarBusqueda() {
-        const bus = document.getElementById('inputBus').value.trim();
-        const disco = document.getElementById('inputDisco').value.trim().toUpperCase();
-        const esBus = document.getElementById('btnBus').checked;
-
-        if (bus === "" && disco === "") {
-            filtrados = todosLosRegistros;
-        } else {
-            filtrados = todosLosRegistros.filter(r => {
-                if (esBus) {
-                    // Busca en Columna D (Índice 3)
-                    const valorEco = r[3] ? r[3].toString() : "";
-                    return valorEco.includes(bus);
-                } else {
-                    // BUSQUEDA ESTRICTA DE BANDEJA
-                    // Comparamos r[4] (Sube) y r[5] (Baja)
-                    const valSube = r[4] ? r[4].toString().toUpperCase().trim() : "";
-                    const valBaja = r[5] ? r[5].toString().toUpperCase().trim() : "";
-                    return valSube === disco || valBaja === disco;
-                }
-            });
-        }
-        limite = 20;
+    function aplicarFiltro() {
         renderizar();
     }
 
     function renderizar() {
+        const bus = document.getElementById('inputBus').value.trim();
+        const disco = document.getElementById('inputDisco').value.trim().toUpperCase();
+        const esBus = document.getElementById('btnBus').checked;
         const container = document.getElementById('resultados');
-        const vista = filtrados.slice(0, limite);
         container.innerHTML = "";
 
-        if (vista.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:30px; color:#8e8e93; background:white; border-radius:15px; margin-top:20px;">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size:30px; color:#ff9500;"></i>
-                    <p>No hay coincidencias.</p>
-                    <p style="font-size:11px;">Asegúrate de escribir la bandeja completa:<br><b>GUZM-40017-D1</b></p>
-                </div>`;
-            return;
-        }
+        // Filtrado
+        let filtrados = todosLosRegistros.filter(r => {
+            if (bus === "" && disco === "") return true;
+            if (esBus) return r[3] && r[3].toString().includes(bus);
+            // Búsqueda estricta para bandeja
+            return (r[4] && r[4].toString().toUpperCase() === disco) || (r[5] && r[5].toString().toUpperCase() === disco);
+        });
 
-        vista.forEach((r, i) => {
-            // r[0]:Fecha, r[1]:Base, r[2]:Tec, r[3]:Eco, r[4]:Sube, r[5]:Baja, r[8]:LED
+        filtrados.forEach((r, index) => {
+            // Buscamos cuándo bajó este mismo disco para calcular tiempo
+            let tiempoGrabado = "Calculando...";
+            const bandejaSubeActual = r[4];
+            
+            // Buscar en registros anteriores cuándo se bajó esa misma bandeja
+            const registroBaja = todosLosRegistros.find((reg, idx) => 
+                idx < index && reg[5] === bandejaSubeActual
+            );
+
+            if (registroBaja) {
+                const diff = Math.abs(new Date(r[0]) - new Date(registroBaja[0]));
+                const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                tiempoGrabado = `${dias}d ${horas}h en unidad`;
+            } else {
+                tiempoGrabado = "En operación / Sin cierre";
+            }
+
             container.innerHTML += `
-                <div class="card" style="border-left: 6px solid ${r[8] === 'OK' ? '#34c759' : '#ff3b30'}; margin-bottom:15px; padding:15px; background:white; border-radius:15px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="font-size:20px; font-weight:800;">#${r[3]}</span>
-                        <span style="font-size:12px; color:#8e8e93;">${r[0]}</span>
+                <div class="history-card">
+                    <div class="unit-header">
+                        <span class="unit-number">Unidad ${r[3]}</span>
+                        <span class="status-pill" style="background:${r[8] === 'OK' ? '#e1f7e6;color:#14852e':'#ffe5e5;color:#d32f2f'}">
+                            ${r[8] || 'REV'}
+                        </span>
                     </div>
 
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <div style="flex:1; background:#fff5f5; padding:8px; border-radius:8px; border:1px solid #ffebeb;">
-                            <span style="font-size:9px; color:#ff3b30; font-weight:bold; display:block;">BAJA ⬇️</span>
-                            <span style="font-size:11px; font-weight:600; word-break:break-all;">${r[5] || '---'}</span>
-                        </div>
-                        <div style="flex:1; background:#f5fff7; padding:8px; border-radius:8px; border:1px solid #ebffef;">
-                            <span style="font-size:9px; color:#34c759; font-weight:bold; display:block;">SUBE ⬆️</span>
-                            <span style="font-size:11px; font-weight:600; word-break:break-all;">${r[4] || '---'}</span>
+                    <div class="timeline-box">
+                        <div style="margin-bottom: 8px;">
+                            <div class="label-mini">Acción realizada el ${r[0]}</div>
+                            <div style="font-size: 15px;"><b>${r[7] || 'Mantenimiento'}</b></div>
                         </div>
                     </div>
 
-                    <div style="font-size:12px; border-top:1px solid #f2f2f7; padding-top:10px; color:#3a3a3c;">
-                        <i class="fa-solid fa-user-gear"></i> <b>${r[2]}</b> 
-                        <span style="margin-left:10px;"><i class="fa-solid fa-location-dot"></i> ${r[1]}</span>
+                    <div class="time-stats">
+                        <div style="display:flex; justify-content:space-between;">
+                            <div>
+                                <div class="label-mini" style="color:var(--ios-green)">Sube</div>
+                                <div style="font-weight:600; font-size:12px;">${r[4] || '---'}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="label-mini" style="color:var(--ios-red)">Baja</div>
+                                <div style="font-weight:600; font-size:12px;">${r[5] || '---'}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px; border-top: 0.5px solid #ddd; padding-top:8px; font-size:11px; color:var(--ios-gray);">
+                            <i class="fa-regular fa-clock"></i> Tiempo de ciclo: <b>${tiempoGrabado}</b>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px; font-size:12px; color:var(--ios-gray); display:flex; justify-content:space-between;">
+                        <span><i class="fa-solid fa-user-circle"></i> ${r[2]}</span>
+                        <span><i class="fa-solid fa-location-dot"></i> ${r[1]}</span>
                     </div>
                 </div>
             `;
         });
-
-        document.getElementById('btnVerMas').style.display = limite < filtrados.length ? 'block' : 'none';
-    }
-
-    function switchFiltro() {
-        document.getElementById('wrapperBus').style.display = document.getElementById('btnBus').checked ? 'flex' : 'none';
-        document.getElementById('wrapperDisco').style.display = document.getElementById('btnDisco').checked ? 'flex' : 'none';
-        document.getElementById('inputBus').value = "";
-        document.getElementById('inputDisco').value = "";
-        evaluarBusqueda();
-    }
-
-    function verMas() {
-        limite += 20;
-        renderizar();
     }
 
     window.onload = cargarDatos;
