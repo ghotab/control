@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Historial de Cambios</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Historial CCTV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --ios-bg: #f2f2f7;
@@ -13,190 +13,325 @@
             --ios-green: #34c759;
             --ios-red: #ff3b30;
             --ios-gray: #8e8e93;
-            --ios-sep: #c6c6c8;
+            --ios-label: #3a3a3c;
+            --ios-separator: #c6c6c8;
         }
-    
-        body { 
+
+        body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--ios-bg);
-            margin: 0; padding: 20px; color: #000;
+            margin: 0;
+            padding: 0;
+            color: #000;
+            -webkit-font-smoothing: antialiased;
         }
-    
-        /* Estilo Grupos de Ajustes iPhone */
+
+        /* --- Header Estilo Apple --- */
+        .header {
+            position: sticky;
+            top: 0;
+            background: rgba(242, 242, 247, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            padding: 20px 16px 10px 16px;
+            border-bottom: 0.5px solid var(--ios-separator);
+        }
+
+        .header h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        #status-text {
+            font-size: 13px;
+            color: var(--ios-gray);
+            margin-top: 4px;
+        }
+
+        /* --- Grupos de Ajustes (iOS Settings Style) --- */
+        .ios-section-title {
+            font-size: 13px;
+            color: var(--ios-gray);
+            text-transform: uppercase;
+            margin: 20px 20px 8px 20px;
+        }
+
         .ios-group {
             background: var(--ios-card);
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin: 0 16px 20px 16px;
             overflow: hidden;
+            border: 0.5px solid var(--ios-separator);
         }
-    
+
         .ios-row {
-            padding: 12px 16px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            border-bottom: 0.5px solid var(--ios-sep);
+            padding: 12px 16px;
+            background: var(--ios-card);
+            gap: 12px;
+            border-bottom: 0.5px solid var(--ios-separator);
         }
+
         .ios-row:last-child { border-bottom: none; }
-    
-        input[type="text"] {
-            border: none; outline: none; width: 100%; font-size: 17px; background: transparent;
+
+        .ios-row i {
+            width: 28px;
+            height: 28px;
+            background: var(--ios-blue);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
         }
-    
-        /* Tarjetas de Historial tipo Mensaje/Card */
-        .history-card {
+
+        input[type="text"], input[type="number"] {
+            border: none;
+            outline: none;
+            font-size: 17px;
+            width: 100%;
+            background: transparent;
+        }
+
+        /* --- Switch Controls --- */
+        .switch-container {
+            display: flex;
+            background: #e3e3e6;
+            padding: 2px;
+            border-radius: 8px;
+            margin: 0 16px 10px 16px;
+        }
+
+        .switch-option {
+            flex: 1;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .switch-option.active {
+            background: white;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+        }
+
+        /* --- Tarjetas de Historial --- */
+        .card {
             background: var(--ios-card);
             border-radius: 12px;
+            margin: 0 16px 12px 16px;
             padding: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-    
-        .unit-header {
-            display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
+
+        .unit-badge {
+            background: #000;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 14px;
         }
-    
-        .unit-number { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-        
-        .timeline-box {
-            border-left: 2px solid var(--ios-blue);
-            margin-left: 5px; padding-left: 15px; position: relative;
+
+        .date-label {
+            font-size: 13px;
+            color: var(--ios-gray);
         }
-    
-        .status-pill {
-            font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600; text-transform: uppercase;
+
+        .transfer-box {
+            background: var(--ios-bg);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
         }
-    
-        .time-stats {
-            background: #f8f8fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 13px;
+
+        .transfer-data { flex: 1; }
+        .transfer-data b { display: block; font-size: 14px; color: var(--ios-label); }
+        .transfer-data span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+
+        .time-info {
+            font-size: 12px;
+            color: var(--ios-blue);
+            background: #eef7ff;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-    
-        .label-mini { font-size: 10px; color: var(--ios-gray); font-weight: bold; text-transform: uppercase; }
+
+        .footer-card {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--ios-gray);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #btnVerMas {
+            display: none;
+            width: calc(100% - 32px);
+            margin: 20px 16px;
+            padding: 15px;
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 17px;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
     <div class="header">
-        <h1>Historial</h1>
-        <p id="status-text">Cargando base de datos...</p>
+        <h1>CCTV History</h1>
+        <div id="status-text">Cargando base de datos...</div>
     </div>
 
-    <div class="segmented-control">
-        <input type="radio" name="tipoFiltro" id="btnBus" value="bus" checked onchange="switchFiltro()">
-        <label for="btnBus">Por Autobús</label>
-        
-        <input type="radio" name="tipoFiltro" id="btnDisco" value="disco" onchange="switchFiltro()">
-        <label for="btnDisco">Por Bandeja</label>
+    <div class="ios-section-title">Criterio de Búsqueda</div>
+    <div class="switch-container">
+        <div id="optBus" class="switch-option active" onclick="setFiltro('bus')">AUTOBÚS</div>
+        <div id="optDisco" class="switch-option" onclick="setFiltro('disco')">BANDEJA</div>
     </div>
-    
-    <div class="settings-group">
-        <div id="wrapperBus" class="setting-item">
-            <label>Económico</label>
-            <input type="number" id="inputBus" placeholder="5 dígitos" oninput="evaluarBusqueda()">
+
+    <div class="ios-group">
+        <div class="ios-row" id="rowBus">
+            <i class="fa-solid fa-bus"></i>
+            <input type="number" id="inputBus" placeholder="Número económico" oninput="evaluarBusqueda()">
         </div>
-        <div id="wrapperDisco" class="setting-item" style="display: none;">
-            <label>Bandeja</label>
-            <input type="text" id="inputDisco" placeholder="Ej. JRIO-57017-D1" oninput="evaluarBusqueda()">
+        <div class="ios-row" id="rowDisco" style="display:none;">
+            <i class="fa-solid fa-compact-disc" style="background:var(--ios-green)"></i>
+            <input type="text" id="inputDisco" placeholder="Ej: GUZM-40017-D1" oninput="evaluarBusqueda()">
         </div>
     </div>
-    
+
     <div id="resultados"></div>
-    <button id="btnVerMas" class="btn-more" onclick="verMas()">Cargar más registros</button>
-</div>
+    <button id="btnVerMas" onclick="verMas()">Ver más resultados</button>
 
-<script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
-    let todosLosRegistros = [];
+    <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
+        let todosLosRegistros = [];
+        let modoActual = 'bus';
+        let limite = 15;
 
-    async function cargarDatos() {
-        document.getElementById('status-text').innerText = "Actualizando...";
-        const res = await fetch(`${scriptURL}?accion=leerHistorial`);
-        todosLosRegistros = await res.json();
-        document.getElementById('status-text').innerText = "Sincronizado";
-        renderizar();
-    }
-
-    function aplicarFiltro() {
-        renderizar();
-    }
-
-    function renderizar() {
-        const bus = document.getElementById('inputBus').value.trim();
-        const disco = document.getElementById('inputDisco').value.trim().toUpperCase();
-        const esBus = document.getElementById('btnBus').checked;
-        const container = document.getElementById('resultados');
-        container.innerHTML = "";
-
-        // Filtrado
-        let filtrados = todosLosRegistros.filter(r => {
-            if (bus === "" && disco === "") return true;
-            if (esBus) return r[3] && r[3].toString().includes(bus);
-            // Búsqueda estricta para bandeja
-            return (r[4] && r[4].toString().toUpperCase() === disco) || (r[5] && r[5].toString().toUpperCase() === disco);
-        });
-
-        filtrados.forEach((r, index) => {
-            // Buscamos cuándo bajó este mismo disco para calcular tiempo
-            let tiempoGrabado = "Calculando...";
-            const bandejaSubeActual = r[4];
-            
-            // Buscar en registros anteriores cuándo se bajó esa misma bandeja
-            const registroBaja = todosLosRegistros.find((reg, idx) => 
-                idx < index && reg[5] === bandejaSubeActual
-            );
-
-            if (registroBaja) {
-                const diff = Math.abs(new Date(r[0]) - new Date(registroBaja[0]));
-                const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                tiempoGrabado = `${dias}d ${horas}h en unidad`;
-            } else {
-                tiempoGrabado = "En operación / Sin cierre";
+        async function cargarDatos() {
+            try {
+                const res = await fetch(`${scriptURL}?accion=leerHistorial`);
+                todosLosRegistros = await res.json();
+                document.getElementById('status-text').innerText = `Sincronizado: ${todosLosRegistros.length} registros`;
+                renderizar();
+            } catch (e) {
+                document.getElementById('status-text').innerText = "Error de conexión";
             }
+        }
 
-            container.innerHTML += `
-                <div class="history-card">
-                    <div class="unit-header">
-                        <span class="unit-number">Unidad ${r[3]}</span>
-                        <span class="status-pill" style="background:${r[8] === 'OK' ? '#e1f7e6;color:#14852e':'#ffe5e5;color:#d32f2f'}">
-                            ${r[8] || 'REV'}
-                        </span>
-                    </div>
+        function setFiltro(modo) {
+            modoActual = modo;
+            document.getElementById('optBus').classList.toggle('active', modo === 'bus');
+            document.getElementById('optDisco').classList.toggle('active', modo === 'disco');
+            document.getElementById('rowBus').style.display = modo === 'bus' ? 'flex' : 'none';
+            document.getElementById('rowDisco').style.display = modo === 'disco' ? 'flex' : 'none';
+            document.getElementById('inputBus').value = "";
+            document.getElementById('inputDisco').value = "";
+            renderizar();
+        }
 
-                    <div class="timeline-box">
-                        <div style="margin-bottom: 8px;">
-                            <div class="label-mini">Acción realizada el ${r[0]}</div>
-                            <div style="font-size: 15px;"><b>${r[7] || 'Mantenimiento'}</b></div>
+        function evaluarBusqueda() {
+            limite = 15;
+            renderizar();
+        }
+
+        function renderizar() {
+            const container = document.getElementById('resultados');
+            const bus = document.getElementById('inputBus').value.trim();
+            const disco = document.getElementById('inputDisco').value.trim().toUpperCase();
+
+            let filtrados = todosLosRegistros.filter(r => {
+                if (!bus && !disco) return true;
+                if (modoActual === 'bus') return r[3] && r[3].toString().includes(bus);
+                return (r[4] && r[4].toString().toUpperCase() === disco) || (r[5] && r[5].toString().toUpperCase() === disco);
+            });
+
+            const vista = filtrados.slice(0, limite);
+            container.innerHTML = "";
+
+            vista.forEach((r, idx) => {
+                // Cálculo de Trazabilidad: ¿Cuándo se puso y cuándo se quitó?
+                let trazabilidad = "Disco en unidad o primer registro.";
+                const bandejaSube = r[4];
+
+                if (bandejaSube) {
+                    const findBaja = todosLosRegistros.find((reg, i) => i < todosLosRegistros.indexOf(r) && reg[5] === bandejaSube);
+                    if (findBaja) {
+                        const horas = Math.abs(new Date(r[0]) - new Date(findBaja[0])) / 36e5;
+                        trazabilidad = `Grabó aproximadamente ${horas.toFixed(1)} horas.`;
+                    }
+                }
+
+                container.innerHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="unit-badge">#${r[3]}</span>
+                            <span class="date-label">${r[0]}</span>
                         </div>
-                    </div>
-
-                    <div class="time-stats">
-                        <div style="display:flex; justify-content:space-between;">
-                            <div>
-                                <div class="label-mini" style="color:var(--ios-green)">Sube</div>
-                                <div style="font-weight:600; font-size:12px;">${r[4] || '---'}</div>
+                        
+                        <div style="font-size: 15px; font-weight: 600; margin-bottom: 5px;">${r[7] || 'Servicio General'}</div>
+                        
+                        <div class="transfer-box">
+                            <div class="transfer-data">
+                                <span style="color:var(--ios-red)">Baja</span>
+                                <b>${r[5] || 'N/A'}</b>
                             </div>
-                            <div style="text-align:right;">
-                                <div class="label-mini" style="color:var(--ios-red)">Baja</div>
-                                <div style="font-weight:600; font-size:12px;">${r[5] || '---'}</div>
+                            <i class="fa-solid fa-chevron-right" style="color:var(--ios-separator)"></i>
+                            <div class="transfer-data" style="text-align: right;">
+                                <span style="color:var(--ios-green)">Sube</span>
+                                <b>${r[4] || 'N/A'}</b>
                             </div>
                         </div>
-                        <div style="margin-top:8px; border-top: 0.5px solid #ddd; padding-top:8px; font-size:11px; color:var(--ios-gray);">
-                            <i class="fa-regular fa-clock"></i> Tiempo de ciclo: <b>${tiempoGrabado}</b>
+
+                        <div class="time-info">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            ${trazabilidad}
+                        </div>
+
+                        <div class="footer-card">
+                            <span><i class="fa-solid fa-wrench"></i> ${r[2]}</span>
+                            <span><i class="fa-solid fa-location-dot"></i> ${r[1]}</span>
                         </div>
                     </div>
+                `;
+            });
 
-                    <div style="margin-top:12px; font-size:12px; color:var(--ios-gray); display:flex; justify-content:space-between;">
-                        <span><i class="fa-solid fa-user-circle"></i> ${r[2]}</span>
-                        <span><i class="fa-solid fa-location-dot"></i> ${r[1]}</span>
-                    </div>
-                </div>
-            `;
-        });
-    }
+            document.getElementById('btnVerMas').style.display = filtrados.length > limite ? 'block' : 'none';
+        }
 
-    window.onload = cargarDatos;
-</script>
+        function verMas() {
+            limite += 15;
+            renderizar();
+        }
+
+        window.onload = cargarDatos;
+    </script>
 </body>
 </html>
+
