@@ -111,40 +111,25 @@
     async function cargarDatos() {
         const statusText = document.getElementById('status-text');
         try {
-            statusText.innerText = "Sincronizando registros...";
+            statusText.innerText = "⏳ Conectando con Excel...";
             const res = await fetch(`${scriptURL}?accion=leerHistorial`);
             const data = await res.json();
             
             if (data && data.length > 0) {
                 todosLosRegistros = data;
-                statusText.innerText = "Base de datos lista (" + todosLosRegistros.length + " registros)";
-                aplicarFiltro(); 
+                statusText.innerText = "✅ " + todosLosRegistros.length + " registros listos";
+                filtrados = todosLosRegistros;
+                renderizar();
             } else {
-                statusText.innerText = "Sin registros en la base de datos.";
+                statusText.innerText = "❌ La hoja está vacía o el nombre 'Historial' está mal.";
             }
         } catch (e) {
-            statusText.innerText = "Error de conexión con el servidor.";
+            statusText.innerText = "❌ Error: ¿Publicaste el script como 'Cualquier persona'?";
+            console.error(e);
         }
     }
 
-    function switchFiltro() {
-        document.getElementById('wrapperBus').style.display = document.getElementById('btnBus').checked ? 'flex' : 'none';
-        document.getElementById('wrapperDisco').style.display = document.getElementById('btnDisco').checked ? 'flex' : 'none';
-        document.getElementById('inputBus').value = "";
-        document.getElementById('inputDisco').value = "";
-        reiniciar();
-    }
-
     function evaluarBusqueda() {
-        reiniciar();
-    }
-
-    function reiniciar() {
-        limite = 20;
-        aplicarFiltro();
-    }
-
-    function aplicarFiltro() {
         const bus = document.getElementById('inputBus').value.trim();
         const disco = document.getElementById('inputDisco').value.trim().toUpperCase();
         const esBus = document.getElementById('btnBus').checked;
@@ -154,18 +139,19 @@
         } else {
             filtrados = todosLosRegistros.filter(r => {
                 if (esBus) {
-                    // Filtro de BUS: Sigue siendo parcial para facilitar la búsqueda
+                    // Busca en Columna D (Índice 3)
                     const valorEco = r[3] ? r[3].toString() : "";
                     return valorEco.includes(bus);
                 } else {
-                    // FILTRO ESTRICTO DE BANDEJA: 
-                    // Debe ser exactamente igual a r[4] (Sube) o r[5] (Baja)
+                    // BUSQUEDA ESTRICTA DE BANDEJA
+                    // Comparamos r[4] (Sube) y r[5] (Baja)
                     const valSube = r[4] ? r[4].toString().toUpperCase().trim() : "";
                     const valBaja = r[5] ? r[5].toString().toUpperCase().trim() : "";
                     return valSube === disco || valBaja === disco;
                 }
             });
         }
+        limite = 20;
         renderizar();
     }
 
@@ -176,74 +162,51 @@
 
         if (vista.length === 0) {
             container.innerHTML = `
-                <div style="text-align:center; color:#8e8e93; margin-top:50px; padding: 20px;">
-                    <i class="fa-solid fa-filter-circle-xmark" style="font-size:40px; opacity:0.2;"></i>
-                    <p style="margin-top:15px;">No hay coincidencias exactas para esta búsqueda.</p>
+                <div style="text-align:center; padding:30px; color:#8e8e93; background:white; border-radius:15px; margin-top:20px;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:30px; color:#ff9500;"></i>
+                    <p>No hay coincidencias.</p>
+                    <p style="font-size:11px;">Asegúrate de escribir la bandeja completa:<br><b>GUZM-40017-D1</b></p>
                 </div>`;
             return;
         }
 
         vista.forEach((r, i) => {
-            const fecha = r[0];
-            const base = r[1];
-            const tecnico = r[2];
-            const eco = r[3];
-            const sSube = r[4] || "---";
-            const sBaja = r[5] || "---";
-            const motivo = r[7] || "Movimiento";
-            const led = r[8] === "OK" ? "✅" : "⚠️";
-
-            let tiempoServicio = "";
-            if (i < filtrados.length - 1) {
-                const fActual = new Date(r[0]);
-                const fAnterior = new Date(filtrados[i+1][0]);
-                const diffHrs = Math.abs(fActual - fAnterior) / 36e5;
-                if (!isNaN(diffHrs)) {
-                    tiempoServicio = `<div class="time-tag"><i class="fa-regular fa-clock"></i> Estuvo en servicio: ${diffHrs.toFixed(1)} hrs</div>`;
-                }
-            }
-
+            // r[0]:Fecha, r[1]:Base, r[2]:Tec, r[3]:Eco, r[4]:Sube, r[5]:Baja, r[8]:LED
             container.innerHTML += `
-                <div class="card" style="margin-bottom:16px;">
-                    <div class="card-header">
-                        <div>
-                            <span class="label">Unidad</span>
-                            <span class="value-eco">#${eco}</span>
-                        </div>
-                        <span class="badge-motivo">${led} ${motivo}</span>
+                <div class="card" style="border-left: 6px solid ${r[8] === 'OK' ? '#34c759' : '#ff3b30'}; margin-bottom:15px; padding:15px; background:white; border-radius:15px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:20px; font-weight:800;">#${r[3]}</span>
+                        <span style="font-size:12px; color:#8e8e93;">${r[0]}</span>
                     </div>
 
-                    <div class="trace-timeline">
-                        <div class="trace-point">
-                            <i class="fa-solid fa-circle-check" style="color:var(--ios-green)"></i>
-                            <div>
-                                <p class="trace-main">${fecha}</p>
-                                <p class="trace-sub">Tec: ${tecnico}</p>
-                            </div>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <div style="flex:1; background:#fff5f5; padding:8px; border-radius:8px; border:1px solid #ffebeb;">
+                            <span style="font-size:9px; color:#ff3b30; font-weight:bold; display:block;">BAJA ⬇️</span>
+                            <span style="font-size:11px; font-weight:600; word-break:break-all;">${r[5] || '---'}</span>
                         </div>
-                        ${tiempoServicio}
-                    </div>
-                    
-                    <div class="transfer-row">
-                        <div class="transfer-item">
-                            <span class="label" style="color:var(--ios-red)">BAJA</span>
-                            <span style="font-size:11px; font-weight:bold; word-break:break-all;">${sBaja}</span>
-                        </div>
-                        <i class="fa-solid fa-right-left" style="color:var(--ios-sub); opacity:0.3;"></i>
-                        <div class="transfer-item" style="text-align: right;">
-                            <span class="label" style="color:var(--ios-green)">SUBE</span>
-                            <span style="font-size:11px; font-weight:bold; word-break:break-all;">${sSube}</span>
+                        <div style="flex:1; background:#f5fff7; padding:8px; border-radius:8px; border:1px solid #ebffef;">
+                            <span style="font-size:9px; color:#34c759; font-weight:bold; display:block;">SUBE ⬆️</span>
+                            <span style="font-size:11px; font-weight:600; word-break:break-all;">${r[4] || '---'}</span>
                         </div>
                     </div>
 
-                    <div class="footer-info">
-                        <span><i class="fa-solid fa-location-dot"></i> <b>${base}</b></span>
+                    <div style="font-size:12px; border-top:1px solid #f2f2f7; padding-top:10px; color:#3a3a3c;">
+                        <i class="fa-solid fa-user-gear"></i> <b>${r[2]}</b> 
+                        <span style="margin-left:10px;"><i class="fa-solid fa-location-dot"></i> ${r[1]}</span>
                     </div>
                 </div>
             `;
         });
 
         document.getElementById('btnVerMas').style.display = limite < filtrados.length ? 'block' : 'none';
+    }
+
+    function switchFiltro() {
+        document.getElementById('wrapperBus').style.display = document.getElementById('btnBus').checked ? 'flex' : 'none';
+        document.getElementById('wrapperDisco').style.display = document.getElementById('btnDisco').checked ? 'flex' : 'none';
+        document.getElementById('inputBus').value = "";
+        document.getElementById('inputDisco').value = "";
+        evaluarBusqueda();
     }
 
     function verMas() {
