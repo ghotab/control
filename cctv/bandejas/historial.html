@@ -108,7 +108,7 @@
 
     <div id="resultados"></div>
 
-    <script>
+<script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
     let database = [];
     let modoActual = 'bus';
@@ -116,15 +116,15 @@
     async function cargar() {
         const statusText = document.getElementById('status-text');
         try {
-            statusText.innerText = "⏳ Sincronizando registros...";
+            statusText.innerText = "⏳ Sincronizando...";
             const res = await fetch(`${scriptURL}?accion=leerHistorial`);
-            database = await res.json();
-            // Ordenamos: Lo más antiguo primero para reconstruir la historia hacia adelante
-            database.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-            statusText.innerText = "✅ iCloud Sincronizado";
-            procesar();
+            const data = await res.json();
+            
+            // IMPORTANTE: Ordenamos cronológicamente (Viejo -> Nuevo) para procesar
+            database = data.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            statusText.innerText = "✅ Datos actualizados";
         } catch (e) {
-            statusText.innerText = "❌ Error de Red";
+            statusText.innerText = "❌ Error de conexión";
         }
     }
 
@@ -142,90 +142,86 @@
         container.innerHTML = "";
         if (!query) return;
 
+        // Obtenemos los registros relevantes según el modo
+        let registrosFiltro = [];
         if (modoActual === 'bus') {
-            const rowsBus = database.filter(r => r[3] && r[3].toString() === query);
-            const subidas = rowsBus.filter(r => r[4]);
-
-            subidas.forEach((rSube, idx) => {
-                const idBandeja = rSube[4];
-                const fechaSube = new Date(rSube[0]);
-                
-                // Buscamos la bajada de esta bandeja que ocurra después de ESTA subida
-                // PERO antes de la SIGUIENTE subida registrada en este bus (si existe)
-                const proximaSubida = subidas.find(s => new Date(s[0]) > fechaSube);
-                
-                const rBaja = rowsBus.find(r => 
-                    r[5] === idBandeja && 
-                    new Date(r[0]) > fechaSube &&
-                    (!proximaSubida || new Date(r[0]) < new Date(proximaSubida[0]))
-                );
-
-                container.insertAdjacentHTML('afterbegin', renderCard(idBandeja, rSube, rBaja, !rBaja && proximaSubida));
-            });
+            registrosFiltro = database.filter(r => r[3] && r[3].toString() === query);
         } else {
-            const subidas = database.filter(r => r[4] && r[4].toString().toUpperCase() === query);
-            subidas.forEach((rSube, idx) => {
-                const fechaSube = new Date(rSube[0]);
-                
-                // Buscamos si la misma bandeja volvió a subir en cualquier otro bus después
-                const proximaSubidaGlobal = database.find(r => 
-                    r[4] && r[4].toString().toUpperCase() === query && 
-                    new Date(r[0]) > fechaSube
-                );
-
-                const rBaja = database.find(r => 
-                    r[5] && r[5].toString().toUpperCase() === query && 
-                    new Date(r[0]) > fechaSube &&
-                    (!proximaSubidaGlobal || new Date(r[0]) < new Date(proximaSubidaGlobal[0]))
-                );
-
-                container.insertAdjacentHTML('afterbegin', renderCard(`Unidad #${rSube[3]}`, rSube, rBaja, !rBaja && proximaSubidaGlobal));
-            });
+            registrosFiltro = database.filter(r => (r[4] && r[4].toString().toUpperCase() === query) || (r[5] && r[5].toString().toUpperCase() === query));
         }
+
+        // Buscamos todas las SUBIDAS del activo seleccionado
+        const subidas = registrosFiltro.filter(r => {
+            if (modoActual === 'bus') return r[4]; // En bus, buscamos cuando sube un disco
+            return r[4] && r[4].toString().toUpperCase() === query; // En disco, buscamos cuando sube esa bandeja
+        });
+
+        // Procesamos cada ciclo de estancia
+        subidas.forEach(rSube => {
+            const fechaSube = new Date(rSube[0]);
+            const idBandeja = rSube[4];
+            const idUnidad = rSube[3];
+
+            // 1. Buscamos la BAJA correspondiente
+            // Debe ser la primera baja del mismo ID que ocurra DESPUÉS de la subida
+            const rBaja = database.find(r => 
+                r[5] && r[5].toString().toUpperCase() === (modoActual === 'bus' ? idBandeja.toUpperCase() : query) &&
+                new Date(r[0]) > fechaSube
+            );
+
+            // 2. ¿Hay una inconsistencia? 
+            // Si no hay baja, pero existe OTRA SUBIDA del mismo activo después de esta
+            const proximaSubida = database.find(r => 
+                (modoActual === 'bus' ? (r[3] && r[3].toString() === query && r[4]) : (r[4] && r[4].toString().toUpperCase() === query)) &&
+                new Date(r[0]) > fechaSube
+            );
+
+            const esInconsistente = !rBaja && proximaSubida;
+            const tituloCard = modoActual === 'bus' ? idBandeja : `Unidad #${idUnidad}`;
+
+            // Insertamos al principio para que lo más nuevo se vea arriba en la web
+            container.insertAdjacentHTML('afterbegin', renderCard(tituloCard, rSube, rBaja, esInconsistente));
+        });
     }
 
-    function renderCard(titulo, sube, baja, esOmision) {
-        let duracion = "En Unidad / Activo";
-        let colorEstado = "#34c759";
-        let alerta = "";
+    function renderCard(titulo, sube, baja, inconsistente) {
+        let color = "#34c759"; // Verde (Activo)
+        let textoEstado = "En Operación";
+        let duracion = "Calculando...";
 
         if (baja) {
+            color = "#8e8e93"; // Gris (Finalizado)
+            textoEstado = "Ciclo Cerrado";
             const diff = Math.abs(new Date(baja[0]) - new Date(sube[0]));
             duracion = `Permanencia: ${Math.floor(diff/864e5)}d ${Math.floor((diff%864e5)/36e5)}h`;
-            colorEstado = "#8e8e93"; 
-        } else if (esOmision) {
-            duracion = "⚠️ Salida no registrada";
-            colorEstado = "#ff9500"; // Naranja iPhone para advertencias
-            alerta = `<div style="color:#ff9500; font-size:10px; font-weight:bold; margin-top:5px;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> SALTO DE REGISTRO DETECTADO
-                      </div>`;
+        } else if (inconsistente) {
+            color = "#ff9500"; // Naranja (Inconsistente)
+            textoEstado = "Falta Registro";
+            duracion = "⚠️ No se registró la salida";
         }
 
         const fSube = new Date(sube[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
-        const fBaja = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : (esOmision ? "Desconocido" : "Activo");
+        const fBaja = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : "---";
 
         return `
-            <div class="journey-card" style="border-left: 4px solid ${colorEstado}">
+            <div class="journey-card" style="border-left: 5px solid ${color}">
                 <div class="journey-header">
                     <span class="main-id">${titulo}</span>
-                    <span class="status-pill" style="background:${colorEstado}22; color:${colorEstado}">
-                        ${baja ? 'Finalizado' : (esOmision ? 'Inconsistente' : 'Actual')}
-                    </span>
+                    <span class="status-pill" style="background:${color}15; color:${color}">${textoEstado}</span>
                 </div>
                 <div class="staircase">
                     <div class="step up">
-                        <span class="step-label">REGISTRO DE ENTRADA</span>
+                        <span class="step-label">INSTALACIÓN</span>
                         <span class="step-date">${fSube}</span>
                         <span class="step-meta">${sube[2]} • ${sube[1]}</span>
                     </div>
-                    <div class="step ${baja ? 'down' : (esOmision ? 'missing' : 'active-step')}">
-                        <span class="step-label">REGISTRO DE SALIDA</span>
-                        <span class="step-date">${fBaja}</span>
-                        <span class="step-meta">${baja ? `${baja[2]} • ${baja[1]}` : (esOmision ? 'Se omitió el registro de baja' : 'Operando')}</span>
+                    <div class="step ${baja ? 'down' : (inconsistente ? 'missing' : 'active-step')}">
+                        <span class="step-label">${baja ? 'RETIRO' : (inconsistente ? 'SALIDA OMITIDA' : 'ESTADO ACTUAL')}</span>
+                        <span class="step-date">${baja ? fBaja : (inconsistente ? '---' : 'Trabajando')}</span>
+                        <span class="step-meta">${baja ? `${baja[2]} • ${baja[1]}` : (inconsistente ? 'El técnico no registró la baja' : 'Bandeja en la unidad')}</span>
                     </div>
                 </div>
                 <div class="duration-badge">${duracion}</div>
-                ${alerta}
             </div>`;
     }
 
