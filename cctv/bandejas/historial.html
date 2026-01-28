@@ -3,115 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trazabilidad CCTV</title>
+    <title>Historico de Bandejas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --ios-bg: #f2f2f7;
-            --ios-card: #ffffff;
-            --ios-blue: #007aff;
-            --ios-green: #34c759;
-            --ios-red: #ff3b30;
-            --ios-gray: #8e8e93;
-            --ios-sep: #c6c6c8;
+            --apple-bg: #f2f2f7;
+            --apple-card: #ffffff;
+            --apple-blue: #007aff;
+            --apple-green: #34c759;
+            --apple-red: #ff3b30;
+            --apple-gray: #8e8e93;
+            --apple-sep: #c6c6c8;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--ios-bg);
-            margin: 0; padding: 0; color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro", sans-serif;
+            background-color: var(--apple-bg); margin: 0; padding: 0; color: #000;
         }
 
-        /* Header Estilo iPhone */
+        /* Header Dinámico */
         .nav-header {
-            position: sticky; top: 0;
-            background: rgba(242, 242, 247, 0.8);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            z-index: 1000; padding: 20px 16px 10px;
-            border-bottom: 0.5px solid var(--ios-sep);
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: saturate(180%) blur(20px);
+            padding: 20px 16px 15px; border-bottom: 0.5px solid var(--apple-sep);
         }
+        .nav-header h1 { font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
 
-        .nav-header h1 { font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -1px; }
-
-        /* Grupos de Ajustes */
-        .ios-section-label { font-size: 13px; color: var(--ios-gray); text-transform: uppercase; margin: 20px 20px 8px; }
-        
-        .ios-group {
-            background: var(--ios-card); border-radius: 10px; margin: 0 16px 20px;
-            border: 0.5px solid var(--ios-sep); overflow: hidden;
-        }
-
-        .ios-row {
-            display: flex; align-items: center; padding: 12px 16px; gap: 12px;
-            border-bottom: 0.5px solid var(--ios-sep);
-        }
-        .ios-row:last-child { border-bottom: none; }
-
-        .icon-box {
-            width: 30px; height: 30px; border-radius: 7px;
-            display: flex; align-items: center; justify-content: center; color: white;
-        }
-
-        input { border: none; outline: none; font-size: 17px; width: 100%; background: transparent; }
-
-        /* Segmented Control */
+        /* Controles iOS */
         .segmented-control {
-            display: flex; background: #d1d1d6; padding: 2px; border-radius: 9px; margin: 0 16px 15px;
+            display: flex; background: #e3e3e6; padding: 2px; border-radius: 10px; margin: 15px 16px;
         }
         .segment {
-            flex: 1; text-align: center; padding: 6px 0; font-size: 13px; font-weight: 600;
-            border-radius: 7px; cursor: pointer; transition: 0.2s;
+            flex: 1; text-align: center; padding: 7px 0; font-size: 13px; font-weight: 600;
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
         }
-        .segment.active { background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+        .segment.active { background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
 
-        /* Tarjetas de Trazabilidad */
-        .trace-card {
-            background: var(--ios-card); border-radius: 14px; margin: 0 16px 16px;
-            padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        .search-group {
+            background: var(--apple-card); border-radius: 10px; margin: 0 16px 20px;
+            border: 0.5px solid var(--apple-sep);
         }
+        .search-row { display: flex; align-items: center; padding: 12px 16px; gap: 12px; }
+        input { border: none; outline: none; font-size: 17px; width: 100%; background: transparent; }
 
-        .trace-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .unit-id { font-size: 22px; font-weight: 700; }
-
-        .event-box {
-            border-left: 3px solid var(--ios-blue); padding-left: 12px; margin-bottom: 15px;
-        }
-        .event-box.down { border-left-color: var(--ios-red); }
-
-        .event-title { font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
-        .event-main { font-size: 15px; font-weight: 600; display: block; }
-        .event-sub { font-size: 13px; color: var(--ios-gray); }
-
-        .info-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            background: #f8f8fa; padding: 12px; border-radius: 10px;
+        /* Tarjeta de Ciclo de Vida */
+        .cycle-card {
+            background: var(--apple-card); border-radius: 16px; margin: 0 16px 16px;
+            padding: 0; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .data-point span { display: block; font-size: 10px; color: var(--ios-gray); font-weight: 700; text-transform: uppercase; }
-        .data-point b { font-size: 13px; color: #000; }
+        .cycle-header {
+            padding: 12px 16px; background: #fafafa; border-bottom: 0.5px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .badge-id { background: #000; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: 700; }
+        
+        .timeline { padding: 16px; position: relative; }
+        .point { display: flex; gap: 12px; position: relative; padding-bottom: 20px; }
+        .point:last-child { padding-bottom: 0; }
+        
+        /* Línea conectora */
+        .point::before {
+            content: ''; position: absolute; left: 6px; top: 15px; width: 2px; height: 100%;
+            background: #e5e5ea; z-index: 1;
+        }
+        .point:last-child::before { display: none; }
+
+        .dot { width: 14px; height: 14px; border-radius: 50%; z-index: 2; margin-top: 4px; border: 2px solid white; box-shadow: 0 0 0 1px #ddd;}
+        
+        .point-content { flex: 1; }
+        .point-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--apple-gray); }
+        .point-val { font-size: 15px; font-weight: 600; display: block; }
+        .point-meta { font-size: 12px; color: var(--apple-gray); }
+
+        .duration-tag {
+            background: #eef7ff; color: var(--apple-blue); padding: 8px 12px;
+            font-size: 12px; font-weight: 600; border-radius: 10px; margin: 0 16px 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
     </style>
 </head>
 <body>
 
     <div class="nav-header">
         <h1>Trazabilidad</h1>
-        <div id="status-text" style="font-size: 13px; color: var(--ios-gray);">Sincronizando...</div>
+        <div id="status-text" style="font-size: 12px; color: var(--apple-gray); margin-top: 5px;">Sincronizando...</div>
     </div>
 
-    <div class="ios-section-label">Buscar por activo</div>
     <div class="segmented-control">
-        <div id="segBus" class="segment active" onclick="setModo('bus')">AUTOBÚS</div>
+        <div id="segBus" class="segment active" onclick="setModo('bus')">UNIDAD</div>
         <div id="segDisco" class="segment" onclick="setModo('disco')">BANDEJA</div>
     </div>
 
-    <div class="ios-group">
-        <div class="ios-row" id="rowBus">
-            <div class="icon-box" style="background: var(--ios-blue);"><i class="fa-solid fa-bus"></i></div>
-            <input type="number" id="inputBus" placeholder="Eco del autobús" oninput="renderizar()">
-        </div>
-        <div class="ios-row" id="rowDisco" style="display:none;">
-            <div class="icon-box" style="background: var(--ios-green);"><i class="fa-solid fa-compact-disc"></i></div>
-            <input type="text" id="inputDisco" placeholder="ID de Bandeja" oninput="renderizar()">
+    <div class="search-group">
+        <div class="search-row">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--apple-gray)"></i>
+            <input type="text" id="mainInput" placeholder="Escribir número o ID..." oninput="reemplazarRender()">
         </div>
     </div>
 
@@ -119,108 +106,99 @@
 
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
-        let dataFull = [];
+        let rawData = [];
         let modo = 'bus';
 
         async function init() {
             try {
                 const res = await fetch(`${scriptURL}?accion=leerHistorial`);
-                dataFull = await res.json();
-                document.getElementById('status-text').innerText = "Base de datos actualizada";
-                renderizar();
-            } catch(e) { document.getElementById('status-text').innerText = "Error de enlace"; }
+                rawData = await res.json(); // Se asume que viene [Fecha, Base, Tec, Eco, Sube, Baja...]
+                document.getElementById('status-text').innerText = "Historial listo";
+                reemplazarRender();
+            } catch(e) { document.getElementById('status-text').innerText = "Error de red"; }
         }
 
         function setModo(m) {
             modo = m;
             document.getElementById('segBus').classList.toggle('active', m === 'bus');
             document.getElementById('segDisco').classList.toggle('active', m === 'disco');
-            document.getElementById('rowBus').style.display = m === 'bus' ? 'flex' : 'none';
-            document.getElementById('rowDisco').style.display = m === 'disco' ? 'flex' : 'none';
-            renderizar();
+            document.getElementById('mainInput').placeholder = m === 'bus' ? "Eco del autobús (ej. 40008)" : "ID de Bandeja (ej. GUZM-...)";
+            reemplazarRender();
         }
 
-        function renderizar() {
+        function reemplazarRender() {
             const container = document.getElementById('resultados');
-            const valBus = document.getElementById('inputBus').value.trim();
-            const valDisco = document.getElementById('inputDisco').value.trim().toUpperCase();
+            const val = document.getElementById('mainInput').value.trim().toUpperCase();
             container.innerHTML = "";
 
-            if (modo === 'bus' && valBus) {
-                // Buscamos movimientos de este autobús
-                const logs = dataFull.filter(r => r[3] && r[3].toString() === valBus);
-                if (logs.length > 0) {
-                    const ultimoSube = logs.find(r => r[4]); // Último donde algo subió
-                    const ultimoBaja = logs.find(r => r[5]); // Último donde algo bajó
-                    container.innerHTML = crearCardBus(valBus, ultimoSube, ultimoBaja);
-                }
-            } else if (modo === 'disco' && valDisco) {
-                // Trazabilidad de la bandeja
-                const logsSube = dataFull.filter(r => r[4] && r[4].toString().toUpperCase() === valDisco);
-                const logsBaja = dataFull.filter(r => r[5] && r[5].toString().toUpperCase() === valDisco);
+            if (!val) return;
+
+            if (modo === 'bus') {
+                // Filtramos por unidad
+                const logsUnidad = rawData.filter(r => r[3] && r[3].toString() === val);
                 
-                if (logsSube.length > 0 || logsBaja.length > 0) {
-                    container.innerHTML = crearCardDisco(valDisco, logsSube[0], logsBaja[0]);
-                }
+                // Agrupamos por eventos de "SUBIDA" para crear ciclos
+                logsUnidad.forEach((regSube, index) => {
+                    if (regSube[4]) { // Si en este registro subió algo
+                        // Buscamos cuándo bajó este mismo disco en esta misma unidad (buscando hacia registros más nuevos)
+                        const regBaja = logsUnidad.find((r, i) => i < rawData.indexOf(regSube) && r[5] === regSube[4]);
+                        container.innerHTML += buildCard(regSube, regBaja, 'bus');
+                    }
+                });
+            } else {
+                // Filtramos por bandeja
+                const logsBandeja = rawData.filter(r => (r[4] && r[4].toString().toUpperCase() === val) || (r[5] && r[5].toString().toUpperCase() === val));
+                
+                // Buscamos cada vez que se SUBIÓ para rastrear su estancia
+                const subidas = logsBandeja.filter(r => r[4] && r[4].toString().toUpperCase() === val);
+                subidas.forEach(regSube => {
+                    const regBaja = rawData.find(r => r[5] && r[5].toString().toUpperCase() === val && new Date(r[0]) > new Date(regSube[0]));
+                    container.innerHTML += buildCard(regSube, regBaja, 'disco');
+                });
             }
         }
 
-        function crearCardBus(id, sube, baja) {
+        function buildCard(sube, baja, tipo) {
+            let tiempo = "Instalado actualmente";
+            if (baja) {
+                const diff = Math.abs(new Date(baja[0]) - new Date(sube[0]));
+                const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                tiempo = `Estancia: ${dias}d ${horas}h`;
+            }
+
+            const titulo = tipo === 'bus' ? sube[4] : `Unidad #${sube[3]}`;
+
             return `
-                <div class="trace-card">
-                    <div class="trace-header"><span class="unit-id">Autobús #${id}</span></div>
+                <div class="cycle-card">
+                    <div class="cycle-header">
+                        <span class="badge-id">${titulo}</span>
+                        <span style="font-size:11px; color:var(--apple-gray)">ID: ${sube[3]}</span>
+                    </div>
                     
-                    <div class="event-box">
-                        <span class="event-title" style="color:var(--ios-green)">Instalación Actual (SUBE)</span>
-                        <span class="event-main">${sube ? sube[4] : 'Sin registro'}</span>
-                        <span class="event-sub">Fecha: ${sube ? sube[0] : '--'}</span>
+                    <div class="timeline">
+                        <div class="point">
+                            <div class="dot" style="background:var(--apple-green)"></div>
+                            <div class="point-content">
+                                <span class="point-label">Subida / Instalación</span>
+                                <span class="point-val">${sube[0]}</span>
+                                <span class="point-meta">Por: ${sube[2]} | Base: ${sube[1]}</span>
+                            </div>
+                        </div>
+
+                        <div class="point">
+                            <div class="dot" style="background:${baja ? 'var(--apple-red)' : 'var(--apple-gray)'}"></div>
+                            <div class="point-content">
+                                <span class="point-label">Bajada / Retiro</span>
+                                <span class="point-val">${baja ? baja[0] : 'Activo'}</span>
+                                <span class="point-meta">${baja ? `Por: ${baja[2]} | Base: ${baja[1]}` : 'Sin registro de retiro'}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="info-grid">
-                        <div class="data-point"><span>Técnico</span><b>${sube ? sube[2] : '--'}</b></div>
-                        <div class="data-point"><span>Base</span><b>${sube ? sube[1] : '--'}</b></div>
-                    </div>
-
-                    <div style="height:20px;"></div>
-
-                    <div class="event-box down">
-                        <span class="event-title" style="color:var(--ios-red)">Último Retiro (BAJA)</span>
-                        <span class="event-main">${baja ? baja[5] : 'Sin registro'}</span>
-                        <span class="event-sub">Fecha: ${baja ? baja[0] : '--'}</span>
-                    </div>
-
-                    <div class="info-grid">
-                        <div class="data-point"><span>Técnico</span><b>${baja ? baja[2] : '--'}</b></div>
-                        <div class="data-point"><span>Base</span><b>${baja ? baja[1] : '--'}</b></div>
-                    </div>
-                </div>`;
-        }
-
-        function crearCardDisco(id, sube, baja) {
-            return `
-                <div class="trace-card">
-                    <div class="trace-header"><span class="unit-id">${id}</span></div>
-                    
-                    <div class="event-box">
-                        <span class="event-title" style="color:var(--ios-blue)">Ubicación Actual (SUBE)</span>
-                        <span class="event-main">Autobús #${sube ? sube[3] : 'Desconocido'}</span>
-                        <span class="event-sub">Instalado el: ${sube ? sube[0] : '--'}</span>
-                    </div>
-
-                    <div class="info-grid" style="margin-bottom:20px;">
-                        <div class="data-point"><span>Quién instaló</span><b>${sube ? sube[2] : '--'}</b></div>
-                        <div class="data-point"><span>Base</span><b>${sube ? sube[1] : '--'}</b></div>
-                    </div>
-
-                    <div class="event-box down">
-                        <span class="event-title" style="color:var(--ios-gray)">Último Retiro (BAJA)</span>
-                        <span class="event-main">De Autobús #${baja ? baja[3] : '--'}</span>
-                        <span class="event-sub">Retirado el: ${baja ? baja[0] : '--'}</span>
-                    </div>
-
-                    <div class="info-grid">
-                        <div class="data-point"><span>Quién retiró</span><b>${baja ? baja[2] : '--'}</b></div>
-                        <div class="data-point"><span>Base</span><b>${baja ? baja[1] : '--'}</b></div>
+                    <div class="duration-tag">
+                        <i class="fa-solid fa-clock-history"></i>
+                        ${tiempo}
                     </div>
                 </div>`;
         }
