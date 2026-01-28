@@ -108,140 +108,129 @@
 
     <div id="resultados"></div>
 
-<script>
-    // URL de tu Web App de Google
+    <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
     let database = [];
     let modoActual = 'bus';
 
-    // 1. Carga inicial de datos
     async function cargar() {
         const statusText = document.getElementById('status-text');
         try {
-            statusText.innerText = "⏳ Sincronizando con iCloud...";
+            statusText.innerText = "⏳ Sincronizando registros...";
             const res = await fetch(`${scriptURL}?accion=leerHistorial`);
             database = await res.json();
-            
-            // Ordenar por fecha (descendente: lo más nuevo arriba)
-            database.sort((a, b) => new Date(b[0]) - new Date(a[0]));
-            
-            statusText.innerText = "✅ " + database.length + " registros sincronizados";
+            // Ordenamos: Lo más antiguo primero para reconstruir la historia hacia adelante
+            database.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            statusText.innerText = "✅ iCloud Sincronizado";
+            procesar();
         } catch (e) {
-            statusText.innerText = "❌ Error de conexión";
-            console.error(e);
+            statusText.innerText = "❌ Error de Red";
         }
     }
 
-    // 2. Control de los interruptores (Switches)
     function cambiarModo(m) {
         modoActual = m;
-        // Efecto visual de iPhone Segmented Control
         document.getElementById('segBus').classList.toggle('active', m === 'bus');
         document.getElementById('segDisco').classList.toggle('active', m === 'disco');
-        
-        // Ajustar placeholder y limpiar búsqueda
-        const input = document.getElementById('userInput');
-        input.placeholder = m === 'bus' ? "Número de autobús (ej. 40008)" : "ID de bandeja (ej. GUZM-...)";
-        input.value = "";
+        document.getElementById('userInput').value = "";
         document.getElementById('resultados').innerHTML = "";
     }
 
-    // 3. Lógica de Trazabilidad Estricta
     function procesar() {
         const container = document.getElementById('resultados');
         const query = document.getElementById('userInput').value.trim().toUpperCase();
         container.innerHTML = "";
-        
         if (!query) return;
 
         if (modoActual === 'bus') {
-            // BUSCAR POR AUTOBÚS: Filtramos todas las filas de esa unidad
             const rowsBus = database.filter(r => r[3] && r[3].toString() === query);
-            
-            // Buscamos cada evento donde SUBIÓ un disco (Columna E / Índice 4)
             const subidas = rowsBus.filter(r => r[4]);
 
-            subidas.forEach(rSube => {
+            subidas.forEach((rSube, idx) => {
                 const idBandeja = rSube[4];
-                // BUSQUEDA ESTRICTA: Buscamos la BAJA de ESTA bandeja específica
-                // en ESTA misma unidad que haya ocurrido DESPUÉS de la subida
+                const fechaSube = new Date(rSube[0]);
+                
+                // Buscamos la bajada de esta bandeja que ocurra después de ESTA subida
+                // PERO antes de la SIGUIENTE subida registrada en este bus (si existe)
+                const proximaSubida = subidas.find(s => new Date(s[0]) > fechaSube);
+                
                 const rBaja = rowsBus.find(r => 
                     r[5] === idBandeja && 
-                    new Date(r[0]) > new Date(rSube[0])
+                    new Date(r[0]) > fechaSube &&
+                    (!proximaSubida || new Date(r[0]) < new Date(proximaSubida[0]))
                 );
-                
-                container.innerHTML += renderCard(idBandeja, rSube, rBaja);
+
+                container.insertAdjacentHTML('afterbegin', renderCard(idBandeja, rSube, rBaja, !rBaja && proximaSubida));
             });
         } else {
-            // BUSCAR POR BANDEJA: Historial de la bandeja en el tiempo
             const subidas = database.filter(r => r[4] && r[4].toString().toUpperCase() === query);
-            
-            subidas.forEach(rSube => {
-                const idUnidad = rSube[3];
-                // Buscamos cuándo se bajó esa bandeja de esa unidad específica en el futuro
+            subidas.forEach((rSube, idx) => {
+                const fechaSube = new Date(rSube[0]);
+                
+                // Buscamos si la misma bandeja volvió a subir en cualquier otro bus después
+                const proximaSubidaGlobal = database.find(r => 
+                    r[4] && r[4].toString().toUpperCase() === query && 
+                    new Date(r[0]) > fechaSube
+                );
+
                 const rBaja = database.find(r => 
                     r[5] && r[5].toString().toUpperCase() === query && 
-                    r[3] === idUnidad &&
-                    new Date(r[0]) > new Date(rSube[0])
+                    new Date(r[0]) > fechaSube &&
+                    (!proximaSubidaGlobal || new Date(r[0]) < new Date(proximaSubidaGlobal[0]))
                 );
-                container.innerHTML += renderCard(`Unidad #${idUnidad}`, rSube, rBaja);
+
+                container.insertAdjacentHTML('afterbegin', renderCard(`Unidad #${rSube[3]}`, rSube, rBaja, !rBaja && proximaSubidaGlobal));
             });
         }
     }
 
-    // 4. Renderizado Estilo iOS
-    function renderCard(titulo, sube, baja) {
-        let duracion = "Instalado actualmente";
-        let colorEstado = "#34c759"; // Verde iOS
+    function renderCard(titulo, sube, baja, esOmision) {
+        let duracion = "En Unidad / Activo";
+        let colorEstado = "#34c759";
+        let alerta = "";
 
         if (baja) {
             const diff = Math.abs(new Date(baja[0]) - new Date(sube[0]));
-            const d = Math.floor(diff / 864e5);
-            const h = Math.floor((diff % 864e5) / 36e5);
-            duracion = `Permanencia: ${d}d ${h}h`;
-            colorEstado = "#ff3b30"; // Rojo iOS
+            duracion = `Permanencia: ${Math.floor(diff/864e5)}d ${Math.floor((diff%864e5)/36e5)}h`;
+            colorEstado = "#8e8e93"; 
+        } else if (esOmision) {
+            duracion = "⚠️ Salida no registrada";
+            colorEstado = "#ff9500"; // Naranja iPhone para advertencias
+            alerta = `<div style="color:#ff9500; font-size:10px; font-weight:bold; margin-top:5px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> SALTO DE REGISTRO DETECTADO
+                      </div>`;
         }
 
-        // Formateo de fecha legible
-        const opciones = { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' };
-        const fSube = new Date(sube[0]).toLocaleDateString('es-MX', opciones);
-        const fBaja = baja ? new Date(baja[0]).toLocaleDateString('es-MX', opciones) : "Activo";
+        const fSube = new Date(sube[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+        const fBaja = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : (esOmision ? "Desconocido" : "Activo");
 
         return `
             <div class="journey-card" style="border-left: 4px solid ${colorEstado}">
                 <div class="journey-header">
                     <span class="main-id">${titulo}</span>
                     <span class="status-pill" style="background:${colorEstado}22; color:${colorEstado}">
-                        ${baja ? 'Retirado' : 'En Unidad'}
+                        ${baja ? 'Finalizado' : (esOmision ? 'Inconsistente' : 'Actual')}
                     </span>
                 </div>
-
                 <div class="staircase">
                     <div class="step up">
-                        <span class="step-label">ENTRADA</span>
+                        <span class="step-label">REGISTRO DE ENTRADA</span>
                         <span class="step-date">${fSube}</span>
-                        <div class="step-meta">
-                            <span><i class="fa-solid fa-user"></i> ${sube[2]}</span>
-                            <span><i class="fa-solid fa-location-dot"></i> ${sube[1]}</span>
-                        </div>
+                        <span class="step-meta">${sube[2]} • ${sube[1]}</span>
                     </div>
-
-                    <div class="step ${baja ? 'down' : 'active-step'}">
-                        <span class="step-label">${baja ? 'SALIDA' : 'ESTADO'}</span>
+                    <div class="step ${baja ? 'down' : (esOmision ? 'missing' : 'active-step')}">
+                        <span class="step-label">REGISTRO DE SALIDA</span>
                         <span class="step-date">${fBaja}</span>
-                        <div class="step-meta">
-                            ${baja ? `<span><i class="fa-solid fa-user"></i> ${baja[2]}</span> <span><i class="fa-solid fa-location-dot"></i> ${baja[1]}</span>` : 'Operando normalmente'}
-                        </div>
+                        <span class="step-meta">${baja ? `${baja[2]} • ${baja[1]}` : (esOmision ? 'Se omitió el registro de baja' : 'Operando')}</span>
                     </div>
                 </div>
-
-                <div class="duration-badge">
-                    <i class="fa-solid fa-clock-rotate-left"></i> &nbsp; ${duracion}
-                </div>
+                <div class="duration-badge">${duracion}</div>
+                ${alerta}
             </div>`;
     }
 
     window.onload = cargar;
 </script>
+    
 </body>
 </html>
