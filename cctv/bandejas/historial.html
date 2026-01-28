@@ -1,4 +1,4 @@
-am<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -116,13 +116,12 @@ am<!DOCTYPE html>
     async function cargar() {
         const statusText = document.getElementById('status-text');
         try {
-            statusText.innerText = "⏳ Sincronizando...";
+            statusText.innerText = "⏳ Sincronizando registros...";
             const res = await fetch(`${scriptURL}?accion=leerHistorial`);
             const data = await res.json();
-            
-            // IMPORTANTE: Ordenamos cronológicamente (Viejo -> Nuevo) para procesar
-            database = data.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-            statusText.innerText = "✅ Datos actualizados";
+            // Ordenar por tiempo absoluto para evitar errores de secuencia
+            database = data.sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
+            statusText.innerText = "✅ Trazabilidad lista";
         } catch (e) {
             statusText.innerText = "❌ Error de conexión";
         }
@@ -142,86 +141,96 @@ am<!DOCTYPE html>
         container.innerHTML = "";
         if (!query) return;
 
-        // Obtenemos los registros relevantes según el modo
-        let registrosFiltro = [];
-        if (modoActual === 'bus') {
-            registrosFiltro = database.filter(r => r[3] && r[3].toString() === query);
-        } else {
-            registrosFiltro = database.filter(r => (r[4] && r[4].toString().toUpperCase() === query) || (r[5] && r[5].toString().toUpperCase() === query));
-        }
+        // Filtrar universo de datos según el modo seleccionado
+        let subset = modoActual === 'bus' 
+            ? database.filter(r => r[3] && r[3].toString() === query)
+            : database.filter(r => (r[4] && r[4].toString().toUpperCase() === query) || (r[5] && r[5].toString().toUpperCase() === query));
 
-        // Buscamos todas las SUBIDAS del activo seleccionado
-        const subidas = registrosFiltro.filter(r => {
-            if (modoActual === 'bus') return r[4]; // En bus, buscamos cuando sube un disco
-            return r[4] && r[4].toString().toUpperCase() === query; // En disco, buscamos cuando sube esa bandeja
+        // Identificar todas las subidas (Eventos de instalación)
+        const subidas = subset.filter(r => {
+            if (modoActual === 'bus') return r[4]; // Todo lo que subió a este bus
+            return r[4] && r[4].toString().toUpperCase() === query; // Veces que esta bandeja subió a cualquier bus
         });
 
-        // Procesamos cada ciclo de estancia
         subidas.forEach(rSube => {
-            const fechaSube = new Date(rSube[0]);
-            const idBandeja = rSube[4];
-            const idUnidad = rSube[3];
+            const tSube = new Date(rSube[0]).getTime();
+            const idBandejaSube = rSube[4];
+            const idBusSube = rSube[3];
 
-            // 1. Buscamos la BAJA correspondiente
-            // Debe ser la primera baja del mismo ID que ocurra DESPUÉS de la subida
+            // BUSCAR BAJA: La primera baja que coincida con el ID después de la subida
             const rBaja = database.find(r => 
-                r[5] && r[5].toString().toUpperCase() === (modoActual === 'bus' ? idBandeja.toUpperCase() : query) &&
-                new Date(r[0]) > fechaSube
+                r[5] && r[5].toString().toUpperCase() === (modoActual === 'bus' ? idBandejaSube.toUpperCase() : query) &&
+                new Date(r[0]).getTime() > tSube
             );
 
-            // 2. ¿Hay una inconsistencia? 
-            // Si no hay baja, pero existe OTRA SUBIDA del mismo activo después de esta
-            const proximaSubida = database.find(r => 
-                (modoActual === 'bus' ? (r[3] && r[3].toString() === query && r[4]) : (r[4] && r[4].toString().toUpperCase() === query)) &&
-                new Date(r[0]) > fechaSube
-            );
+            // DETECTAR INCONSISTENCIA: ¿Hubo otra subida antes de que esta bajara?
+            // Si buscamos por bus: ¿Subió otro disco antes de que bajara el anterior?
+            // Si buscamos por disco: ¿Subió a otro bus antes de que lo bajaran del anterior?
+            const proximaSubida = database.find(r => {
+                const tRef = new Date(r[0]).getTime();
+                if (modoActual === 'bus') {
+                    return r[3] && r[3].toString() === query && r[4] && tRef > tSube;
+                } else {
+                    return r[4] && r[4].toString().toUpperCase() === query && tRef > tSube;
+                }
+            });
 
-            const esInconsistente = !rBaja && proximaSubida;
-            const tituloCard = modoActual === 'bus' ? idBandeja : `Unidad #${idUnidad}`;
+            // Lógica de estado
+            let status = "activo"; // Por defecto está operando
+            if (rBaja) {
+                // Si hay una baja, pero hubo otra subida antes, la baja pertenece a otro ciclo
+                if (proximaSubida && new Date(rBaja[0]).getTime() > new Date(proximaSubida[0]).getTime()) {
+                    status = "inconsistente";
+                } else {
+                    status = "finalizado";
+                }
+            } else if (proximaSubida) {
+                status = "inconsistente";
+            }
 
-            // Insertamos al principio para que lo más nuevo se vea arriba en la web
-            container.insertAdjacentHTML('afterbegin', renderCard(tituloCard, rSube, rBaja, esInconsistente));
+            const titulo = modoActual === 'bus' ? idBandejaSube : `Unidad #${idBusSube}`;
+            container.insertAdjacentHTML('afterbegin', renderCard(titulo, rSube, (status === "finalizado" ? rBaja : null), status));
         });
     }
 
-    function renderCard(titulo, sube, baja, inconsistente) {
-        let color = "#34c759"; // Verde (Activo)
-        let textoEstado = "En Operación";
-        let duracion = "Calculando...";
+    function renderCard(titulo, sube, baja, status) {
+        let config = {
+            color: "#34c759",
+            label: "EN OPERACIÓN",
+            desc: "Bandeja trabajando",
+            duracion: "---"
+        };
 
-        if (baja) {
-            color = "#8e8e93"; // Gris (Finalizado)
-            textoEstado = "Ciclo Cerrado";
+        if (status === "finalizado") {
+            config = { color: "#8e8e93", label: "CICLO CERRADO", desc: "Movimiento completado", duracion: "" };
             const diff = Math.abs(new Date(baja[0]) - new Date(sube[0]));
-            duracion = `Permanencia: ${Math.floor(diff/864e5)}d ${Math.floor((diff%864e5)/36e5)}h`;
-        } else if (inconsistente) {
-            color = "#ff9500"; // Naranja (Inconsistente)
-            textoEstado = "Falta Registro";
-            duracion = "⚠️ No se registró el cambio";
+            config.duracion = `Permanencia: ${Math.floor(diff/864e5)}d ${Math.floor((diff%864e5)/36e5)}h`;
+        } else if (status === "inconsistente") {
+            config = { color: "#ff9500", label: "SIN CIERRE", desc: "El técnico no registró la baja", duracion: "⚠️ Inconsistencia" };
         }
 
-        const fSube = new Date(sube[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
-        const fBaja = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : "---";
+        const f1 = new Date(sube[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+        const f2 = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : (status === "inconsistente" ? "Omitida" : "Presente");
 
         return `
-            <div class="journey-card" style="border-left: 5px solid ${color}">
+            <div class="journey-card" style="border-left: 5px solid ${config.color}">
                 <div class="journey-header">
                     <span class="main-id">${titulo}</span>
-                    <span class="status-pill" style="background:${color}15; color:${color}">${textoEstado}</span>
+                    <span class="status-pill" style="background:${config.color}15; color:${config.color}">${config.label}</span>
                 </div>
                 <div class="staircase">
                     <div class="step up">
-                        <span class="step-label">INSTALACIÓN</span>
-                        <span class="step-date">${fSube}</span>
+                        <span class="step-label">REGISTRO SUBIDA</span>
+                        <span class="step-date">${f1}</span>
                         <span class="step-meta">${sube[2]} • ${sube[1]}</span>
                     </div>
-                    <div class="step ${baja ? 'down' : (inconsistente ? 'missing' : 'active-step')}">
-                        <span class="step-label">${baja ? 'RETIRO' : (inconsistente ? 'SALIDA OMITIDA' : 'ESTADO ACTUAL')}</span>
-                        <span class="step-date">${baja ? fBaja : (inconsistente ? '---' : 'Trabajando')}</span>
-                        <span class="step-meta">${baja ? `${baja[2]} • ${baja[1]}` : (inconsistente ? 'El técnico no registró la baja' : 'Bandeja en la unidad')}</span>
+                    <div class="step ${status === 'finalizado' ? 'down' : (status === 'inconsistente' ? 'missing' : 'active-step')}">
+                        <span class="step-label">${status === 'finalizado' ? 'REGISTRO BAJADA' : 'ESTADO ACTUAL'}</span>
+                        <span class="step-date">${f2}</span>
+                        <span class="step-meta">${baja ? `${baja[2]} • ${baja[1]}` : config.desc}</span>
                     </div>
                 </div>
-                <div class="duration-badge">${duracion}</div>
+                <div class="duration-badge">${config.duracion}</div>
             </div>`;
     }
 
