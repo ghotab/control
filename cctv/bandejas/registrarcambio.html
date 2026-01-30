@@ -183,17 +183,18 @@
         let discoActualBD = "";
 
         async function consultarUltimoDisco() {
-            const eco = document.getElementById('eco').value;
+            const eco = document.getElementById('eco').value.trim();
             validarProgreso();
-            if (eco.length >= 4) {
+            if (eco.length = 5) {
                 try {
                     const res = await fetch(`${scriptURL}?accion=leerHistorial`);
                     const data = await res.json();
                     // Buscar la última vez que algo SUBIÓ a este bus
-                    const hits = data.filter(r => r[3]?.toString() === eco && r[4]);
-                    if (hits.length > 0) {
-                        const ultimo = hits.sort((a,b) => new Date(b[0]) - new Date(a[0]))[0];
-                        discoActualBD = ultimo[4];
+                    const registrosBus = data.filter(r => r[3]?.toString() === eco && r[4]);
+                    if (registrosBus.length > 0) {
+                        // Ordenamos por fecha para estar seguros de que es el más reciente
+                        const ultimo = registrosBus.sort((a,b) => new Date(b[0]) - new Date(a[0]))[0];
+                        discoActualBD = ultimo[4].toString().trim().toUpperCase();
                         document.getElementById('discoEsperado').innerText = discoActualBD;
                     } else {
                         discoActualBD = "VACÍO";
@@ -205,10 +206,14 @@
 
         function iniciarEscaneo(id) {
             document.getElementById('reader').style.display = 'block';
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-                document.getElementById(id).value = text;
+            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
+                const input = document.getElementById(id);
+                input.value = text.trim().toUpperCase(); // Escribimos el valor
+                
                 html5QrCode.stop();
                 document.getElementById('reader').style.display = 'none';
+                
+                // DISPARADOR CRÍTICO: Validamos justo después de cerrar el escáner
                 validarInconsistencia();
             });
         }
@@ -217,12 +222,14 @@
             const escaneadoBaja = document.getElementById('bandejaBaja').value.trim().toUpperCase();
             const banner = document.getElementById('bannerInconsistencia');
             
-            // Si el técnico escaneó algo en baja, comparamos con lo que hay en BD
-            if (escaneadoBaja && discoActualBD && discoActualBD !== "VACÍO") {
-                if (escaneadoBaja !== discoActualBD.toUpperCase()) {
-                    banner.style.display = "block";
+            // Si ya escaneamos algo para BAJAR y tenemos un dato en la BD...
+            if (escaneadoBaja !== "" && discoActualBD !== "" && discoActualBD !== "VACÍO") {
+                // Comparamos: ¿Es lo mismo que dice la nube?
+                if (escaneadoBaja !== discoActualBD) {
+                    banner.style.display = "block"; // ¡ERROR! No coinciden
+                    console.log("Inconsistencia detectada: " + escaneadoBaja + " vs " + discoActualBD);
                 } else {
-                    banner.style.display = "none";
+                    banner.style.display = "none"; // Todo bien
                 }
             }
         }
@@ -231,7 +238,7 @@
             const tecnico = document.getElementById('tecnico').value;
             const eco = document.getElementById('eco').value;
             const seccion = document.getElementById('seccionEscaneo');
-            if (tecnico.length >= 5 && eco.length >= 4) {
+            if (tecnico.length >= 7 && eco.length = 5) {
                 seccion.style.opacity = "1";
                 seccion.style.pointerEvents = "auto";
             } else {
@@ -245,7 +252,7 @@
             const justificacion = document.getElementById('justificacionInconsistencia').value;
 
             if (bannerVisible && !justificacion) {
-                alert("⚠️ Por favor, justifica por qué el disco no es el que corresponde.");
+                alert("⚠️ ALERTA: El disco que estás bajando no es el que estaba registrado a bordo. Debes explicar el motivo en el campo naranja.");
                 return;
             }
 
