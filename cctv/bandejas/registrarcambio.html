@@ -21,14 +21,12 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background-color: var(--ios-bg);
             margin: 0;
-            color: var(--ios-text);
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Header Estilo Apple */
         .header {
             background-color: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
@@ -44,7 +42,6 @@
 
         .form-container { max-width: 500px; margin: 20px auto; padding: 0 16px 120px 16px; }
 
-        /* Los títulos de sección que tanto nos gustan */
         .ios-group-title { font-size: 13px; color: var(--ios-label); text-transform: uppercase; margin: 0 0 8px 16px; letter-spacing: 0.3px; }
 
         .ios-group { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 25px; border: 0.5px solid var(--ios-border); }
@@ -55,7 +52,6 @@
         .ios-label { font-size: 16px; width: 130px; flex-shrink: 0; }
         input, select { flex: 1; border: none; font-size: 16px; background: transparent; outline: none; color: var(--ios-text); text-align: right; }
         
-        /* Scan Controls */
         .scan-container { flex-direction: column; align-items: stretch; padding: 16px; }
         .scan-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         
@@ -63,22 +59,18 @@
             background: #e9e9eb; color: var(--ios-blue); border: none;
             width: 36px; height: 36px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 18px;
-            transition: 0.2s active;
         }
-        .btn-scan-ios:active { background: #d1d1d6; }
 
         #reader { width: 100% !important; border-radius: 12px; overflow: hidden; margin: 10px 0; border: 1px solid var(--ios-border); display: none; }
 
-        /* La Alerta de Inconsistencia: Hermosa y Funcional */
         #bannerInconsistencia {
-            background: #fffbe6; border: 1px solid #ffe58f; padding: 15px;
+            background: #fff2f2; border: 1px solid #ffcfcf; padding: 15px;
             border-radius: 12px; margin: -10px 0 20px 0; display: none;
-            animation: fadeIn 0.3s ease;
+            animation: slideDown 0.3s ease;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Botón Principal Flotante */
         .btn-save {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: calc(100% - 40px); max-width: 460px;
@@ -87,7 +79,6 @@
             box-shadow: 0 4px 12px rgba(0,122,255,0.3);
             cursor: pointer;
         }
-        .btn-save:active { opacity: 0.8; }
         .btn-save:disabled { background-color: #d1d1d6; box-shadow: none; }
     </style>
 </head>
@@ -95,12 +86,12 @@
 
     <div class="header">
         <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Volver</a>
-        <h1>Bandejas</h1>
+        <h1>Registro</h1>
         <div style="width: 50px;"></div>
     </div>
 
     <div class="form-container">
-        <p class="ios-group-title">Información General</p>
+        <p class="ios-group-title">General</p>
         <div class="ios-group">
             <div class="ios-row">
                 <span class="ios-label">Ubicación</span>
@@ -130,44 +121,52 @@
         <div id="reader"></div>
 
         <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: 0.3s;">
-            <p class="ios-group-title">Control de Bandejas</p>
+            <p class="ios-group-title">Bandejas</p>
             <div class="ios-group">
                 <div class="ios-row scan-container">
                     <div class="scan-action">
-                        <span class="ios-label">Sube (Nueva)</span>
+                        <span class="ios-label">Sube (Entra)</span>
                         <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
                     </div>
-                    <input type="text" id="bandejaSube" readonly placeholder="Esperando escaneo..." style="text-align: left; font-size: 14px; color: var(--ios-label);">
+                    <input type="text" id="bandejaSube" readonly placeholder="Escanear entrada">
                 </div>
 
                 <div class="ios-row scan-container">
                     <div class="scan-action">
-                        <span class="ios-label">Baja (Anterior)</span>
+                        <span class="ios-label">Baja (Sale)</span>
                         <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
                     </div>
-                    <input type="text" id="bandejaBaja" readonly placeholder="Esperando escaneo..." style="text-align: left; font-size: 14px; color: var(--ios-label);">
+                    <input type="text" id="bandejaBaja" readonly placeholder="Escanear salida">
                 </div>
             </div>
 
             <div id="bannerInconsistencia">
-                <p style="color: var(--ios-orange); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">
-                    ⚠️ DISCO NO COINCIDE
-                </p>
-                <div class="ios-group" style="margin-bottom: 0;">
+                <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE</p>
+                <div class="ios-group" style="margin-bottom: 0; border: 1px solid #ffcfcf;">
                     <div class="ios-row">
-                        <input type="text" id="justificacionInconsistencia" placeholder="¿Por qué es distinto al que subieron?" style="text-align: left; width: 100%;">
+                        <input type="text" id="justificacionInconsistencia" placeholder="Explicar motivo de discrepancia" style="text-align: left; width: 100%;">
                     </div>
                 </div>
                 <p style="font-size: 11px; color: var(--ios-label); margin: 8px 0 0 5px;">
-                    Se esperaba la bandeja: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">---</span>
+                    En sistema aparece: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">Ninguno</span>
                 </p>
             </div>
         </div>
 
-        <p class="ios-group-title">Diagnóstico Final</p>
+        <p class="ios-group-title">Diagnóstico</p>
         <div class="ios-group">
             <div class="ios-row">
-                <span class="ios-label">Estatus LED</span>
+                <span class="ios-label">¿Formateado?</span>
+                <select id="formateo" onchange="document.getElementById('divMotivo').style.display = (this.value=='SI'?'flex':'none')">
+                    <option value="NO">No</option>
+                    <option value="SI">Sí</option>
+                </select>
+            </div>
+            <div class="ios-row" id="divMotivo" style="display:none;">
+                <input type="text" id="motivoFormateo" placeholder="Razón del formateo" style="text-align: left;">
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">LED</span>
                 <select id="ledStatus" style="color: var(--ios-blue); font-weight: 600;">
                     <option value="OK">🟢 Grabando</option>
                     <option value="FALLA">🔴 Falla</option>
@@ -181,7 +180,7 @@
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec";
         const html5QrCode = new Html5Qrcode("reader");
-        let ultimoDiscoRegistrado = "";
+        let discoActualBD = "";
 
         async function consultarUltimoDisco() {
             const eco = document.getElementById('eco').value;
@@ -190,13 +189,17 @@
                 try {
                     const res = await fetch(`${scriptURL}?accion=leerHistorial`);
                     const data = await res.json();
-                    const historial = data.filter(r => r[3] && r[3].toString() === eco && r[4]);
-                    if (historial.length > 0) {
-                        const ultimo = historial.sort((a,b) => new Date(b[0]) - new Date(a[0]))[0];
-                        ultimoDiscoRegistrado = ultimo[4];
-                        document.getElementById('discoEsperado').innerText = ultimoDiscoRegistrado;
+                    // Buscar la última vez que algo SUBIÓ a este bus
+                    const hits = data.filter(r => r[3]?.toString() === eco && r[4]);
+                    if (hits.length > 0) {
+                        const ultimo = hits.sort((a,b) => new Date(b[0]) - new Date(a[0]))[0];
+                        discoActualBD = ultimo[4];
+                        document.getElementById('discoEsperado').innerText = discoActualBD;
+                    } else {
+                        discoActualBD = "VACÍO";
+                        document.getElementById('discoEsperado').innerText = "Sin registro previo";
                     }
-                } catch (e) { console.log("Error de red al consultar"); }
+                } catch (e) { console.error("Error de sync"); }
             }
         }
 
@@ -211,12 +214,16 @@
         }
 
         function validarInconsistencia() {
-            const baja = document.getElementById('bandejaBaja').value.trim().toUpperCase();
+            const escaneadoBaja = document.getElementById('bandejaBaja').value.trim().toUpperCase();
             const banner = document.getElementById('bannerInconsistencia');
-            if (baja && ultimoDiscoRegistrado && baja !== ultimoDiscoRegistrado.toUpperCase()) {
-                banner.style.display = "block";
-            } else {
-                banner.style.display = "none";
+            
+            // Si el técnico escaneó algo en baja, comparamos con lo que hay en BD
+            if (escaneadoBaja && discoActualBD && discoActualBD !== "VACÍO") {
+                if (escaneadoBaja !== discoActualBD.toUpperCase()) {
+                    banner.style.display = "block";
+                } else {
+                    banner.style.display = "none";
+                }
             }
         }
 
@@ -238,13 +245,13 @@
             const justificacion = document.getElementById('justificacionInconsistencia').value;
 
             if (bannerVisible && !justificacion) {
-                alert("⚠️ Por favor, justifica por qué el disco no coincide.");
+                alert("⚠️ Por favor, justifica por qué el disco no es el que corresponde.");
                 return;
             }
 
             const btn = document.getElementById('btnEnviar');
             btn.disabled = true;
-            btn.innerText = "Guardando...";
+            btn.innerText = "Sincronizando...";
 
             const datos = {
                 base: document.getElementById('base').value,
@@ -252,6 +259,8 @@
                 eco: document.getElementById('eco').value,
                 bandejaSube: document.getElementById('bandejaSube').value,
                 bandejaBaja: document.getElementById('bandejaBaja').value,
+                formateo: document.getElementById('formateo').value,
+                motivoFormateo: document.getElementById('motivoFormateo').value,
                 ledStatus: document.getElementById('ledStatus').value,
                 justificacion: justificacion 
             };
@@ -261,7 +270,7 @@
                 alert("✅ Registro guardado");
                 location.reload();
             } catch (e) {
-                alert("Error de conexión");
+                alert("Error de red");
                 btn.disabled = false;
                 btn.innerText = "Guardar Registro";
             }
@@ -269,4 +278,3 @@
     </script>
 </body>
 </html>
-
