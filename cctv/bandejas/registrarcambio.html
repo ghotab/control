@@ -17,163 +17,78 @@
             --ios-border: #d1d1d6;
             --ios-red: #ff3b30;
             --ios-green: #34c759;
+            --ios-orange: #ff9500;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
             background-color: var(--ios-bg);
             margin: 0;
             color: var(--ios-text);
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Header estilo iPhone Settings */
+        /* Header Estilo Apple */
         .header {
             background-color: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            position: sticky; top: 0; z-index: 1000;
             padding: 15px 20px;
             border-bottom: 0.5px solid var(--ios-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
         }
 
-        .btn-back {
-            color: var(--ios-blue);
-            text-decoration: none;
-            font-size: 17px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
+        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; display: flex; align-items: center; gap: 5px; }
         h1 { font-size: 17px; font-weight: 600; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
 
-        .form-container {
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 0 16px 100px 16px;
-        }
+        .form-container { max-width: 500px; margin: 20px auto; padding: 0 16px 120px 16px; }
 
-        /* Grupos de Ajustes Estilo iOS */
-        .ios-group-title {
-            font-size: 13px;
-            color: var(--ios-label);
-            text-transform: uppercase;
-            margin: 0 0 8px 16px;
-        }
+        /* Los títulos de sección que tanto nos gustan */
+        .ios-group-title { font-size: 13px; color: var(--ios-label); text-transform: uppercase; margin: 0 0 8px 16px; letter-spacing: 0.3px; }
 
-        .ios-group {
-            background: var(--ios-card);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 25px;
-        }
+        .ios-group { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 25px; border: 0.5px solid var(--ios-border); }
 
-        .ios-row {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 0.5px solid var(--ios-border);
-            min-height: 44px;
-        }
-
+        .ios-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-border); min-height: 44px; }
         .ios-row:last-child { border-bottom: none; }
 
-        .ios-label {
-            font-size: 16px;
-            width: 130px;
-            flex-shrink: 0;
-        }
-
-        input, select {
-            flex: 1;
-            border: none;
-            font-size: 16px;
-            background: transparent;
-            outline: none;
-            color: var(--ios-text);
-            text-align: right;
-        }
-
-        input::placeholder { color: #c4c4c6; }
-
-        /* Escaneo y QR */
-        .scan-container {
-            flex-direction: column;
-            align-items: stretch;
-            padding: 16px;
-        }
-
-        .scan-action {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
+        .ios-label { font-size: 16px; width: 130px; flex-shrink: 0; }
+        input, select { flex: 1; border: none; font-size: 16px; background: transparent; outline: none; color: var(--ios-text); text-align: right; }
+        
+        /* Scan Controls */
+        .scan-container { flex-direction: column; align-items: stretch; padding: 16px; }
+        .scan-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        
         .btn-scan-ios {
-            background: #e9e9eb;
-            color: var(--ios-blue);
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background 0.2s;
+            background: #e9e9eb; color: var(--ios-blue); border: none;
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            transition: 0.2s active;
         }
-
         .btn-scan-ios:active { background: #d1d1d6; }
 
-        #reader { 
-            width: 100% !important; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            margin: 10px 0;
-            border: 1px solid var(--ios-border);
+        #reader { width: 100% !important; border-radius: 12px; overflow: hidden; margin: 10px 0; border: 1px solid var(--ios-border); display: none; }
+
+        /* La Alerta de Inconsistencia: Hermosa y Funcional */
+        #bannerInconsistencia {
+            background: #fffbe6; border: 1px solid #ffe58f; padding: 15px;
+            border-radius: 12px; margin: -10px 0 20px 0; display: none;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* Alertas */
-        #seccionAlertaCruce {
-            background: #fff2f2;
-            padding: 12px;
-            border-radius: 10px;
-            margin-top: 10px;
-            border: 1px solid #ffcfcf;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Botón de Acción Principal */
+        /* Botón Principal Flotante */
         .btn-save {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 460px;
-            background-color: var(--ios-blue);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 17px;
-            font-weight: 600;
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 40px); max-width: 460px;
+            background-color: var(--ios-blue); color: white; border: none;
+            padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 600;
             box-shadow: 0 4px 12px rgba(0,122,255,0.3);
             cursor: pointer;
-            z-index: 1000;
         }
-
-        .btn-save:disabled { background-color: #a2a2a2; box-shadow: none; }
-
-        /* Estilos específicos para selects de estatus */
-        .status-select { font-weight: 600; color: var(--ios-blue); }
+        .btn-save:active { opacity: 0.8; }
+        .btn-save:disabled { background-color: #d1d1d6; box-shadow: none; }
     </style>
 </head>
 <body>
@@ -181,15 +96,15 @@
     <div class="header">
         <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Volver</a>
         <h1>Bandejas</h1>
-        <div style="width: 50px;"></div> </div>
+        <div style="width: 50px;"></div>
+    </div>
 
     <div class="form-container">
-        
         <p class="ios-group-title">Información General</p>
         <div class="ios-group">
             <div class="ios-row">
                 <span class="ios-label">Ubicación</span>
-                <select id="base" onchange="actualizarUI(this.value)">
+                <select id="base">
                     <option value="">Seleccionar...</option>
                     <option value="ATLA">Atlacomulco</option>
                     <option value="COLI">Colima</option>
@@ -204,11 +119,11 @@
             </div>
             <div class="ios-row">
                 <span class="ios-label">Colaborador</span>
-                <input type="number" id="tecnico" placeholder="Clave" onkeyup="validarProgreso()">
+                <input type="number" id="tecnico" placeholder="Clave" oninput="validarProgreso()">
             </div>
             <div class="ios-row">
                 <span class="ios-label">Autobús</span>
-                <input type="number" id="eco" placeholder="Económico" onkeyup="validarProgreso()">
+                <input type="number" id="eco" placeholder="Económico" oninput="consultarUltimoDisco()">
             </div>
         </div>
 
@@ -220,49 +135,42 @@
                 <div class="ios-row scan-container">
                     <div class="scan-action">
                         <span class="ios-label">Sube (Nueva)</span>
-                        <button id="btnScan1" class="btn-scan-ios" onclick="scan('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
+                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
                     </div>
                     <input type="text" id="bandejaSube" readonly placeholder="Esperando escaneo..." style="text-align: left; font-size: 14px; color: var(--ios-label);">
-                    
-                    <div id="seccionAlertaCruce" style="display:none;">
-                        <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin-bottom: 8px;">⚠️ DISCO NO CORRESPONDE</p>
-                        <select id="motivoCruce" onchange="toggleOtro(this.value)" class="status-select">
-                            <option value="">Justificar cambio...</option>
-                            <option value="SIN_STOCK">Sin disco asignado</option>
-                            <option value="DAÑADO">Disco dañado</option>
-                            <option value="OTRO">Otro motivo...</option>
-                        </select>
-                        <input type="text" id="otroMotivoCruce" placeholder="Escribe el motivo..." style="display:none; text-align: left; border-bottom: 1px solid var(--ios-border); margin-top: 8px;">
-                    </div>
                 </div>
 
                 <div class="ios-row scan-container">
                     <div class="scan-action">
                         <span class="ios-label">Baja (Anterior)</span>
-                        <button id="btnScan2" class="btn-scan-ios" onclick="scan('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
+                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
                     </div>
                     <input type="text" id="bandejaBaja" readonly placeholder="Esperando escaneo..." style="text-align: left; font-size: 14px; color: var(--ios-label);">
                 </div>
             </div>
+
+            <div id="bannerInconsistencia">
+                <p style="color: var(--ios-orange); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">
+                    ⚠️ DISCO NO COINCIDE
+                </p>
+                <div class="ios-group" style="margin-bottom: 0;">
+                    <div class="ios-row">
+                        <input type="text" id="justificacionInconsistencia" placeholder="¿Por qué es distinto al que subieron?" style="text-align: left; width: 100%;">
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: var(--ios-label); margin: 8px 0 0 5px;">
+                    Se esperaba la bandeja: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">---</span>
+                </p>
+            </div>
         </div>
-        
+
         <p class="ios-group-title">Diagnóstico Final</p>
         <div class="ios-group">
             <div class="ios-row">
-                <span class="ios-label">¿Formateado?</span>
-                <select id="formateo" class="status-select" onchange="toggleMotivoForm(this.value)">
-                    <option value="NO">No</option>
-                    <option value="SI">Sí</option>
-                </select>
-            </div>
-            <div id="divMotivoForm" class="ios-row" style="display:none;">
-                <input type="text" id="motivoFormateo" placeholder="Explica por qué se formateó" style="text-align: left;">
-            </div>
-            <div class="ios-row">
                 <span class="ios-label">Estatus LED</span>
-                <select id="ledStatus" class="status-select">
+                <select id="ledStatus" style="color: var(--ios-blue); font-weight: 600;">
                     <option value="OK">🟢 Grabando</option>
-                    <option value="FALLA">🔴 Falla / Error</option>
+                    <option value="FALLA">🔴 Falla</option>
                 </select>
             </div>
         </div>
@@ -271,78 +179,89 @@
     </div>
 
     <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec";
         const html5QrCode = new Html5Qrcode("reader");
-        const scriptURL = "https://script.google.com/macros/s/AKfycbyqo5MxL2WwZ7jt_i6Ugm9Yy9PHwxxnl0NJr5IFCPk-sjse1A0zBHrzjE0HXJQKsHjH/exec"; 
+        let ultimoDiscoRegistrado = "";
 
-        function scan(id) {
-            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
+        async function consultarUltimoDisco() {
+            const eco = document.getElementById('eco').value;
+            validarProgreso();
+            if (eco.length >= 4) {
+                try {
+                    const res = await fetch(`${scriptURL}?accion=leerHistorial`);
+                    const data = await res.json();
+                    const historial = data.filter(r => r[3] && r[3].toString() === eco && r[4]);
+                    if (historial.length > 0) {
+                        const ultimo = historial.sort((a,b) => new Date(b[0]) - new Date(a[0]))[0];
+                        ultimoDiscoRegistrado = ultimo[4];
+                        document.getElementById('discoEsperado').innerText = ultimoDiscoRegistrado;
+                    }
+                } catch (e) { console.log("Error de red al consultar"); }
+            }
+        }
+
+        function iniciarEscaneo(id) {
+            document.getElementById('reader').style.display = 'block';
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
                 document.getElementById(id).value = text;
                 html5QrCode.stop();
-                validarContenido();
+                document.getElementById('reader').style.display = 'none';
+                validarInconsistencia();
             });
         }
 
-        function validarContenido() {
-            const eco = document.getElementById('eco').value;
-            const qr = document.getElementById('bandejaSube').value;
-            const alerta = document.getElementById('seccionAlertaCruce');
-            if(eco && qr) {
-                const unidadEnQR = qr.split('-')[1]; 
-                alerta.style.display = (unidadEnQR !== eco) ? "block" : "none";
+        function validarInconsistencia() {
+            const baja = document.getElementById('bandejaBaja').value.trim().toUpperCase();
+            const banner = document.getElementById('bannerInconsistencia');
+            if (baja && ultimoDiscoRegistrado && baja !== ultimoDiscoRegistrado.toUpperCase()) {
+                banner.style.display = "block";
+            } else {
+                banner.style.display = "none";
             }
         }
 
         function validarProgreso() {
             const tecnico = document.getElementById('tecnico').value;
             const eco = document.getElementById('eco').value;
-            const seccionEscaneo = document.getElementById('seccionEscaneo');
-            const btnScan1 = document.getElementById('btnScan1');
-            const btnScan2 = document.getElementById('btnScan2');
-            
-            const tecnicoValido = tecnico.length >= 7;
-            const ecoValido = eco.length === 5;
-        
-            if (tecnicoValido && ecoValido) {
-                seccionEscaneo.style.opacity = "1";
-                seccionEscaneo.style.pointerEvents = "auto";
-                btnScan1.disabled = false;
-                btnScan2.disabled = false;
+            const seccion = document.getElementById('seccionEscaneo');
+            if (tecnico.length >= 5 && eco.length >= 4) {
+                seccion.style.opacity = "1";
+                seccion.style.pointerEvents = "auto";
             } else {
-                seccionEscaneo.style.opacity = "0.3";
-                seccionEscaneo.style.pointerEvents = "none";
-                btnScan1.disabled = true;
-                btnScan2.disabled = true;
+                seccion.style.opacity = "0.3";
+                seccion.style.pointerEvents = "none";
             }
         }
-        
-        function toggleOtro(val) { document.getElementById('otroMotivoCruce').style.display = (val === 'OTRO') ? 'block' : 'none'; }
-        function toggleMotivoForm(val) { document.getElementById('divMotivoForm').style.display = (val === 'SI') ? 'block' : 'none'; }
 
         async function enviar() {
+            const bannerVisible = document.getElementById('bannerInconsistencia').style.display === "block";
+            const justificacion = document.getElementById('justificacionInconsistencia').value;
+
+            if (bannerVisible && !justificacion) {
+                alert("⚠️ Por favor, justifica por qué el disco no coincide.");
+                return;
+            }
+
             const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
             const datos = {
                 base: document.getElementById('base').value,
                 tecnico: document.getElementById('tecnico').value,
                 eco: document.getElementById('eco').value,
                 bandejaSube: document.getElementById('bandejaSube').value,
                 bandejaBaja: document.getElementById('bandejaBaja').value,
-                formateo: document.getElementById('formateo').value,
-                motivo: document.getElementById('motivoFormateo').value,
                 ledStatus: document.getElementById('ledStatus').value,
-                justificacionCruce: document.getElementById('motivoCruce').value
+                justificacion: justificacion 
             };
 
-            if(!datos.base || !datos.eco || !datos.bandejaSube) { alert("⚠️ Completa los campos obligatorios"); return; }
-            
-            btn.disabled = true; 
-            btn.innerText = "Sincronizando...";
-            
             try {
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
-                alert("✅ Registro guardado con éxito");
+                alert("✅ Registro guardado");
                 location.reload();
             } catch (e) {
-                alert("❌ Error de conexión"); 
+                alert("Error de conexión");
                 btn.disabled = false;
                 btn.innerText = "Guardar Registro";
             }
@@ -350,3 +269,4 @@
     </script>
 </body>
 </html>
+
