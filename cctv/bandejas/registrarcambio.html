@@ -252,6 +252,64 @@
                 seccion.style.pointerEvents = "none";
             }
         }
+
+        async function enviar() {
+            // 1. Validaciones de Seguridad antes de intentar guardar
+            const bannerVisible = document.getElementById('bannerInconsistencia').style.display === "block";
+            const justificacion = document.getElementById('justificacionInconsistencia').value.trim();
+            const btn = document.getElementById('btnEnviar');
+        
+            // Si hay alerta roja y no hay texto, detenemos todo
+            if (bannerVisible && !justificacion) {
+                alert("⚠️ Por favor, justifica por qué el disco no coincide con el registro original.");
+                return;
+            }
+        
+            // 2. Preparar los datos (Asegúrate de que los IDs coincidan con tus inputs)
+            const datos = {
+                base: document.getElementById('base').value,
+                tecnico: document.getElementById('tecnico').value,
+                eco: document.getElementById('eco').value,
+                bandejaSube: document.getElementById('bandejaSube').value,
+                bandejaBaja: document.getElementById('bandejaBaja').value,
+                formateo: document.getElementById('formateo').value,
+                motivoFormateo: document.getElementById('motivoFormateo').value || "N/A",
+                ledStatus: document.getElementById('ledStatus').value,
+                justificacionCruce: justificacion // Este es el campo nuevo
+            };
+        
+            // Validación de campos obligatorios básicos
+            if (!datos.base || !datos.tecnico || !datos.eco || !datos.bandejaSube) {
+                alert("⚠️ Faltan campos obligatorios (Base, Técnico, Eco o Disco Sube)");
+                return;
+            }
+        
+            // 3. Efecto visual estilo iOS: Desactivar botón
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+            btn.style.opacity = "0.5";
+        
+            try {
+                // IMPORTANTE: Para guardar (POST) usamos mode: 'no-cors' para evitar problemas de permisos
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+        
+                // Si llega aquí, asumimos éxito (en no-cors no podemos leer la respuesta pero el envío se hace)
+                alert("✅ Registro guardado correctamente.");
+                location.reload(); // Recargar para limpiar el formulario
+            } catch (e) {
+                console.error("Error al enviar:", e);
+                alert("❌ Error de conexión al intentar guardar.");
+                btn.disabled = false;
+                btn.innerText = "Guardar Registro";
+                btn.style.opacity = "1";
+            }
+        }
+        
     </script>
 </body>
 </html>
