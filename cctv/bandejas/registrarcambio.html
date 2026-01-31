@@ -91,11 +91,15 @@
     </div>
 
     <div class="form-container">
-        <p class="ios-group-title">General</p>
+        <p class="ios-group-title">
+            General
+            <span onclick="borrarSesion()" style="float:right; color:var(--ios-blue); font-size:11px; text-transform:none; cursor:pointer; font-weight:400;">Cambiar Usuario</span>
+        </p>
+        
         <div class="ios-group">
             <div class="ios-row">
                 <span class="ios-label">Ubicación</span>
-                <select id="base">
+                <select id="base" onchange="guardarPreferencia('base', this.value)">
                     <option value="">Seleccionar...</option>
                     <option value="ATLA">Atlacomulco</option>
                     <option value="COLI">Colima</option>
@@ -110,7 +114,7 @@
             </div>
             <div class="ios-row">
                 <span class="ios-label">Colaborador</span>
-                <input type="number" id="tecnico" placeholder="Clave" oninput="validarProgreso()">
+                <input type="number" id="tecnico" placeholder="Clave" oninput="guardarPreferencia('tecnico', this.value)">
             </div>
             <div class="ios-row">
                 <span class="ios-label">Autobús</span>
@@ -125,7 +129,7 @@
             <div class="ios-group">
                 <div class="ios-row scan-container">
                     <div class="scan-action">
-                        <span class="ios-label">Sube (Entra)</span>
+                        <span class="ios-label">Bandeja que Subes</span>
                         <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
                     </div>
                     <input type="text" id="bandejaSube" readonly placeholder="Escanear entrada">
@@ -133,7 +137,7 @@
 
                 <div class="ios-row scan-container">
                     <div class="scan-action">
-                        <span class="ios-label">Baja (Sale)</span>
+                        <span class="ios-label">Bandeja que Bajas</span>
                         <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
                     </div>
                     <input type="text" id="bandejaBaja" readonly placeholder="Escanear salida">
@@ -141,14 +145,14 @@
             </div>
 
             <div id="bannerInconsistencia">
-                <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE</p>
+                <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE AL REGISTRO</p>
                 <div class="ios-group" style="margin-bottom: 0; border: 1px solid #ffcfcf;">
                     <div class="ios-row">
                         <input type="text" id="justificacionInconsistencia" placeholder="Explicar motivo de discrepancia" style="text-align: left; width: 100%;">
                     </div>
                 </div>
                 <p style="font-size: 11px; color: var(--ios-label); margin: 8px 0 0 5px;">
-                    En sistema aparece: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">Ninguno</span>
+                    Esperabamos bajar el disco: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">Ninguno</span>
                 </p>
             </div>
         </div>
@@ -181,6 +185,32 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec";
         const html5QrCode = new Html5Qrcode("reader");
         let discoActualBD = ""; 
+
+        // Al cargar la página, recuperamos Base y Técnico, pero NO habilitamos nada aún
+        window.onload = function() {
+            const baseGuardada = localStorage.getItem('base');
+            const tecnicoGuardado = localStorage.getItem('tecnico');
+    
+            if (baseGuardada) document.getElementById('base').value = baseGuardada;
+            if (tecnicoGuardado) document.getElementById('tecnico').value = tecnicoGuardado;
+            
+            // Verificamos progreso (estará deshabilitado porque falta el Eco)
+            validarProgreso();
+        };
+    
+        function guardarPreferencia(id, valor) {
+            localStorage.setItem(id, valor);
+            validarProgreso();
+        }
+    
+        function borrarSesion() {
+            if(confirm("¿Quieres cambiar de Base o de Clave de Colaborador?")) {
+                localStorage.removeItem('base');
+                localStorage.removeItem('tecnico');
+                location.reload();
+            }
+        }
+        
     
         async function consultarUltimoDisco() {
             const eco = document.getElementById('eco').value.trim();
@@ -188,11 +218,11 @@
             
             if (eco.length === 5) {
                 try {
-                    // EL CAMBIO CLAVE: Quitamos el modo no-cors para poder LEER el JSON
+                    // Quitamos el modo no-cors para poder LEER el JSON
                     const res = await fetch(`${scriptURL}?accion=leerHistorial`);
                     const data = await res.json();
                     
-                    // Como en el GS ya hiciste .reverse(), el primer registro que coincida es el más nuevo
+                    // Como en el GS ya hizo .reverse(), el primer registro que coincida es el más nuevo
                     const ultimoRegistro = data.find(r => r[3]?.toString() === eco && r[4]);
                     
                     if (ultimoRegistro) {
@@ -205,7 +235,6 @@
                     validarInconsistencia();
                 } catch (e) { 
                     console.error("Error leyendo historial:", e);
-                    // Si falla por CORS, intenta usar un proxy o revisa los permisos del GS
                 }
             }
         }
@@ -241,10 +270,11 @@
         function validarProgreso() {
             const tecnico = document.getElementById('tecnico').value;
             const eco = document.getElementById('eco').value;
+            const base = document.getElementById('base').value;
             const seccion = document.getElementById('seccionEscaneo');
             
             // Tu regla de 7 y 5 dígitos
-            if (tecnico.length >= 7 && eco.length === 5) {
+            if (base !== "" && tecnico.length >= 7 && eco.length === 5) {
                 seccion.style.opacity = "1";
                 seccion.style.pointerEvents = "auto";
             } else {
