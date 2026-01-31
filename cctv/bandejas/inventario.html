@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventario de Sitio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <style>
+        :root {
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0; padding-bottom: 100px;
+        }
+
+        .header {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 1000;
+            padding: 15px 20px;
+            border-bottom: 0.5px solid var(--ios-border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; }
+
+        /* Selector de Segmento Estilo iOS */
+        .segmented-control {
+            background: #e3e3e8;
+            border-radius: 8px;
+            display: flex;
+            padding: 2px;
+            margin: 20px 16px;
+        }
+
+        .segment {
+            flex: 1; border: none; padding: 6px; border-radius: 7px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            background: transparent; color: #000; transition: 0.2s;
+        }
+
+        .segment.active {
+            background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .ios-group-title { font-size: 13px; color: var(--ios-label); text-transform: uppercase; margin: 0 0 8px 16px; }
+
+        .ios-group { 
+            background: var(--ios-card); border-radius: 12px; 
+            margin: 0 16px 20px 16px; border: 0.5px solid var(--ios-border);
+            overflow: hidden;
+        }
+
+        .ios-row { 
+            display: flex; align-items: center; padding: 12px 16px; 
+            border-bottom: 0.5px solid var(--ios-border); 
+        }
+
+        /* Contador Flotante */
+        .counter-badge {
+            background: var(--ios-blue); color: white;
+            padding: 2px 10px; border-radius: 10px; font-size: 14px; font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%; border: none; outline: none; font-size: 17px; background: transparent;
+        }
+
+        #reader { width: 100%; border-radius: 0; display: none; background: #000; }
+
+        .scan-list { list-style: none; margin: 0; padding: 0; }
+        .scan-item { 
+            padding: 12px 16px; background: white; 
+            border-bottom: 0.5px solid var(--ios-border);
+            display: flex; justify-content: space-between;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Menú</a>
+        <span style="font-weight: 600;">Inventario</span>
+        <span class="counter-badge" id="totalCount">0</span>
+    </div>
+
+    <div class="segmented-control">
+        <button class="segment active" onclick="setMode('camara', this)">
+            <i class="fa-solid fa-camera"></i> Usar Cámara del Equipo
+        </button>
+        <button class="segment" onclick="setMode('escritorio', this)">
+            <i class="fa-solid fa-keyboard"></i> Usar Escáner de Escritorio
+        </button>
+    </div>
+
+    <p class="ios-group-title">Responsable del Inventario</p>
+    <div class="ios-group">
+        <div class="ios-row">
+            <span class="ios-label">Base</span>
+            <select id="baseInventario" onchange="localStorage.setItem('base', this.value)">
+                <option value="">Seleccionar...</option>
+                <option value="ATLA">Atlacomulco</option>
+                <option value="COLI">Colima</option>
+                <option value="GDLJ">Guadalajara</option>
+                <option value="GUZM">Ciudad Guzmán</option>
+                <option value="JILO">Jilotepec</option>
+                <option value="MORE">Morelia</option>
+                <option value="OFOC">Occidente</option>
+                <option value="TOLU">Toluca</option>
+                <option value="TSAT">Saturno</option>
+            </select>
+        </div>
+        <div class="ios-row">
+            <span class="ios-label">Colaborador</span>
+            <input type="number" id="tecnicoInventario" placeholder="Clave" oninput="localStorage.setItem('tecnico', this.value)">
+        </div>
+    </div>
+
+    <p class="ios-group-title">¿Dónde están las bandejas?</p>
+    <div class="ios-group">
+        <div class="ios-row">
+            <span class="ios-label">Ubicación</span>
+            <select id="sitioExacto" style="color: var(--ios-blue); font-weight: 600;">
+                <option value="OFICINA-OPERATIVO">Oficina TAB</option>
+                <option value="ANALISIS-OPERATIVO">Análisis Estadístico</option>
+                <option value="RESGUARDO-INOPERANTE">Bajo Resguardo</option>
+                <option value="REVISION-INOPERANTE">En Revisión/Daño</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="containerCamara">
+        <div id="reader"></div>
+        <div style="padding: 20px; text-align: center;">
+            <button onclick="toggleCamara()" id="btnCamara" style="background: var(--ios-blue); color:white; border:none; padding:12px 25px; border-radius:20px; font-weight:600;">
+                Iniciar Escaneo Continuo
+            </button>
+        </div>
+    </div>
+
+    <div id="containerEscritorio" style="display: none;">
+        <p class="ios-group-title">Entrada de Escáner</p>
+        <div class="ios-group">
+            <div class="ios-row">
+                <input type="text" id="inputUSB" placeholder="Haga clic aquí y escanee..." onkeypress="handleUSBScan(event)">
+            </div>
+        </div>
+        <p style="padding: 0 20px; font-size: 12px; color: var(--ios-label);">
+            El escáner debe estar configurado para enviar Enter después de cada lectura.
+        </p>
+    </div>
+
+    <p class="ios-group-title">Bandejas Detectadas</p>
+    <div class="ios-group" id="listaEscaneados">
+        <div style="padding: 20px; text-align: center; color: var(--ios-label);" id="emptyMsg">
+            No hay bandejas escaneadas
+        </div>
+    </div>
+
+    <button onclick="guardarInventario()" id="btnGuardar" class="btn-save" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: #34c759; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: bold; display: none;">
+        Finalizar y Enviar Inventario
+    </button>
+
+    <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec";
+        
+        let escaneados = new Set();
+        const html5QrCode = new Html5Qrcode("reader");
+
+        function setMode(modo, btn) {
+            document.querySelectorAll('.segment').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if(modo === 'camara') {
+                document.getElementById('containerCamara').style.display = 'block';
+                document.getElementById('containerEscritorio').style.display = 'none';
+            } else {
+                document.getElementById('containerEscritorio').style.display = 'block';
+                document.getElementById('containerCamara').style.display = 'none';
+                if(html5QrCode.isScanning) toggleCamara();
+                document.getElementById('inputUSB').focus();
+            }
+        }
+
+        function handleUSBScan(e) {
+            if (e.key === 'Enter') {
+                const valor = e.target.value.trim().toUpperCase();
+                if (valor) {
+                    agregarALista(valor);
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function agregarALista(codigo) {
+            if (escaneados.has(codigo)) return;
+            
+            escaneados.add(codigo);
+            document.getElementById('emptyMsg').style.display = 'none';
+            document.getElementById('btnGuardar').style.display = 'block';
+            
+            const item = document.createElement('div');
+            item.className = 'scan-item';
+            item.innerHTML = `<span>${codigo}</span><i class="fa-solid fa-circle-check" style="color:var(--ios-blue)"></i>`;
+            
+            const lista = document.getElementById('listaEscaneados');
+            lista.insertBefore(item, lista.firstChild);
+            
+            document.getElementById('totalCount').innerText = escaneados.size;
+        }
+
+        function toggleCamara() {
+            const btn = document.getElementById('btnCamara');
+            if (!html5QrCode.isScanning) {
+                document.getElementById('reader').style.display = 'block';
+                html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (text) => {
+                    agregarALista(text.trim().toUpperCase());
+                });
+                btn.innerText = "Detener Cámara";
+                btn.style.background = "#ff3b30";
+            } else {
+                html5QrCode.stop();
+                document.getElementById('reader').style.display = 'none';
+                btn.innerText = "Iniciar Escaneo Continuo";
+                btn.style.background = "var(--ios-blue)";
+            }
+        }
+
+        window.onload = function() {
+            // Recuperamos los datos que ya existen en el teléfono
+            const baseGuardada = localStorage.getItem('base');
+            const tecnicoGuardado = localStorage.getItem('tecnico');
+
+            if (baseGuardada) document.getElementById('baseInventario').value = baseGuardada;
+            if (tecnicoGuardado) document.getElementById('tecnicoInventario').value = tecnicoGuardado;
+            
+            // Si ya tenemos los datos, ponemos el foco en el selector de sitio o en el input USB
+            if(baseGuardada && tecnicoGuardado) {
+                console.log("Usuario identificado correctamente.");
+            }
+        };
+
+        // Al enviar el inventario masivo
+        async function guardarInventario() {
+            const btn = document.getElementById('btnGuardar');
+            const datos = {
+                accion: "registrarInventarioMasivo",
+                base: document.getElementById('baseInventario').value,
+                tecnico: document.getElementById('tecnicoInventario').value,
+                sitio: document.getElementById('sitioExacto').value,
+                listaBandejas: Array.from(escaneados), // Convertimos el Set a Array para el JSON
+                fecha: new Date().toISOString()
+            };
+
+            if (escaneados.size === 0) return alert("Escanea al menos una bandeja.");
+            
+            btn.disabled = true;
+            btn.innerText = "Sincronizando con la Nube...";
+
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(datos)
+                });
+                alert("✅ Inventario de " + escaneados.size + " bandejas guardado.");
+                location.reload();
+            } catch (e) {
+                alert("Error de conexión");
+                btn.disabled = false;
+            }
+        }
+
+    </script>
+</body>
+</html>
