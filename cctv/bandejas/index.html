@@ -3,166 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Grupo Herradura - Occidente</title>
-    <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <meta name="mobile-web-app-capable" content="yes">
+    <title>Logística de Bandejas</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="CCTV Trace">
     
-    <link rel="icon" type="image/png" href="icono.png">
-    <link rel="apple-touch-icon" href="icono.png">
-    
-    <meta name="theme-color" content="#0085ff">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         :root {
-            --anydo-blue: #0085ff;
-            --text-main: #2c2c2c;
-            --text-secondary: #909090;
-            --bg-color: #ffffff;
-            --card-bg: #ffffff;
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-text: #000000;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+            --ios-arrow: #c4c4c6;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--ios-bg);
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-main);
+            color: var(--ios-text);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Barra superior minimalista */
-        .top-bar {
-            width: 100%;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
+        /* Título Grande Estilo iOS */
+        .header-ios {
+            padding: 40px 20px 10px 20px;
         }
 
-        .header-section {
-            width: 100%;
-            max-width: 450px;
-            padding: 40px 25px 20px 25px;
-            box-sizing: border-box;
-            text-align: left; /* Any.do suele alinear a la izquierda */
-        }
-
-        h1 {
-            font-size: 32px;
-            font-weight: 600;
+        .header-ios h1 {
+            font-size: 34px;
+            font-weight: 700;
             margin: 0;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
-        p {
-            color: var(--text-secondary);
-            font-size: 16px;
-            margin: 8px 0 0 0;
+        .header-ios p {
+            color: var(--ios-label);
+            font-size: 15px;
+            margin: 5px 0 0 0;
         }
 
-        .menu-list {
-            width: 100%;
-            max-width: 450px;
-            padding: 20px;
-            box-sizing: border-box;
+        /* Contenedor de Grupos */
+        .menu-container {
+            padding: 20px 16px;
         }
 
-        /* Botones estilo Any.do (Cards blancas con sombra suave) */
-        .task-card {
-            display: flex;
-            align-items: center;
-            background: var(--card-bg);
-            text-decoration: none;
-            color: var(--text-main);
-            padding: 20px;
-            margin-bottom: 16px;
-            border-radius: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra muy sutil */
-            border: 1px solid #f0f0f0;
-            transition: all 0.2s ease;
+        .ios-group-title {
+            font-size: 13px;
+            color: var(--ios-label);
+            text-transform: uppercase;
+            margin: 0 0 8px 16px;
+            letter-spacing: 0.3px;
         }
 
-        .task-card:active {
-            transform: scale(0.98);
-            background-color: #f9f9f9;
-        }
-
-        .icon-container {
-            width: 45px;
-            height: 45px;
+        /* La "Card" de iOS que agrupa filas */
+        .ios-group {
+            background: var(--ios-card);
             border-radius: 12px;
+            overflow: hidden;
+            border: 0.5px solid var(--ios-border);
+            margin-bottom: 30px;
+        }
+
+        /* Filas del Menú */
+        .ios-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: var(--ios-text);
+            background-color: var(--ios-card);
+            transition: background-color 0.2s;
+            min-height: 44px;
+            border-bottom: 0.5px solid var(--ios-border);
+        }
+
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        .ios-row:active {
+            background-color: #e5e5ea;
+        }
+
+        /* Iconos circulares de colores tipo Settings */
+        .icon-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 18px;
-            font-size: 20px;
+            margin-right: 15px;
+            font-size: 16px;
+            color: white;
         }
 
-        /* Colores específicos de iconos */
-        .blue-icon { background-color: #eef6ff; color: #0085ff; }
-        .green-icon { background-color: #f0fff4; color: #27ae60; }
+        /* Colores Apple Standard */
+        .bg-blue   { background-color: #007aff; }
+        .bg-orange { background-color: #ff9500; }
+        .bg-green  { background-color: #34c759; }
+        .bg-red    { background-color: #ff3b30; }
 
-        .task-text {
-            font-size: 18px;
+        .row-text {
+            flex: 1;
+            font-size: 17px;
             font-weight: 400;
-            flex-grow: 1;
         }
 
-        .arrow {
-            color: #d1d1d1;
+        .chevron {
+            color: var(--ios-arrow);
             font-size: 14px;
+            margin-left: 10px;
         }
 
         .footer {
-            position: fixed;
-            bottom: 30px;
-            color: var(--text-secondary);
+            text-align: center;
+            padding: 20px;
+            color: var(--ios-label);
             font-size: 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-weight: 400;
         }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <i class="fa-solid fa-chevron-left" style="color: var(--anydo-blue); font-size: 20px;"></i>
+    <div class="header-ios">
+        <h1>Logística</h1>
+        <p>Operaciones TAB 1.0</p>
     </div>
 
-    <div class="header-section">
-        <h1>Logística de Bandejas</h1>
-        <p>Selecciona una acción</p>
+    <div class="menu-container">
+        
+        <p class="ios-group-title">Logística de Bandejas</p>
+        <div class="ios-group">
+            <a href="registrarcambio.html" class="ios-row">
+                <div class="icon-box bg-blue">
+                    <i class="fa-solid fa-compact-disc"></i>
+                </div>
+                <div class="row-text">Registrar Cambio</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+            
+            <a href="historial.html" class="ios-row">
+                <div class="icon-box bg-orange">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div class="row-text">Historial de Cambios</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+        </div>
+
+        <p class="ios-group-title">Soporte y Consultas</p>
+        <div class="ios-group">
+            <a href="#" class="ios-row" onclick="alert('Próximamente...')">
+                <div class="icon-box bg-green">
+                    <i class="fa-solid fa-bus"></i>
+                </div>
+                <div class="row-text">Estado de Unidades</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+            
+            <a href="#" class="ios-row" onclick="alert('Contactando a soporte...')">
+                <div class="icon-box bg-red">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div class="row-text">Reportar Incidencia</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+        </div>
+
     </div>
 
-    <div class="menu-list">
-        <a href="registrarcambio.html" class="task-card">
-            <div class="icon-container blue-icon">
-                <i class="fa-solid fa-compact-disc"></i>
-            </div>
-            <div class="task-text"> Cambio de Bandejas</div>
-            <div class="arrow"><i class="fa-solid fa-chevron-right"></i></div>
-        </a>
-
-         <a href="historial.html" class="task-card">
-            <div class="icon-container blue-icon">
-                <i class="fa-solid fa-id-card"></i>
-            </div>
-            <div class="task-text"> Consultar Historico de Cambios</div>
-            <div class="arrow"><i class="fa-solid fa-chevron-right"></i></div>
-        </a>
-
+    <div class="footer">
+        GRUPO HERRADURA OCCIDENTE<br>
+        2026 • © Todos los derechos reservados
     </div>
-
-    <div class="footer">Desarrollado para Operaciones TAB 1.0</div>
 
 </body>
 </html>
