@@ -182,79 +182,68 @@
         const html5QrCode = new Html5Qrcode("reader");
         let discoActualBD = ""; 
     
-        // 1. Consultar la BD con manejo de errores
         async function consultarUltimoDisco() {
             const eco = document.getElementById('eco').value.trim();
-            validarProgreso(); // Llama a tu función de los 7 y 5 dígitos
+            validarProgreso();
             
             if (eco.length === 5) {
                 try {
-                    // Añadimos un timestamp para evitar que el navegador guarde una respuesta vieja (cache)
-                    const res = await fetch(`${scriptURL}?accion=leerHistorial&_t=${Date.now()}`);
+                    // EL CAMBIO CLAVE: Quitamos el modo no-cors para poder LEER el JSON
+                    const res = await fetch(`${scriptURL}?accion=leerHistorial`);
                     const data = await res.json();
                     
-                    // Filtramos las subidas para este eco
-                    const registrosBus = data.filter(r => r[3]?.toString() === eco && r[4]);
+                    // Como en el GS se realiza .reverse(), el primer registro que coincida es el más nuevo
+                    const ultimoRegistro = data.find(r => r[3]?.toString() === eco && r[4]);
                     
-                    if (registrosBus.length > 0) {
-                        // Ordenamos por fecha de mayor a menor
-                        const ultimo = registrosBus.sort((a,b) => new Date(b[0]) - new Date(a[0])).reverse()[0];
-                        discoActualBD = ultimo[4].toString().trim().toUpperCase();
+                    if (ultimoRegistro) {
+                        discoActualBD = ultimoRegistro[4].toString().trim().toUpperCase();
                         document.getElementById('discoEsperado').innerText = discoActualBD;
-                        console.log("Sistema espera el disco:", discoActualBD);
                     } else {
                         discoActualBD = "VACÍO";
                         document.getElementById('discoEsperado').innerText = "Sin registro previo";
                     }
-                    // Si ya había algo escrito en Baja, re-validamos
                     validarInconsistencia();
                 } catch (e) { 
-                    console.error("Error al consultar BD:", e); 
+                    console.error("Error leyendo historial:", e);
+                    // Si falla por CORS, intenta usar un proxy o revisa los permisos del GS
                 }
             }
         }
     
-        // 2. Escaneo - Inyectamos la validación en el cierre
         function iniciarEscaneo(id) {
             document.getElementById('reader').style.display = 'block';
             html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
-                const valorLimpio = text.trim().toUpperCase();
-                document.getElementById(id).value = valorLimpio;
+                const valor = text.trim().toUpperCase();
+                document.getElementById(id).value = valor;
                 
                 html5QrCode.stop().then(() => {
                     document.getElementById('reader').style.display = 'none';
-                    // EJECUCIÓN INMEDIATA
+                    // Validamos justo aquí
                     validarInconsistencia();
                 });
             });
         }
     
-        // 3. La función de comparación 
         function validarInconsistencia() {
-            const bajaInput = document.getElementById('bandejaBaja').value.trim().toUpperCase();
+            const baja = document.getElementById('bandejaBaja').value.trim().toUpperCase();
             const banner = document.getElementById('bannerInconsistencia');
             
-            console.log("Comparando Baja:", bajaInput, "vs Esperado:", discoActualBD);
-    
-            // Solo validamos si hay algo en el input y algo en la memoria de la BD
-            if (bajaInput && discoActualBD && discoActualBD !== "VACÍO") {
-                if (bajaInput !== discoActualBD) {
-                    banner.style.display = "block"; // Muestra alerta naranja/roja
+            // Si hay un disco en el input y tenemos uno en memoria
+            if (baja && discoActualBD && discoActualBD !== "VACÍO") {
+                if (baja !== discoActualBD) {
+                    banner.style.display = "block"; // Mostrar alerta
                 } else {
-                    banner.style.display = "none"; // Todo coincide
+                    banner.style.display = "none"; // Ocultar si ya corrigió
                 }
-            } else {
-                banner.style.display = "none";
             }
         }
     
-        
         function validarProgreso() {
             const tecnico = document.getElementById('tecnico').value;
             const eco = document.getElementById('eco').value;
             const seccion = document.getElementById('seccionEscaneo');
             
-            // tecnico >= 7 y eco EXACTO 5
+            // Tu regla de 7 y 5 dígitos
             if (tecnico.length >= 7 && eco.length === 5) {
                 seccion.style.opacity = "1";
                 seccion.style.pointerEvents = "auto";
