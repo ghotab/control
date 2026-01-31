@@ -86,6 +86,37 @@
         }
 
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Limpieza de Selects e Inputs de iOS */
+        .ios-row select, 
+        .ios-row input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 17px;
+            font-family: -apple-system, sans-serif;
+            text-align: right; /* Alinea el valor a la derecha como en Ajustes */
+            padding: 0;
+            color: var(--ios-blue); /* Color azul para que se vea seleccionable */
+            appearance: none; /* Quita la flecha fea por defecto */
+            -webkit-appearance: none;
+        }
+
+        /* Para que los inputs se vean limpios */
+        .ios-row input::placeholder {
+            color: #c7c7cc;
+            text-align: right;
+        }
+
+        /* Añade una flechita sutil a los select para que sepan que hay opciones */
+        .ios-row select {
+            padding-right: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23c4c4c6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right center;
+        }
+
     </style>
 </head>
 <body>
