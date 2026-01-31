@@ -291,12 +291,13 @@
         
             // Si hay alerta roja y no hay texto, detenemos todo
             if (bannerVisible && !justificacion) {
-                alert("⚠️ Por favor, justifica por qué el disco no coincide con el registro original.");
+                alert("⚠️ Por favor, justifica por qué el disco no coincide.");
                 return;
             }
         
             // 2. Preparar los datos (Asegúrate de que los IDs coincidan con tus inputs)
             const datos = {
+                accion: "registrarCambio", // Identificador
                 base: document.getElementById('base').value,
                 tecnico: document.getElementById('tecnico').value,
                 eco: document.getElementById('eco').value,
@@ -316,7 +317,7 @@
         
             // 3. Efecto visual estilo iOS: Desactivar botón
             btn.disabled = true;
-            btn.innerText = "Guardando...";
+            btn.innerText = "Sincronizando...";
             btn.style.opacity = "0.5";
         
             try {
