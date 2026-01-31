@@ -192,7 +192,7 @@
                     const res = await fetch(`${scriptURL}?accion=leerHistorial`);
                     const data = await res.json();
                     
-                    // Como en el GS se realiza .reverse(), el primer registro que coincida es el más nuevo
+                    // Como en el GS ya hiciste .reverse(), el primer registro que coincida es el más nuevo
                     const ultimoRegistro = data.find(r => r[3]?.toString() === eco && r[4]);
                     
                     if (ultimoRegistro) {
