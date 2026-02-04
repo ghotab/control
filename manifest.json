@@ -3,9 +3,14 @@
   "short_name": "ControlTAB",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0085ff",
+  "background_color": "#f2f2f7",
+  "theme_color": "#007aff",
   "icons": [
+    {
+      "src": "icono.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "icono.png",
       "sizes": "512x512",
