@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Movimientos Recientes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
+        }
+
+        .header {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 1000;
+            padding: 15px 20px;
+            border-bottom: 0.5px solid var(--ios-border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; }
+
+        .ios-group-title { font-size: 13px; color: var(--ios-label); text-transform: uppercase; margin: 20px 0 8px 16px; }
+
+        .ios-group { 
+            background: var(--ios-card); border-radius: 12px; 
+            margin: 0 16px 20px 16px; border: 0.5px solid var(--ios-border);
+            overflow: hidden;
+        }
+
+        /* Estilo de fila tipo historial de llamadas */
+        .movement-row {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 0.5px solid var(--ios-border);
+            text-decoration: none;
+            color: black;
+        }
+
+        .movement-row:last-child { border-bottom: none; }
+
+        .time-box {
+            font-size: 12px;
+            color: var(--ios-label);
+            min-width: 50px;
+        }
+
+        .info-main {
+            flex: 1;
+            padding-left: 10px;
+        }
+
+        .eco-label { font-weight: 600; font-size: 17px; display: block; }
+        .base-label { font-size: 13px; color: var(--ios-label); }
+
+        .swap-detail {
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .bandeja-out { color: #ff3b30; } /* Rojo para lo que baja */
+        .bandeja-in { color: #34c759; }  /* Verde para lo que sube */
+
+        .loading-spinner { text-align: center; padding: 20px; color: var(--ios-label); }
+
+        /* Contenedor de etiquetas y controles */
+        .ios-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--ios-card);
+            border-bottom: 0.5px solid var(--ios-border);
+        }
+
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        /* Estilo para las etiquetas de la izquierda */
+        .ios-label {
+            font-size: 17px;
+            color: var(--ios-text);
+            font-weight: 400;
+        }
+
+        /* Estilo para los Selects y el Input de Fecha a la derecha */
+        .ios-row select, 
+        .ios-row input[type="date"] {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 17px;
+            font-family: -apple-system, sans-serif;
+            color: var(--ios-blue); /* Color azul de enlace iOS */
+            text-align: right;
+            direction: rtl; /* Empuja el texto a la derecha */
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 20px;
+            /* Flechita minimalista tipo chevron */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c4c4c6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right center;
+        }
+
+        /* Ajuste específico para el input de fecha en iOS */
+        .ios-row input[type="date"] {
+            direction: ltr; /* La fecha se lee mejor de izq a der */
+            text-align: right;
+        }
+
+        /* Efecto al tocar la fila */
+        .ios-row:active {
+            background-color: #e5e5ea;
+        }
+
+        /* Backdrop */
+        .sheet-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 2000; display: none; opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* El Action Sheet */
+        .action-sheet {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            max-height: 85vh; background: var(--ios-bg);
+            border-radius: 20px 20px 0 0; z-index: 2001;
+            transition: bottom 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            overflow-y: auto; box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+        }
+
+        .action-sheet.active { bottom: 0; }
+        .sheet-backdrop.active { display: block; opacity: 1; }
+
+        /* Cabecera del Sheet */
+        .sheet-header {
+            position: sticky; top: 0; background: var(--ios-bg);
+            padding: 15px; display: flex; flex-direction: column; align-items: center;
+            border-bottom: 0.5px solid var(--ios-border); z-index: 2;
+        }
+
+        .sheet-handle {
+            width: 40px; height: 5px; background: #c4c4c6;
+            border-radius: 3px; margin-bottom: 10px;
+        }
+
+        .btn-cerrar {
+            align-self: flex-end; background: none; border: none;
+            color: var(--ios-blue); font-size: 17px; font-weight: 600; cursor: pointer;
+        }
+
+        .sheet-content { padding: 10px 0; }
+        .det-val { color: #8e8e93; font-size: 16px; text-align: right; flex: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Atrás</a>
+        <span style="font-weight: 600;">Movimientos Recientes</span>
+        <div style="width: 50px;"></div> </div>
+
+    <p class="ios-group-title">Filtros de Vista</p>
+    <div class="ios-group">
+        <div class="ios-row">
+            <span class="ios-label">Base</span>
+            <select id="filtroBase" onchange="resetearYCargar()">
+                <option value="TODAS">Todas las Bases</option>
+                <option value="ATLA">Atlacomulco</option>
+                <option value="COLI">Colima</option>
+                <option value="GDLJ">Guadalajara</option>
+                <option value="GUZM">Ciudad Guzmán</option>
+                <option value="JILO">Jilotepec</option>
+                <option value="MORE">Morelia</option>
+                <option value="OFOC">Occidente</option>
+                <option value="TOLU">Toluca</option>
+                <option value="TSAT">Saturno</option>
+            </select>
+        </div>
+
+        <div class="ios-row">
+            <span class="ios-label">Periodo</span>
+            <select id="filtroPeriodo" onchange="toggleFechaPersonalizada()">
+                <option value="HOY">Hoy</option>
+                <option value="AYER">Ayer</option>
+                <option value="SEMANA">Esta Semana</option>
+                <option value="CUSTOM">Fecha Específica...</option>
+            </select>
+        </div>
+
+        <div class="ios-row" id="rowFecha" style="display: none;">
+            <span class="ios-label">Seleccionar Día</span>
+            <input type="date" id="fechaManual" onchange="resetearYCargar()">
+        </div>
+    </div>
+
+    <p class="ios-group-title">Actividad Cronológica</p>
+    
+    <div id="contenedorMovimientos" class="ios-group">
+        <div class="loading-spinner">Cargando registros recientes...</div>
+    </div>
+
+    <div style="padding: 0 16px;">
+        <button onclick="cargarMas()" id="btnMas" style="width:100%; padding:15px; background:white; border:0.5px solid var(--ios-border); border-radius:12px; color:var(--ios-blue); font-weight:600;">
+            Cargar más registros
+        </button>
+    </div>
+
+    <div id="actionSheetBackdrop" class="sheet-backdrop" onclick="cerrarDetalle()"></div>
+
+    <div id="actionSheet" class="action-sheet">
+        <div class="sheet-header">
+            <div class="sheet-handle"></div>
+            <button class="btn-cerrar" onclick="cerrarDetalle()">Listo</button>
+        </div>
+        
+        <div class="sheet-content">
+            <h2 id="detEco" style="margin-top:1;padding-left:15px;">Eco ---</h2>
+            
+            <p class="ios-group-title">Información del Cambio</p>
+            <div class="ios-group">
+                <div class="ios-row"><span class="ios-label">Base</span><span id="detBase" class="det-val">---</span></div>
+                <div class="ios-row"><span class="ios-label">Técnico</span><span id="detTecnico" class="det-val">---</span></div>
+                <div class="ios-row"><span class="ios-label">Fecha</span><span id="detFecha" class="det-val">---</span></div>
+            </div>
+
+            <p class="ios-group-title">Bandejas</p>
+            <div class="ios-group">
+                <div class="ios-row"><span class="ios-label">Sube</span><span id="detSube" class="det-val" style="color:var(--ios-blue)">---</span></div>
+                <div class="ios-row"><span class="ios-label">Baja</span><span id="detBaja" class="det-val" style="color:#ff3b30">---</span></div>
+            </div>
+
+            <p class="ios-group-title">Estado Técnico</p>
+            <div class="ios-group">
+                <div class="ios-row"><span class="ios-label">Se aplicó formateo</span><span id="detFormateo" class="det-val">---</span></div>
+                <div class="ios-row"><span class="ios-label">Se deja grabando</span><span id="detLeds" class="det-val">---</span></div>
+            </div>
+
+            <p class="ios-group-title">Observaciones</p>
+            <div class="ios-group">
+                <div style="padding: 12px 16px; font-size: 15px; color: #333; line-height: 1.4;" id="detJustificacion">
+                    Sin observaciones.
+                </div>
+            </div>
+            <div style="height: 40px;"></div> </div>
+    </div>
+
+
+
+    <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; // REEMPLAZA CON TU URL DE GOOGLE APPS SCRIPT
+        let offset = 0;
+        const limit = 20;
+        let cargando = false;
+
+        // Al cargar la página
+        window.onload = () => {
+            // Si el técnico ya tiene una base guardada, la pre-seleccionamos
+            const baseGuardada = localStorage.getItem('base');
+            if (baseGuardada) {
+                document.getElementById('filtroBase').value = baseGuardada;
+            }
+            cargarMovimientos();
+        };
+
+        function toggleFechaPersonalizada() {
+            const periodo = document.getElementById('filtroPeriodo').value;
+            const rowFecha = document.getElementById('rowFecha');
+            rowFecha.style.display = (periodo === 'CUSTOM') ? 'flex' : 'none';
+            resetearYCargar();
+        }
+
+        function resetearYCargar() {
+            offset = 0;
+            document.getElementById('contenedorMovimientos').innerHTML = '<div class="loading-spinner">Actualizando...</div>';
+            document.getElementById('btnMas').style.display = 'none';
+            cargarMovimientos();
+        }
+
+        async function cargarMovimientos() {
+            if (cargando) return;
+            cargando = true;
+
+            const base = document.getElementById('filtroBase').value;
+            const periodo = document.getElementById('filtroPeriodo').value;
+            const fechaManual = document.getElementById('fechaManual').value;
+
+            const url = `${scriptURL}?accion=getMovimientos&base=${base}&periodo=${periodo}&fecha=${fechaManual}&offset=${offset}&limit=${limit}`;
+
+            try {
+                const response = await fetch(url);
+                const movimientos = await response.json();
+                
+                if (offset === 0) document.getElementById('contenedorMovimientos').innerHTML = '';
+                
+                if (movimientos.length === 0 && offset === 0) {
+                    document.getElementById('contenedorMovimientos').innerHTML = '<div style="padding:20px; text-align:center; color:#8e8e93;">No hay registros para ésta búsqueda</div>';
+                    return;
+                }
+
+                renderizarMovimientos(movimientos);
+
+                // Si regresó menos del límite, ya no hay más que cargar
+                if (movimientos.length < limit) {
+                    document.getElementById('btnMas').style.display = 'none';
+                } else {
+                    document.getElementById('btnMas').style.display = 'block';
+                    offset += limit;
+                }
+            } catch (error) {
+                console.error("Error cargando movimientos:", error);
+                document.getElementById('contenedorMovimientos').innerHTML = '<div style="padding:20px; text-align:center; color:#ff3b30;">Error al conectar con el servidor</div>';
+            } finally {
+                cargando = false;
+            }
+        }
+
+        function renderizarMovimientos(lista) {
+            const contenedor = document.getElementById('contenedorMovimientos');
+            
+            lista.forEach(mov => {
+                // Estructura de la fila (ajustar índices según tus columnas en Google Sheets)
+                // [0]Fecha, [1]Base, [2]Técnico, [3]Eco, [4]Sube, [5]Baja, [6]Formateo, [7]Motivo, [8]LED, [9]Justificación
+                const fecha = new Date(mov[0]);
+                const base = mov[1];
+                const tcnico = mov[2];
+                const eco = mov[3];
+                const sube = mov[4];
+                const baja = mov[5];
+                const formateo = mov[6];
+                const motivo = mov[7];
+                const leds = mov[8];
+                
+
+                const row = document.createElement('div');
+                row.className = 'movement-row';
+                row.onclick = () => mostrarDetalle(mov);
+                row.innerHTML = `
+                    <div class="time-box">
+                        ${formatearHora(fecha)}
+                    </div>
+                    <div class="info-main">
+                        <span class="eco-label">${eco}</span>
+                        <span class="base-label">${base} • ${tcnico}</span>
+                    </div>
+                    <div class="swap-detail">
+                        <div class="bandeja-in"><i class="fa-solid fa-arrow-up"></i> ${sube}</div>
+                        <div class="bandeja-out"><i class="fa-solid fa-arrow-down"></i> ${baja}</div>
+
+                    </div>
+                `;
+                contenedor.appendChild(row);
+            });
+        }
+
+        function formatearHora(date) {
+            const ahora = new Date();
+            const hoy = ahora.setHours(0,0,0,0);
+            const fechaRow = new Date(date).setHours(0,0,0,0);
+
+            // Si es hoy, solo la hora (ej: 14:30)
+            if (hoy === fechaRow) {
+                return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+            } 
+            
+            // Si es ayer
+            const ayer = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
+            if (fechaRow === ayer.getTime()) {
+                return "Ayer";
+            }
+
+            // Si es de otra fecha (ej: 05 feb)
+            return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' }).replace('.', '');
+        }
+
+        function cargarMas() {
+            cargarMovimientos();
+        }
+
+        function mostrarDetalle(mov) {
+            // Rellenar datos
+            document.getElementById('detEco').innerText = "" + mov[3];
+            document.getElementById('detBase').innerText = mov[1];
+            document.getElementById('detTecnico').innerText = mov[2];
+            document.getElementById('detFecha').innerText = new Date(mov[0]).toLocaleString('es-MX');
+            document.getElementById('detSube').innerText = mov[4];
+            document.getElementById('detBaja').innerText = mov[5];
+            document.getElementById('detFormateo').innerText = mov[6] + (mov[7] !== "N/A" ? " (" + mov[7] + ")" : "");
+            document.getElementById('detLeds').innerText = mov[8];
+            
+            const just = (mov[9] && mov[9].toString().trim() !== "" && mov[9].toString().toLowerCase() !== "n/a") 
+                        ? mov[9] : "Sin observaciones o inconsistencias.";
+            document.getElementById('detJustificacion').innerText = just;
+
+            // Mostrar con animación
+            document.getElementById('actionSheetBackdrop').classList.add('active');
+            document.getElementById('actionSheet').classList.add('active');
+            
+            // Feedback táctil (si el cel lo soporta)
+            if (window.navigator.vibrate) window.navigator.vibrate(10);
+        }
+
+        function cerrarDetalle() {
+            document.getElementById('actionSheetBackdrop').classList.remove('active');
+            document.getElementById('actionSheet').classList.remove('active');
+        }
+
+    </script>
+
+</body>
+</html>
