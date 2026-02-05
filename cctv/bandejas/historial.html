@@ -16,9 +16,21 @@
             --ios-sep: #d1d1d6;
         }
 
+        .header {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 1000;
+            padding: 15px 20px;
+            border-bottom: 0.5px solid var(--ios-border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-            background-color: var(--ios-bg); margin: 0; color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
         }
 
         /* Header Estilo Apple Settings */
@@ -88,12 +100,14 @@
 </head>
 <body>
 
-    <div class="nav-header">
-        <h1>Trazabilidad</h1>
-        <div id="status-text" style="font-size: 13px; color: var(--ios-gray);">Sincronizando...</div>
-    </div>
+    <div class="header">
+        <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Atrás</a>
+        <span style="font-weight: 600;">Historial de Cambios</span>
+        <div style="width: 50px;"></div> </div>
 
-    <div class="ios-group-title">Filtrar Historial</div>
+    <div id="status-text" style="font-size: 13px; color: var(--ios-gray); padding-top: 15px;text-align: center;">Sincronizando...</div>
+    <p class="ios-group-title">Filtrar Historial</p>
+
     <div class="segmented-control">
         <div id="segBus" class="segment active" onclick="cambiarModo('bus')">AUTOBÚS</div>
         <div id="segDisco" class="segment" onclick="cambiarModo('disco')">BANDEJA</div>
