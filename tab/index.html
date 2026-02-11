@@ -3,167 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHO | Operaciones AEB</title>
+    <title>GHO | Operaciones TAB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --mac-bg: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000&auto=format&fit=crop');
+            --mac-bg: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000');
             --glass: rgba(255, 255, 255, 0.2);
-            --glass-dark: rgba(0, 0, 0, 0.3);
         }
-
         body, html {
-            margin: 0; padding: 0; height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; height: 100%; overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--mac-bg) no-repeat center center fixed;
-            background-size: cover;
-            overflow: hidden;
-            display: flex; flex-direction: column;
+            background-size: cover; display: flex; flex-direction: column;
         }
-
-        /* BARRA DE MENÚ SUPERIOR (TOP BAR) */
         .top-bar {
             height: 30px; background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            display: flex; align-items: center; padding: 0 20px;
-            color: white; font-size: 13px; font-weight: 500;
-            justify-content: space-between;
+            backdrop-filter: blur(15px); display: flex; align-items: center;
+            padding: 0 20px; color: white; font-size: 13px; justify-content: space-between;
         }
-
-        .top-bar .left-section span { margin-right: 20px; cursor: default; }
-        .top-bar .left-section i { font-size: 16px; margin-right: 15px; }
-
-        /* CONTENEDOR DE ICONOS (LAUNCHPAD) */
         .launchpad {
-            flex: 1; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            grid-template-rows: repeat(auto-fill, minmax(140px, 1fr));
-            padding: 60px 100px; gap: 40px;
-            align-content: start; justify-items: center;
+            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            padding: 60px 100px; gap: 40px; justify-items: center;
         }
-
-        /* ESTILO DE LA APP */
         .app-link {
-            text-decoration: none; color: white;
-            display: flex; flex-direction: column; align-items: center;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            width: 120px;
+            text-decoration: none; color: white; display: flex; flex-direction: column;
+            align-items: center; transition: transform 0.2s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-
         .app-link:hover { transform: scale(1.1); }
-        .app-link:active { transform: scale(0.95); }
-
         .app-icon {
-            width: 90px; height: 90px;
-            border-radius: 20px;
+            width: 90px; height: 90px; border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 45px; margin-bottom: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            position: relative; overflow: hidden;
+            font-size: 45px; margin-bottom: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-
-        /* GRADIENTE ESTILO APPLE PARA EL ICONO */
-        .icon-tijeras {
-            background: linear-gradient(145deg, #ff5e62, #ff9966);
-            border: 0.5px solid rgba(255,255,255,0.3);
-        }
-
-        .icon-distro {
-            background: linear-gradient(145deg, #0659e9, #3388ff);
-            border: 0.5px solid rgba(255,255,255,0.3);
-        }
-
-        .app-name { font-size: 14px; font-weight: 400; text-align: center; }
-
-        /* DOCK INFERIOR */
-        .dock-container {
-            width: 100%; display: flex; justify-content: center;
-            padding-bottom: 15px;
-        }
-
+        .icon-flota { background: linear-gradient(145deg, #007aff, #00c6ff); }
+        .dock-container { width: 100%; display: flex; justify-content: center; padding-bottom: 20px; }
         .dock {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(25px);
-            padding: 10px; border-radius: 22px;
-            display: flex; gap: 15px;
-            border: 0.5px solid rgba(255,255,255,0.3);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px);
+            padding: 10px 20px; border-radius: 25px; display: flex; gap: 15px;
+            border: 0.5px solid rgba(255,255,255,0.2);
         }
-
-        .dock-item {
-            width: 50px; height: 50px; border-radius: 12px;
-            background: white; display: flex; align-items: center;
-            justify-content: center; font-size: 24px;
-            transition: all 0.2s; cursor: pointer;
-        }
-
-        .dock-item:hover { transform: translateY(-10px) scale(1.2); margin: 0 10px; }
-        
-        .dock-sep { width: 1px; background: rgba(255,255,255,0.3); margin: 5px 0; }
-
+        .dock-item { width: 50px; height: 50px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
     </style>
 </head>
 <body>
-
     <div class="top-bar">
-        <div class="left-section">
-            <i class="fas fa-bus"></i>
-            <span style="font-weight: 700;">GHO</span>
-            <span>Módulos</span>
-            <span>Ver</span>
-            <span>Ayuda</span>
-        </div>
-        <div class="right-section">
-            <span id="reloj">12:00 PM</span>
-        </div>
-    </div> 
+        <div><i class="fab fa-apple"></i> <span style="font-weight:700; margin-left:10px;">GHO TAB</span></div>
+        <div id="reloj">12:00 PM</div>
+    </div>
 
     <div class="launchpad">
-
-        <a href="boletostijera.html" class="app-link">
-            <div class="app-icon icon-distro">
-                <i class="fas fa-bus" style="color: white;"></i>
+        <a href="distro.html" class="app-link">
+            <div class="app-icon icon-flota">
+                <i class="fas fa-bus-alt" style="color: white;"></i>
             </div>
-            <span class="app-name">Distribución</span>
+            <span>Distribución</span>
         </a>
-
-        <a href="boletostijera.html" class="app-link">
-            <div class="app-icon icon-tijeras">
-                <i class="fas fa-cut" style="color: white;"></i>
-            </div>
-            <span class="app-name">Boletos de Tijera</span>
-        </a>
-      
-
-
-        <div class="app-link" style="opacity: 0.5; filter: grayscale(1);">
-            <div class="app-icon" style="background: linear-gradient(145deg, #00c6ff, #0072ff);">
-                <i class="fas fa-bus" style="color: white;"></i>
-            </div>
-            <span class="app-name">Distribución</span>
-        </div>
     </div>
 
     <div class="dock-container">
         <div class="dock">
-            <div class="dock-item" title="Dashboard" style="background: #fff;"><i class="fas fa-th-large" style="color: #007aff;"></i></div>
-            <div class="dock-sep"></div>
-            <div class="dock-item" title="Configuración" style="background: #8e8e93;"><i class="fas fa-cog" style="color: white;"></i></div>
-            <div class="dock-item" title="Cerrar Sesión" style="background: #ff3b30;" onclick="window.close()"><i class="fas fa-power-off" style="color: white;"></i></div>
+            <div class="dock-item"><i class="fas fa-home" style="color:#007aff;"></i></div>
+            <div class="dock-item" onclick="location.reload()"><i class="fas fa-sync" style="color:#34c759;"></i></div>
         </div>
     </div>
 
     <script>
-        // Reloj en tiempo real estilo macOS
-        function actualizarReloj() {
-            const ahora = new Date();
-            const opciones = { hour: '2-digit', minute: '2-digit', hour12: true };
-            document.getElementById('reloj').innerText = ahora.toLocaleTimeString('en-US', opciones);
-        }
-        setInterval(actualizarReloj, 1000);
-        actualizarReloj();
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+        }, 1000);
     </script>
-
 </body>
 </html>
