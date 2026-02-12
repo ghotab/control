@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar Distribución por Rol</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --ios-blue: #007aff; 
+            --ios-bg: #f2f2f7;
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: #1c1c1e; }
+        
+        /* HEADER ESTILO MACOS */
+        .header {
+            padding: 30px 20px; background: var(--glass); backdrop-filter: blur(20px);
+            position: sticky; top: 0; border-bottom: 0.5px solid #d1d1d6; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+
+        h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* SELECTOR ESTILO APPLE */
+        .selector-container {
+            width: 100%; max-width: 400px; position: relative;
+        }
+
+        select {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            border: 1px solid #d1d1d6; background: white; font-size: 16px;
+            appearance: none; cursor: pointer; outline: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .selector-container::after {
+            content: "\f078"; font-family: "Font Awesome 5 Free"; font-weight: 900;
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--ios-blue); pointer-events: none;
+        }
+
+        /* GRID DE TARJETAS */
+        .grid-container {
+            display: grid; padding: 20px; gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            max-width: 1400px; margin: 0 auto;
+        }
+
+        .card {
+            background: white; border-radius: 18px; padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 0.5px solid rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-header { 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 0.5px solid #eee; margin-bottom: 12px; padding-bottom: 8px;
+        }
+
+        .bus-number { font-size: 24px; font-weight: 800; color: var(--ios-blue); }
+        .service-tag { font-size: 11px; font-weight: 600; padding: 4px 8px; background: #e5e5ea; border-radius: 6px; }
+
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+        .label { color: #8e8e93; font-weight: 500; }
+        .val { font-weight: 600; text-align: right; }
+
+        .divider { height: 0.5px; background: #eee; margin: 10px 0; }
+
+        .loading-overlay { text-align: center; padding: 50px; color: #8e8e93; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-route" style="color:var(--ios-blue);"></i> Consulta de Distribución por Rol</h1>
+    
+    <div id="contadorBuses" style="font-size: 14px; color: #8e8e93; font-weight: 500; display:none;">
+        <span id="numBuses" style="color: var(--ios-blue); font-weight: 700;">0</span> Autobuses en este rol
+    </div>
+
+    <div class="selector-container">
+        <select id="selectRol" onchange="renderizarPorRol()">
+            <option value="">Cargando roles...</option>
+        </select>
+    </div>
+</div>
+
+<div id="mainContainer">
+    <div id="loader" class="loading-overlay">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p>Sincronizando con Base de Datos...</p>
+    </div>
+    <div class="grid-container" id="gridBuses"></div>
+</div>
+
+<script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+    let flotaCompleta = [];
+
+    async function inicializar() {
+        try {
+            const resp = await fetch(scriptURL + "?accion=getFlota");
+            flotaCompleta = await resp.json();
+            
+            // 1. Extraer Roles únicos (Columna Índice 3)
+            const roles = [...new Set(flotaCompleta.map(f => f[3]))].sort();
+            
+            const select = document.getElementById('selectRol');
+            select.innerHTML = '<option value="">-- Selecciona un Rol --</option>' + 
+                roles.map(r => `<option value="${r}">${r}</option>`).join('');
+            
+            document.getElementById('loader').style.display = 'none';
+        } catch (e) {
+            console.error(e);
+            document.getElementById('loader').innerHTML = '<p style="color:red;">Error de conexión.</p>';
+        }
+    }
+
+    function renderizarPorRol() {
+        const rolSeleccionado = document.getElementById('selectRol').value;
+        const grid = document.getElementById('gridBuses');
+        const divContador = document.getElementById('contadorBuses');
+        const spanNum = document.getElementById('numBuses');
+        
+        if (!rolSeleccionado) { 
+            grid.innerHTML = ''; 
+            divContador.style.display = 'none'; // Ocultamos si no hay selección
+            return; 
+        }
+
+        const filtrados = flotaCompleta.filter(f => f[3] === rolSeleccionado);
+
+        // ACTUALIZAMOS EL CONTADOR
+        spanNum.innerText = filtrados.length;
+        divContador.style.display = 'block'; // Mostramos el contador
+
+        if (filtrados.length === 0) {
+            grid.innerHTML = '<div class="loading-overlay">No hay buses asignados a este rol.</div>';
+            return;
+        }
+
+        grid.innerHTML = filtrados.map(f => `
+            <div class="card">
+                <div class="card-header">
+                    <span class="bus-number">${f[2]}</span>
+                    <span class="service-tag">${f[38]}</span>
+                </div>
+                
+                <div class="data-row"><span class="label">Sociedad</span><span class="val">${f[37]}</span></div>
+                <div class="data-row"><span class="label">Estatus</span><span class="val" style="color:#34c759">${f[6]}</span></div>
+                
+                <div class="divider"></div>
+                
+                <div class="data-row"><span class="label">Marca</span><span class="val">${f[33]}</span></div>
+                <div class="data-row"><span class="label">Modelo</span><span class="val">${f[34]}</span></div>
+                <div class="data-row"><span class="label">Año</span><span class="val">${f[25]}</span></div>
+                
+                <div class="divider"></div>
+                
+                <div class="data-row"><span class="label">Serie</span><span class="val">${f[15]}</span></div>
+                <div class="data-row"><span class="label">CECO</span><span class="val">${f[36]}</span></div>
+            </div>
+        `).join('');
+    }
+
+    window.onload = inicializar;
+</script>
+</body>
+</html>
