@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar Distribución por Base</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --ios-blue: #007aff; 
+            --ios-bg: #f2f2f7;
+            --glass: rgba(255, 255, 255, 0.75);
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: #1c1c1e; }
+        
+        .header {
+            padding: 30px 20px; background: var(--glass); backdrop-filter: blur(25px);
+            position: sticky; top: 0; border-bottom: 0.5px solid #d1d1d6; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+
+        h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* Estilo del Contador */
+        #contadorBuses {
+            background: white; padding: 4px 12px; border-radius: 20px;
+            font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 0.5px solid rgba(0,0,0,0.1);
+        }
+
+        .selector-container { width: 100%; max-width: 400px; position: relative; margin-top: 10px; }
+
+        select {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            border: 1px solid #d1d1d6; background: white; font-size: 16px;
+            appearance: none; cursor: pointer; outline: none;
+        }
+
+        .selector-container::after {
+            content: "\f078"; font-family: "Font Awesome 5 Free"; font-weight: 900;
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--ios-blue); pointer-events: none;
+        }
+
+        .grid-container {
+            display: grid; padding: 25px; gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            max-width: 1400px; margin: 0 auto;
+        }
+
+        .card {
+            background: white; border-radius: 20px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 0.5px solid rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover { transform: scale(1.02); }
+
+        .card-header { 
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .bus-number { font-size: 28px; font-weight: 800; color: #1c1c1e; line-height: 1; }
+        .rol-tag { 
+            font-size: 10px; font-weight: 700; padding: 4px 10px; 
+            background: rgba(0,122,255,0.1); color: var(--ios-blue); 
+            border-radius: 8px; text-transform: uppercase;
+        }
+
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+        .label { color: #8e8e93; font-weight: 500; }
+        .val { font-weight: 600; }
+
+        .divider { height: 0.5px; background: #f2f2f7; margin: 12px 0; }
+
+        .loading-overlay { text-align: center; padding: 100px; color: #8e8e93; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-industry" style="color:var(--ios-blue); margin-right: 8px;"></i> Consulta de Distribución por Base</h1>
+    
+    <div id="contadorBuses" style="display:none;">
+        <i class="fas fa-bus"></i> <span id="numBuses">0</span> Autobuses en esta base
+    </div>
+
+    <div class="selector-container">
+        <select id="selectBase" onchange="renderizarPorBase()">
+            <option value="">Sincronizando bases...</option>
+        </select>
+    </div>
+</div>
+
+<div id="mainContainer">
+    <div id="loader" class="loading-overlay">
+        <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+        <p>Consultando servidor central...</p>
+    </div>
+    <div class="grid-container" id="gridBuses"></div>
+</div>
+
+<script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+    let flotaCompleta = [];
+
+    async function inicializar() {
+        try {
+            const resp = await fetch(scriptURL + "?accion=getFlota");
+            flotaCompleta = await resp.json();
+            
+            // Extraer BASES únicas (Columna Índice 8)
+            const bases = [...new Set(flotaCompleta.map(f => f[9]))]
+                          .filter(b => b && b.toString().trim() !== "") // Quitar vacíos
+                          .sort();
+            
+            const select = document.getElementById('selectBase');
+            select.innerHTML = '<option value="">-- Selecciona una Base --</option>' + 
+                bases.map(b => `<option value="${b}">${b}</option>`).join('');
+            
+            document.getElementById('loader').style.display = 'none';
+        } catch (e) {
+            document.getElementById('loader').innerHTML = '<p style="color:red;">Error al conectar con la base de datos.</p>';
+        }
+    }
+
+    function renderizarPorBase() {
+        const baseSel = document.getElementById('selectBase').value;
+        const grid = document.getElementById('gridBuses');
+        const cont = document.getElementById('contadorBuses');
+        const num = document.getElementById('numBuses');
+        
+        if (!baseSel) { grid.innerHTML = ''; cont.style.display = 'none'; return; }
+
+        const filtrados = flotaCompleta.filter(f => f[9] === baseSel);
+
+        num.innerText = filtrados.length;
+        cont.style.display = 'inline-block';
+
+        grid.innerHTML = filtrados.map(f => `
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="label"></span>
+                        <span class="bus-number">${f[2]}</span>
+                    </div>
+                    <span class="rol-tag">${f[3]}</span>
+                </div>
+                
+                <div class="data-row"><span class="label">Estatus</span><span class="val" style="color:#34c759">${f[6]}</span></div>
+                <div class="data-row"><span class="label">Sociedad</span><span class="val">${f[37]}</span></div>
+                
+                <div class="divider"></div>
+                
+                <div class="data-row"><span class="label">Marca / Modelo</span><span class="val">${f[33]} - ${f[34]}</span></div>
+                <div class="data-row"><span class="label">Año</span><span class="val">${f[25]}</span></div>
+                
+                <div class="divider"></div>
+                
+                <div class="data-row"><span class="label">No. de Serie</span><span class="val">${f[15]}</span></div>
+                <div class="data-row"><span class="label">C. Costos</span><span class="val">${f[36]}</span></div>
+            </div>
+        `).join('');
+    }
+
+    window.onload = inicializar;
+</script>
+</body>
+</html>
