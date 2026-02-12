@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHO | TAB Operaciones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --mac-bg: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070');
+            --ios-blue: #007aff;
+            --ios-green: #34c759;
+            --ios-red: #ff3b30;
+            --ios-purple: #5e5ce6;
+            --ios-orange: #ff9500;
+        }
+
+        body, html {
+            margin: 0; height: 100%; overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--mac-bg) no-repeat center center fixed;
+            background-size: cover; display: flex; flex-direction: column;
+        }
+
+        .top-bar {
+            height: 30px; background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); display: flex; align-items: center;
+            padding: 0 20px; color: white; font-size: 13px; justify-content: space-between;
+        }
+
+        .launchpad {
+            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            padding: 60px 100px; gap: 40px; justify-items: center;
+        }
+
+        /* Estilo común para todos los accesos */
+        .menu-container {
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; width: 140px;
+        }
+
+        .menu-container .app-link span {
+            margin-top: 2px; /* Alineación fina para que coincida con los otros iconos */
+            text-align: center;
+        }
+
+        .app-link {
+            text-decoration: none; color: white; display: flex; flex-direction: column;
+            align-items: center; transition: transform 0.2s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .app-link:hover { transform: scale(1.1); }
+
+        .app-icon {
+            width: 90px; height: 90px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 45px; margin-bottom: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Colores de Iconos */
+        .icon-distro { background: linear-gradient(145deg, #007aff, #00c6ff); }
+        .icon-bandejas { background: linear-gradient(145deg, #5e5ce6, #7d7aff); /* Color morado macOS */
+            cursor: pointer;}
+        .icon-mantenimiento { background: linear-gradient(145deg, #ff9500, #ffcc00); }
+
+        /* Estilo del Menú Desplegable */
+        .dropdown-menu {
+            display: none; position: absolute; top: 95px; left: 50%;
+            transform: translateX(-50%); width: 220px;
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+            border-radius: 14px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 0.5px solid rgba(255,255,255,0.4); z-index: 1000; padding: 6px;
+        }
+
+        .dropdown-menu.show { display: block; animation: menuAppear 0.2s ease-out; }
+
+        @keyframes menuAppear {
+            from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .menu-item {
+            padding: 10px 15px; color: #1c1c1e; text-decoration: none;
+            display: flex; align-items: center; border-radius: 8px; font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover { background: var(--ios-blue); color: white; }
+        .menu-item i { margin-right: 12px; width: 18px; text-align: center; }
+        .menu-divider { height: 0.5px; background: rgba(0,0,0,0.1); margin: 5px 10px; }
+
+        .dock-container { width: 100%; display: flex; justify-content: center; padding-bottom: 20px; }
+        .dock {
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px);
+            padding: 10px 20px; border-radius: 25px; display: flex; gap: 15px;
+            border: 0.5px solid rgba(255,255,255,0.2);
+        }
+        .dock-item { 
+            width: 50px; height: 50px; background: white; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div><i class="fab fa-apple"></i> <span style="font-weight:700; margin-left:10px;">GHO TAB - Operaciones</span></div>
+        <div id="reloj">12:00 PM</div>
+    </div>
+
+    <div class="launchpad">
+        
+        <div class="menu-container">
+            <div class="app-link" onclick="toggleMenu(event, 'menuDistro')">
+                <div class="app-icon icon-distro">
+                    <i class="fas fa-bus-alt" style="color: white;"></i>
+                </div>
+                <span>Distribución</span>
+            </div>
+            <div id="menuDistro" class="dropdown-menu">
+                <a href="https://ghotab.github.io/control/tab/distro.html" class="menu-item"><i class="fa-solid fa-tag"></i> Explorar por Autobus</a>
+                <a href="https://ghotab.github.io/control/tab/xrol.html" class="menu-item"><i class="fa-solid fa-users-cog"></i> Explorar por Roles</a>
+                <a href="https://ghotab.github.io/control/tab/xbase.html" class="menu-item"><i class="fa-solid fa-industry"></i> Explorar por Base</a>
+                
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <div class="app-link" onclick="toggleMenu(event, 'menuBandejas')">
+                <div class="app-icon icon-bandejas">
+                    <i class="fas fa-inbox" style="color: white;"></i>
+                </div>
+                <span>Control de Bandejas</span>
+            </div>
+            <div id="menuBandejas" class="dropdown-menu">
+                <a href="https://ghotab.github.io/control/cctv/bandejas/historial.html" class="menu-item"><i class="fas fa-history"></i> Historial de Cambios</a>
+                <a href="https://ghotab.github.io/control/cctv/bandejas/movimientos.html" class="menu-item"><i class="fas fa-exchange-alt"></i> Movimientos Recientes</a>
+                
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <div class="app-link" onclick="toggleMenu(event, 'menuCorrectivo')">
+                <div class="app-icon icon-mantenimiento">
+                    <i class="fas fa-tools" style="color: white;"></i>
+                </div>
+                <span>Mantenimientos Correctivos</span>
+            </div>
+            <div id="menuCorrectivo" class="dropdown-menu">
+                <a href="https://ghotab.github.io/control/failreporting/pendientes.html" class="menu-item"><i class="fas fa-exclamation-triangle"></i> Dashboard de Reportes</a>
+                <div class="menu-divider"></div>
+                <a href="https://ghotab.github.io/control/failreporting/historial.html" class="menu-item"><i class="fas fa-clipboard-check"></i> Historial de Reportes</a>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="dock-container">
+        <div class="dock">
+            <div class="dock-item" onclick="window.location.reload()"><i class="fas fa-sync" style="color:var(--ios-green);"></i></div>
+            <div class="dock-item"><i class="fas fa-user-circle" style="color:var(--ios-blue);"></i></div>
+        </div>
+    </div>
+
+    <script>
+        // Actualizar Reloj
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+        }, 1000);
+
+        // Función Toggle Inteligente
+        function toggleMenu(event, idMenu) {
+            event.stopPropagation();
+            
+            // Cerrar otros
+            const todosLosMenus = document.querySelectorAll('.dropdown-menu');
+            todosLosMenus.forEach(menu => {
+                if (menu.id !== idMenu) menu.classList.remove('show');
+            });
+
+            // Abrir el seleccionado
+            document.getElementById(idMenu).classList.toggle("show");
+        }
+
+        // Cerrar al hacer clic fuera
+        window.onclick = function(event) {
+            if (!event.target.closest('.menu-container')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+            }
+        }
+    </script>
+</body>
+</html>
