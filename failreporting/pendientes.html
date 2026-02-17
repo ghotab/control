@@ -2,485 +2,435 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAB Panel de Pendientes</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TAB | Gestión de Fallas</title>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
         :root {
-            --mac-bg: #f5f5f7;
-            --mac-card: rgba(255, 255, 255, 0.9);
-            --accent: #007aff;
-            --text: #1d1d1f;
-            --text-sec: #86868b;
-            --success: #34c759;
-            --warning: #ff9500;
-            --border: #e5e5ea;
+            --ios-bg: #f2f2f7;
+            --ios-sidebar: rgba(246, 246, 246, 0.94);
+            --ios-blue: #007aff;
+            --ios-green: #34c759;
+            --ios-red: #ff3b30;
+            --ios-card: #ffffff;
+            --ios-border: #d1d1d6;
+            --ios-text: #000000;
+            --ios-text-sec: #8e8e93;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--mac-bg);
-            color: var(--text);
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0; display: flex; height: 100vh; color: var(--ios-text); overflow: hidden;
         }
 
-        .container { width: 100%; max-width: 800px; }
-
-        /* Header macOS Style */
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; margin-bottom: 30px; margin-top: 20px;
-        }
-        .header h1 { font-size: 34px; font-weight: 700; letter-spacing: -1px; margin: 0; }
-        #sync-status { font-size: 13px; font-weight: 600; color: var(--success); transition: 0.3s; }
-
-        /* Lista de Tareas */
-        .task-list { display: grid; gap: 12px; width: 100%; }
-
-        .task-card {
-            background: var(--mac-card);
-            border-radius: 20px;
-            padding: 22px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .task-card:active { transform: scale(0.98); background: #fff; }
-
-        .task-info h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--text); }
-        .task-info p { margin: 4px 0 0; color: var(--text-sec); font-size: 14px; }
-
-        .status-badge {
-            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
-            background: #f2f2f7; color: var(--accent);
+        /* --- SIDEBAR (macOS Style) --- */
+        .sidebar {
+            width: 300px; background: var(--ios-sidebar); backdrop-filter: blur(20px);
+            border-right: 0.5px solid var(--ios-border); display: flex; flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000;
         }
 
-        /* Modal / Detalle de Tarea */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(15px);
-            justify-content: center; align-items: center; z-index: 1000; padding: 20px;
-            box-sizing: border-box;
+        .sidebar-content { padding: 40px 20px; flex-grow: 1; }
+        .sidebar h1 { font-size: 22px; font-weight: 700; margin-bottom: 25px; letter-spacing: -0.5px; }
+
+        .nav-item {
+            display: flex; align-items: center; padding: 10px 12px; border-radius: 8px;
+            color: var(--ios-text); text-decoration: none; font-size: 15px; margin-bottom: 4px;
+            transition: background 0.2s; cursor: pointer;
         }
-        .modal-content {
-            background: #fff; width: 100%; max-width: 500px; padding: 30px;
-            border-radius: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.2);
-            position: relative; max-height: 90vh; overflow-y: auto;
+        .nav-item.active { background: rgba(0, 122, 255, 0.1); color: var(--ios-blue); font-weight: 600; }
+        .nav-item i { width: 28px; font-size: 18px; color: var(--ios-blue); }
+
+        /* --- INPUTS & FILTERS --- */
+        .filter-group { margin-top: 30px; }
+        .filter-label { font-size: 11px; font-weight: 600; color: var(--ios-text-sec); text-transform: uppercase; margin: 15px 10px 8px; display: block; }
+        
+        .ios-select, .ios-date {
+            width: 100%; background: rgba(200, 200, 200, 0.15); border: none; border-radius: 10px;
+            padding: 10px 12px; font-size: 15px; outline: none; margin-bottom: 10px; color: var(--ios-text);
         }
 
-        /* Elements inside Modal */
-        label.section-label { 
-            display: block; font-size: 11px; font-weight: 800; color: var(--text-sec); 
-            text-transform: uppercase; margin-top: 20px; margin-bottom: 8px;
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .top-bar { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .top-bar h2 { margin: 0; font-size: 28px; letter-spacing: -1px; }
+
+        .scroll-area { flex: 1; overflow-y: auto; padding: 0 40px 40px; }
+
+        /* --- INSET GROUPED LIST (iOS Style) --- */
+        .ios-section-title { font-size: 13px; color: var(--ios-text-sec); text-transform: uppercase; margin: 25px 15px 8px; }
+        .ios-list { background: var(--ios-card); border-radius: 12px; overflow: hidden; border: 0.5px solid var(--ios-border); margin-bottom: 20px; }
+        
+        .ios-item {
+            padding: 12px 16px; border-bottom: 0.5px solid var(--ios-border);
+            display: flex; align-items: center; cursor: pointer; transition: background 0.2s;
+        }
+        .ios-item:last-child { border-bottom: none; }
+        .ios-item:active { background: #f2f2f7; }
+        
+        .item-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--ios-blue); color: white; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
+        .item-info { flex: 1; }
+        .item-title { font-size: 17px; font-weight: 500; display: block; }
+        .item-subtitle { font-size: 13px; color: var(--ios-text-sec); }
+
+        /* --- MODAL (iOS Sheet) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4);
+            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px);
+        }
+        .modal-sheet {
+            background: #fff; width: 90%; max-width: 450px; border-radius: 20px; padding: 25px;
+            position: relative; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out;
         }
 
-        /* iPhone Switches */
-        .switch-group {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 0; border-bottom: 1px solid var(--mac-bg);
-        }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- SWITCHES (Apple Style) --- */
+        .ios-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 0.5px solid #eee; }
         .switch { position: relative; display: inline-block; width: 51px; height: 31px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #e3e3e8; transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px;
-            background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-        }
-        input:checked + .slider { background-color: var(--success); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9eb; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        input:checked + .slider { background-color: var(--ios-green); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        input[type="password"], textarea {
-            width: 100%; border: 1px solid var(--border); border-radius: 14px;
-            padding: 15px; font-size: 16px; margin-top: 5px; box-sizing: border-box;
-            background: #f9f9fb; font-family: inherit;
+        .ios-btn {
+            width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 17px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; margin-top: 15px;
+        }
+        .ios-btn-blue { background: var(--ios-blue); color: white; }
+        .ios-btn-blue:active { transform: scale(0.97); background: #0063cc; }
+        .ios-btn-red { background: var(--ios-red); color: white; }
+
+        .textarea-ios { width: 100%; border: none; background: #f2f2f7; border-radius: 10px; padding: 12px; font-family: inherit; font-size: 15px; margin-top: 5px; resize: none; }
+
+        #qr-container { display: flex; flex-direction: column; align-items: center; padding: 20px; text-align: center; }
+
+        /* --- MOBILE ADAPTATION --- */
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
+            .sidebar.open { transform: translateX(0); }
+            .scroll-area, .top-bar { padding: 20px; }
+            #menu-btn { display: block !important; }
         }
 
-        .btn-action {
-            width: 100%; background: var(--accent); color: white; border: none;
-            padding: 20px; border-radius: 18px; font-size: 18px; font-weight: 700; 
-            margin-top: 25px; cursor: pointer; transition: 0.2s;
-        }
-        .btn-action:active { transform: scale(0.97); }
+        #menu-btn { display: none; background: none; border: none; font-size: 24px; color: var(--ios-blue); }
 
-        .qr-section { text-align: center; display: none; margin-top: 25px; }
-        #qrcode-container { 
-            margin: 20px auto; width: 180px; height: 180px; background: #fff;
-            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-        }
-
-        /* Estilo para reporte original en modal */
-        .report-summary {
-            background: #f2f2f7; padding: 15px; border-radius: 15px; margin-bottom: 20px;
-        }
+        /* --- LOADING SPINNER --- */
+        .spinner { border: 3px solid rgba(0,0,0,0.1); border-top: 3px solid var(--ios-blue); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>Pendientes de Atención</h1>
-        <div id="sync-status"><i class="fa-solid fa-rotate"></i> Actualizado</div>
-    </div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <h1>Panel Técnico</h1>
+            <nav>
+                <div class="nav-item active" onclick="setView('atencion')"><i class="fa-solid fa-wrench"></i> Panel de Atención</div>
+                <div class="nav-item" onclick="setView('firmas')"><i class="fa-solid fa-signature"></i> Cierres Pendientes</div>
+            </nav>
 
-    <div class="header" style="margin-top: 20px;">
-        <label for="filtroBase" style="font-size: 12px; font-weight: 700; color: #86868b; display: block; margin-bottom: 8px; text-transform: uppercase;">Filtrar por Base</label>
-        <select id="filtroBase" onchange="guardarFiltroYRefrescar()" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e5e5ea; background: white; font-size: 16px; font-weight: 600; appearance: none;">
-            <option value="TODAS">📍 Todas las Bases</option>
-            <option value="ATLA">Atlacomulco</option>
-            <option value="COLI">Colima</option>
-            <option value="GUZM">Ciudad Guzmán</option>
-            <option value="GDLJ">Guadalajara</option>
-            <option value="JILO">Jilotepec</option>
-            <option value="MORE">Morelia</option>
-            <option value="OFOC">Occidente</option>
-            <option value="TSAT">Saturno</option>
-            <option value="TOLU">Toluca</option>
-        </select>
-    </div>
-    
-
-    <div id="taskList" class="task-list">
-        <p style="text-align: center; color: var(--text-sec);">Cargando reporte de fallas...</p>
-    </div>
-
-    <div class="header" style="margin-top: 40px;">
-        <h1>Pendientes de Firma</h1>
-        <div id="sync-status"><i class="fa-solid fa-rotate"></i> Actualizado</div>
-    </div>
-    
-    <div id="taskListFirmas" class="task-list">
-        <p style="text-align: center; color: var(--text-sec);">Cargando reportes pendientes de firma...</p>
-    </div>
-    
-</div>
-
-<div id="modalTarea" class="modal">
-    <div class="modal-content">
-        <h2 id="modalTitle" style="margin: 0; font-size: 28px;">Unidad</h2>
-        <p id="modalBase" style="color: var(--text-sec); margin-top: 5px; font-weight: 600;">Base</p>
-        
-        <hr style="border: 0; border-top: 1px solid var(--mac-bg); margin: 20px 0;">
-
-        <div id="step1">
-            <label class="section-label">Acceso Técnico</label>
-            <input type="password" id="claveTecnico" placeholder="Introduce tu clave de colaborador" inputmode="numeric">
-            <button class="btn-action" onclick="validarTecnico()">Ver Reporte de Conductor</button>
-        </div>
-
-        <div id="step2" style="display:none;">
-            <div class="report-summary">
-                <label class="section-label" style="margin-top: 0;">Falla Reportada</label>
-                <div id="fallaTexto" style="font-size: 18px; font-weight: 600;">...</div>
-            </div>
-            
-            <div class="switch-group">
-                <span style="font-weight: 600;">¿Corte de boletos de tijera?</span>
-                <label class="switch">
-                    <input type="checkbox" id="switchTijera">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <label class="section-label">Causa de la Falla</label>
-            <textarea id="causaFalla" rows="2" placeholder="¿Qué originó el problema?"></textarea>
-
-            <label class="section-label">Correctivo Realizado</label>
-            <textarea id="correctivo" rows="2" placeholder="¿Qué solución aplicaste?"></textarea>
-
-            <div class="switch-group">
-                <span style="font-weight: 600;">Requiere firma de conductor</span>
-                <label class="switch">
-                    <input type="checkbox" id="switchFirma" checked onchange="actualizarTextoBoton()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <button id="btnPrincipal" class="btn-action" onclick="procesarAtencion()">Confirmar y Generar QR</button>
-        </div>
-
-        <div id="qrSection" class="qr-section">
-            <h3 style="margin-bottom: 5px;">Validación de Operador</h3>
-            <p style="font-size: 14px; color: var(--text-sec);">Solicita al conductor que escanee este código para firmar la recepción.</p>
-            <div id="qrcode-container">
-                <i class="fa-solid fa-qrcode" style="font-size: 120px; color: #333;"></i>
-            </div>
-            <div style="background: #fff3e0; padding: 10px; border-radius: 10px; color: var(--warning); font-size: 13px; font-weight: 600;">
-                <i class="fa-solid fa-hourglass-half"></i> Esperando firma digital...
+            <div class="filter-group">
+                <label class="filter-label">Filtros</label>
+                <select id="fBase" class="ios-select" onchange="saveBaseFilter()">
+                    <option value="TODAS">📍 Todas las Bases</option>
+                    <option value="ACAP">Acapulco</option>
+                    <option value="ATLA">Atlacomulco</option>
+                    <option value="COLI">Colima</option>
+                    <option value="GUZM">Ciudad Guzmán</option>
+                    <option value="GDLJ">Guadalajara</option>
+                    <option value="JILO">Jilotepec</option>
+                    <option value="MORE">Morelia</option>
+                    <option value="OFOC">Occidente</option>
+                    <option value="JRIO">San Juan del Rio</option>
+                    <option value="TSAT">Saturno</option>
+                    <option value="TOLU">Toluca</option>
+                </select>
+                <input type="text" id="fFecha" class="ios-date" placeholder="Filtrar fecha...">
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec"; 
-    let idActual = "";
+    <div class="main-content">
+        <header class="top-bar">
+            <button id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars-staggered"></i></button>
+            <h2 id="view-title">Panel de Atención</h2>
+            <div id="sync-indicator"><i class="fa-solid fa-rotate" style="color: var(--ios-text-sec); font-size: 14px;"></i></div>
+        </header>
 
-    // Al cargar la página, recuperar el filtro guardado
-    window.onload = () => {
-        const baseGuardada = localStorage.getItem('filtroBaseSeleccionada') || "TODAS";
-        document.getElementById('filtroBase').value = baseGuardada;
-        cargarPendientes();
-    };
-    
-    function guardarFiltroYRefrescar() {
-        const base = document.getElementById('filtroBase').value;
-        localStorage.setItem('filtroBaseSeleccionada', base); // Guardar en memoria
-        cargarPendientes(); // Refrescar lista inmediatamente
-    }
-    
-    // 1. CARGA AUTOMÁTICA
-    async function cargarPendientes() {
-        const filtroBase = document.getElementById('filtroBase').value;
-        
-        try {
-            const res = await fetch(`${scriptURL}?accion=leerPendientes`);
-            const tareas = await res.json();
+        <div class="scroll-area">
+            <div id="list-container">
+                <p style="text-align: center; color: var(--ios-text-sec); margin-top: 50px;">Sincronizando datos...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-sheet">
+            <div id="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="m-title" style="margin:0">Unidad 00000</h3>
+                <button onclick="closeModal()" style="background: #e9e9eb; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">✕</button>
+            </div>
+
+            <div id="step-pin">
+                <label class="filter-label">Validación de Identidad</label>
+                <input type="password" id="tecnico-pin" class="ios-input" style="width:100%; padding:15px; border-radius:12px; border:1px solid #ddd; font-size:20px; text-align:center; letter-spacing:5px;" placeholder="••••" inputmode="numeric">
+                <button class="ios-btn ios-btn-blue" onclick="validatePin()">Acceder al Reporte</button>
+            </div>
+
+            <div id="step-form" style="display: none;">
+                <div style="background: #f2f2f7; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <span class="filter-label" style="margin:0">Falla Reportada</span>
+                    <p id="m-falla-text" style="margin: 5px 0 0; font-weight: 500;">...</p>
+                </div>
+
+                <div class="ios-row">
+                    <span>Uso de Boletos de Tijera</span>
+                    <label class="switch"><input type="checkbox" id="m-tijera"><span class="slider"></span></label>
+                </div>
+
+                <label class="filter-label">Causa de la Falla</label>
+                <textarea id="m-causa" class="textarea-ios" rows="3"></textarea>
+
+                <label class="filter-label">Correctivo Aplicado</label>
+                <textarea id="m-solucion" class="textarea-ios" rows="3"></textarea>
+
+                <div class="ios-row" style="margin-top:10px">
+                    <span>Solicitar firma al conductor</span>
+                    <label class="switch"><input type="checkbox" id="m-firma" checked><span class="slider"></span></label>
+                </div>
+
+                <button id="m-submit" class="ios-btn ios-btn-blue" onclick="submitData()">Finalizar y Sincronizar</button>
+            </div>
+
+            <div id="step-qr" style="display: none;">
+                <div id="qr-container">
+                    <div id="qrcode"></div>
+                    <p style="margin-top:20px; font-weight: 600;">Escanee para Firmar</p>
+                    <p class="item-subtitle">El conductor debe validar el correctivo desde su dispositivo.</p>
+                </div>
+                <button id="btn-admin" class="ios-btn ios-btn-red" style="display:none" onclick="forceClose()">Cierre Administrativo</button>
+            </div>
+
+            <div id="m-loading" style="display: none; text-align: center; padding: 20px;">
+                <div class="spinner"></div>
+                <p>Procesando datos...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbzZ5tTF-Rb4wD1XT7_HRnl0S-8-Mv8J9pSXBzz4wx9RHQVTGdJFTs-exOg_3efivwPo/exec";
+        let currentView = 'atencion';
+        let rawData = [];
+        let activeId = null;
+
+        // Inicialización
+        window.onload = () => {
+            const savedBase = localStorage.getItem('filtroBase') || "TODAS";
+            document.getElementById('fBase').value = savedBase;
             
-            const lista = document.getElementById('taskList');
-            const listaFirmas = document.getElementById('taskListFirmas');
+            flatpickr("#fFecha", { locale: "es", dateFormat: "d/m/Y", onChange: renderList });
             
-            lista.innerHTML = "";
-            listaFirmas.innerHTML = "";
-    
-            if (tareas.length === 0) {
-                lista.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Sin pendientes por atender.</p>";
-                listaFirmas.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Sin pendientes de firma.</p>";
+            refreshData();
+            setInterval(refreshData, 30000);
+        };
+
+        async function refreshData() {
+            try {
+                const res = await fetch(`${API}?accion=leerPendientes`);
+                rawData = await res.json();
+                renderList();
+                document.getElementById('sync-indicator').style.opacity = 1;
+                setTimeout(() => document.getElementById('sync-indicator').style.opacity = 0.3, 1000);
+            } catch (e) { console.error("Sync Error", e); }
+        }
+
+        function renderList() {
+            const container = document.getElementById('list-container');
+            const baseFilter = document.getElementById('fBase').value;
+            container.innerHTML = "";
+
+            const filtered = rawData.filter(t => {
+                const matchBase = baseFilter === "TODAS" || t[2] === baseFilter;
+                const matchStatus = currentView === 'atencion' ? t[6] === 'PENDIENTE' : t[6] === 'ESPERANDO_FIRMA';
+                return matchBase && matchStatus;
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--ios-text-sec); margin-top:40px;">No hay reportes en esta sección.</p>`;
                 return;
             }
-    
-            tareas.forEach(t => {
-                const baseUnidad = t[2].toString().toUpperCase().trim();
-                // Normalizamos el estatus para evitar errores
-                let estatus = t[6] ? t[6].toString().toUpperCase().trim() : "";
 
-                if (filtroBase === "TODAS" || baseUnidad === filtroBase) {
-                    let cardHTML = `
-                    <div class="task-card" onclick="abrirTarea('${t[0]}', '${t[3]}', '${t[2]}', '${estatus}')">
-                        <div class="task-info">
-                            <h2>Unidad ${t[3]}</h2>
-                            <p>Base: ${t[2]} • ID: ${t[0]}</p>
-                        </div>
-                        <div class="status-badge" style="background: ${estatus === 'ESPERANDO_FIRMA' ? '#ff9500' : '#f2f2f7'}; 
-                             color: ${estatus === 'ESPERANDO_FIRMA' ? 'white' : 'var(--accent)'};">
-                            ${estatus}
-                        </div>
-                    </div>`;
-
-                    // LA CLAVE: Aquí es donde se dividen
-                    if (estatus === "PENDIENTE") {
-                        lista.innerHTML += cardHTML;
-                    } else if (estatus === "ESPERANDO_FIRMA") {
-                        listaFirmas.innerHTML += cardHTML;
-                    }
-                }
+            let html = `<div class="ios-section-title">${currentView === 'atencion' ? 'Por Atender' : 'Pendientes de Firma'}</div><div class="ios-list">`;
+            filtered.forEach(t => {
+                html += `
+                <div class="ios-item" onclick="openModal('${t[0]}', '${t[3]}', '${t[6]}')">
+                    <div class="item-icon" style="background:${currentView === 'atencion' ? '#007aff' : '#ff9500'}">
+                        <i class="fa-solid ${currentView === 'atencion' ? 'fa-screwdriver-wrench' : 'fa-pen-nib'}"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="item-title">Unidad ${t[3]}</span>
+                        <span class="item-subtitle">${t[2]} • ID: ${t[0]}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color:#c7c7cc; font-size:14px"></i>
+                </div>`;
             });
-    
-            // Mensajes de lista vacía
-            if (lista.innerHTML === "") lista.innerHTML = "<p style='padding:20px; color:gray; text-align:center;'>No hay reportes nuevos.</p>";
-            if (listaFirmas.innerHTML === "") listaFirmas.innerHTML = "<p style='padding:20px; color:gray; text-align:center;'>Todo firmado.</p>";
-    
-        } catch (e) {
-            console.error("Error cargando datos:", e);
+            html += `</div>`;
+            container.innerHTML = html;
         }
-    }
-    
-    // 2. CAMBIO DE TEXTO DEL BOTÓN DINÁMICO
-    function actualizarTextoBoton() {
-        const requiereFirma = document.getElementById('switchFirma').checked;
-        const btn = document.getElementById('btnPrincipal');
-        btn.innerText = requiereFirma ? "Confirmar y Generar QR" : "Guardar Reporte";
-    }
-    
-    // 3. ABRIR TAREA
-   function abrirTarea(id, eco, base, estatus) {
-        idActual = id;
-        const modal = document.getElementById('modalTarea');
-        modal.style.display = 'flex';
-        document.getElementById('modalTitle').innerText = "Unidad " + eco;
-        document.getElementById('modalBase').innerText = "Base: " + base;
-        
-        // 1. Limpiamos visualmente el modal antes de decidir qué mostrar
-        document.getElementById('step1').style.display = 'none';
-        document.getElementById('step2').style.display = 'none';
-        document.getElementById('qrSection').style.display = 'none';
-    
-        // 2. BLOQUEO DE EDICIÓN: Si ya fue atendida, solo mostramos el QR
-        if (estatus === "ESPERANDO_FIRMA") {
-            document.getElementById('qrSection').style.display = 'block';
-            
-            // Generamos el QR para que el operador lo vea
-            mostrarQR(id);
-    
-            // Agregamos el botón de Cierre Administrativo (Solo visible para ti/Gerente)
-            // Eliminamos si ya existía para no duplicar
-            const btnPrevio = document.getElementById('btnCierreForzado');
-            if (btnPrevio) btnPrevio.remove();
-    
-            const btnForzado = document.createElement('button');
-            btnForzado.id = 'btnCierreForzado';
-            btnForzado.innerText = "Cierre Administrativo (Gerencia)";
-            btnForzado.className = "btn-action";
-            btnForzado.style.backgroundColor = "#ff3b30"; // Rojo macOS/iOS
-            btnForzado.style.marginTop = "20px";
-            btnForzado.onclick = () => cierreForzado(id);
-            
-            document.getElementById('qrSection').appendChild(btnForzado);
-    
-        } else {
-            // 3. FLUJO NORMAL: Si es PENDIENTE, pedimos clave técnica
-            document.getElementById('step1').style.display = 'block';
-        }
-    }
-    
-    // 4. VALIDAR TÉCNICO (ENTRAR AL DETALLE)
-    async function validarTecnico() {
-        const clave = document.getElementById('claveTecnico').value;
-        if(!clave) return alert("Ingresa tu clave de colaborador.");
-    
-        const btn = document.querySelector('#step1 .btn-action');
-        btn.innerText = "Cargando...";
-    
-        try {
-            const res = await fetch(`${scriptURL}?accion=detalle&id=${idActual}`);
-            const data = await res.json();
-            
-            document.getElementById('fallaTexto').innerText = data.falla;
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-        } catch (e) {
-            alert("No se pudo obtener el detalle de la falla.");
-        } finally {
-            btn.innerText = "Ver Reporte de Conductor";
-        }
-    }
 
-    function mostrarQR(id) {
-        const qrContainer = document.getElementById("qrcode-container");
-        qrContainer.innerHTML = ""; // Limpiar el icono anterior
-        
-        // La URL que el conductor escaneará (ajusta la ruta a donde subas firma.html)
-        const urlFirma = "https://ghotab.github.io/control/failreporting/sign-driver.html?id=" + id;
-        
-        new QRCode(qrContainer, {
-            text: urlFirma,
-            width: 180,
-            height: 180,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-    }
-    
-    // 5. PROCESAR ATENCIÓN (EL PASO CRÍTICO)
-    async function procesarAtencion() {
-        const tecnico = document.getElementById('claveTecnico').value;
-        const causa = document.getElementById('causaFalla').value;
-        const solucion = document.getElementById('correctivo').value; // Asegúrate que el ID sea 'correctivo'
-        const tijera = document.getElementById('switchTijera').checked ? "SÍ" : "NO";
-        const requiereFirma = document.getElementById('switchFirma').checked;
-    
-        if(!causa || !solucion) {
-            alert("Debes llenar la Causa y el Correctivo.");
-            return;
+        async function openModal(id, eco, status) {
+            activeId = id;
+            document.getElementById('m-title').innerText = `Unidad ${eco}`;
+            document.getElementById('modal').style.display = 'flex';
+            resetModalSteps();
+
+            if(status === 'ESPERANDO_FIRMA') {
+                showStep('qr');
+                generateQR(id);
+                document.getElementById('btn-admin').style.display = 'block';
+            } else {
+                showStep('pin');
+            }
         }
-    
-        const btn = document.getElementById('btnPrincipal');
-        btn.innerText = "Guardando en Excel...";
-        btn.disabled = true;
-    
-        // Estos nombres deben coincidir con tu GS (datos.id, datos.tecnico, etc.)
-        const datos = {
-            accion: "VALIDAR_TECNICO",
-            id: idActual,
-            tecnico: tecnico,
-            tijera: tijera,
-            causa: causa,
-            solucion: solucion,
-            requiereFirma: requiereFirma
-        };
-    
-        try {
-            // Enviar al GS
-            await fetch(scriptURL, { 
-                method: "POST", 
-                mode: "no-cors", 
-                body: JSON.stringify(datos) 
-            });
-            
-            // Como usamos no-cors, esperamos 1.5 segundos para dar tiempo al GS de procesar
+
+        async function validatePin() {
+            const pin = document.getElementById('tecnico-pin').value;
+
+            // Validación real del PIN
+            function checkValue(pin) {
+                return pin && pin.length > 6;
+            }
+
+            if (!checkValue(pin)) {
+                alert("El PIN debe tener más de 6 caracteres");
+                return; // Detiene la ejecución si no es válido
+            }
+
+            showLoading(true);
+
+            try {
+                const res = await fetch(`${API}?accion=detalle&id=${activeId}&pin=${pin}`);
+                const data = await res.json();
+
+                document.getElementById('m-falla-text').innerText = data.falla;
+                showStep('form');
+
+            } catch (e) {
+                alert("Error al obtener detalle");
+            }
+
+            showLoading(false);
+        }
+
+
+        async function submitData() {
+            const data = {
+                accion: "VALIDAR_TECNICO",
+                id: activeId,
+                tecnico: document.getElementById('tecnico-pin').value,
+                tijera: document.getElementById('m-tijera').checked ? "SÍ" : "NO",
+                causa: document.getElementById('m-causa').value,
+                solucion: document.getElementById('m-solucion').value,
+                requiereFirma: document.getElementById('m-firma').checked
+            };
+
+            if(!data.causa || !data.solucion) return alert("Complete los campos requeridos.");
+
+            showLoading(true);
+            // POST no-cors
+            fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+
             setTimeout(() => {
-                if (requiereFirma) {
-                    document.getElementById('step2').style.display = 'none';
-                    document.getElementById('qrSection').style.display = 'block';
-                    mostrarQR(idActual);
+                showLoading(false);
+                if(data.requiereFirma) {
+                    showStep('qr');
+                    generateQR(activeId);
                 } else {
-                    alert("✅ Reporte finalizado con éxito.");
-                    location.reload(); // Recargar para limpiar y ver cambios
+                    closeModal();
+                    refreshData();
                 }
             }, 1500);
-    
-        } catch (e) {
-            alert("Error al enviar. Intenta de nuevo.");
-            btn.disabled = false;
-            btn.innerText = "Reintentar Guardar";
         }
-    }
 
-    //Cierre forzado
-    async function cierreForzado(id) {
-        const pass = prompt("Introduce la clave gerencial para forzar el cierre:");
-        
-        // Switch de validación de clave
-        if (pass === "RR245a2177") { 
-            const btn = document.getElementById('btnCierreForzado');
-            btn.innerText = "Procesando...";
-            btn.disabled = true;
-    
-            const datos = {
-                accion: "CIERRE_FORZADO",
-                id: id
-            };
-    
-            try {
-                await fetch(scriptURL, { 
+        function forceClose() {
+            const pass = prompt("Clave de Administración:");
+            if(pass === "RR245a2177") {
+                showLoading(true);
+                fetch(API, { 
                     method: "POST", 
                     mode: "no-cors", 
-                    body: JSON.stringify(datos) 
+                    body: JSON.stringify({ accion: "CIERRE_FORZADO", id: activeId }) 
                 });
-                
-                // Pausa de cortesía para que el GS termine de escribir
-                setTimeout(() => {
-                    alert("✅ El reporte ha sido finalizado administrativamente.");
-                    location.reload();
-                }, 1000);
-                
-            } catch (e) {
-                alert("Error de conexión al intentar cerrar.");
-                btn.disabled = false;
-                btn.innerText = "Cierre Administrativo (Gerencia)";
-            }
-        } else if (pass !== null) {
-            alert("❌ Clave incorrecta. Acceso denegado.");
+                setTimeout(() => { 
+                    closeModal(); 
+                    refreshData(); 
+                }, 1500);
+            } else if(pass) { alert("Acceso denegado"); }
         }
-    }
-    
-    // Inicialización
-    cargarPendientes();
-    setInterval(cargarPendientes, 30000);
-    
-    // Cerrar al tocar fuera
-    window.onclick = e => { if(e.target == document.getElementById('modalTarea')) document.getElementById('modalTarea').style.display="none"; }
-</script>
 
-    
+        // Utils
+        function setView(v) {
+            currentView = v;
+            document.getElementById('view-title').innerText = v === 'atencion' ? 'Atención' : 'Firmas';
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            renderList();
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        function saveBaseFilter() {
+            localStorage.setItem('filtroBase', document.getElementById('fBase').value);
+            renderList();
+        }
+
+        function generateQR(id) {
+            const container = document.getElementById("qrcode");
+            container.innerHTML = "";
+            new QRCode(container, {
+                text: `https://ghotab.github.io/control/failreporting/sign-driver.html?id=${id}`,
+                width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff"
+            });
+        }
+
+        function showStep(s) {
+            document.getElementById('step-pin').style.display = 'none';
+            document.getElementById('step-form').style.display = 'none';
+            document.getElementById('step-qr').style.display = 'none';
+            document.getElementById(`step-${s}`).style.display = 'block';
+        }
+
+        function showLoading(l) {
+            document.getElementById('m-loading').style.display = l ? 'block' : 'none';
+            if(l) {
+                document.getElementById('step-pin').style.display = 'none';
+                document.getElementById('step-form').style.display = 'none';
+                document.getElementById('step-qr').style.display = 'none';
+            }
+        }
+
+        function resetModalSteps() {
+            document.getElementById('tecnico-pin').value = "";
+            document.getElementById('m-causa').value = "";
+            document.getElementById('m-solucion').value = "";
+            document.getElementById('m-tijera').checked = false;
+            document.getElementById('btn-admin').style.display = 'none';
+            showLoading(false);
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
 </body>
 </html>
