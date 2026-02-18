@@ -108,6 +108,7 @@
             <span class="label"><i class="fa-solid fa-location-dot"></i> Base</span>
             <select id="baseFalla">
                 <option value="" disabled selected>Seleccionar...</option>
+                <option value="ACAP">Acapulco</option>
                 <option value="ATLA">Atlacomulco</option>
                 <option value="COLI">Colima</option>
                 <option value="GUZM">Ciudad Guzmán</option>
@@ -115,6 +116,7 @@
                 <option value="JILO">Jilotepec</option>
                 <option value="MORE">Morelia</option>
                 <option value="OFOC">Occidente</option>
+                <option value="JRIO">San Juan del Río</option>
                 <option value="TSAT">Saturno</option>
                 <option value="TOLU">Toluca</option>
             </select>
@@ -204,7 +206,9 @@
                 unidad: document.getElementById('eco').value,
                 conductor: document.getElementById('conductor').value,
                 falla: document.getElementById('falla').value === 'OTRO' ? 
-                       document.getElementById('otraFalla').value : document.getElementById('falla').value
+                       document.getElementById('otraFalla').value : document.getElementById('falla').value,
+                categoria: 'BOLETERA',           // NUEVO CAMPO
+                prioridad: "NORMAL" // NUEVO CAMPO
             };
 
             if(!datos.base || !datos.unidad || !datos.conductor || !datos.falla) {
