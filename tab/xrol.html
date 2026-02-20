@@ -143,28 +143,33 @@
             return;
         }
 
-        grid.innerHTML = filtrados.map(f => `
-            <div class="card">
-                <div class="card-header">
-                    <span class="bus-number">${f[2]}</span>
-                    <span class="service-tag">${f[38]}</span>
+        grid.innerHTML = filtrados.map(f => {
+            const estatusColor = f[6] === "ENROLADO" ? "#34c759" : "#ff3b30";
+        
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="bus-number">${f[2]}</span>
+                        <span class="service-tag">${f[38]}</span>
+                    </div>
+                    
+                    <div class="data-row"><span class="label">Sociedad</span><span class="val">${f[37]}</span></div>
+                    <div class="data-row"><span class="label">Estatus</span><span class="val" style="color: ${estatusColor};">${f[6]}</span></div>
+                    <div class="data-row"><span class="label">Base</span><span class="val" style="color: var(--ios-blue);">${f[9]}</span></div>
+
+                    <div class="divider"></div>
+                    
+                    <div class="data-row"><span class="label">Marca</span><span class="val">${f[33]}</span></div>
+                    <div class="data-row"><span class="label">Modelo</span><span class="val">${f[34]}</span></div>
+                    <div class="data-row"><span class="label">Año</span><span class="val">${f[25]}</span></div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="data-row"><span class="label">Serie</span><span class="val">${f[15]}</span></div>
+                    <div class="data-row"><span class="label">CECO</span><span class="val">${f[36]}</span></div>
                 </div>
-                
-                <div class="data-row"><span class="label">Sociedad</span><span class="val">${f[37]}</span></div>
-                <div class="data-row"><span class="label">Estatus</span><span class="val" style="color:#34c759">${f[6]}</span></div>
-                
-                <div class="divider"></div>
-                
-                <div class="data-row"><span class="label">Marca</span><span class="val">${f[33]}</span></div>
-                <div class="data-row"><span class="label">Modelo</span><span class="val">${f[34]}</span></div>
-                <div class="data-row"><span class="label">Año</span><span class="val">${f[25]}</span></div>
-                
-                <div class="divider"></div>
-                
-                <div class="data-row"><span class="label">Serie</span><span class="val">${f[15]}</span></div>
-                <div class="data-row"><span class="label">CECO</span><span class="val">${f[36]}</span></div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     window.onload = inicializar;
