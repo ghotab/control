@@ -57,6 +57,13 @@
             line-height: 1;
         }
 
+        .base-tag { 
+            font-size: 14px; font-weight: 700; padding: 4px 10px; 
+            background: rgba(0,122,255,0.1); color: var(--ios-blue); 
+            border-radius: 8px; text-transform: uppercase;
+        }
+
+
         .label {
             display: block;
             font-size: 10px;
@@ -106,7 +113,9 @@
 </div>
 
 <div class="container" id="resultados">
-    <div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando base de datos...</div>
+    <div class="loading"><i class="fas fa-circle-notch fa-spin fa-2x"></i> 
+        <p>Consultando servidor central...</p>
+    </div>
 </div>
 
 <script>
@@ -142,7 +151,7 @@
 
         res.innerHTML = filtrados.map(f => {
             // Lógica de color para el estatus (Opcional)
-            const estatusColor = f[6] === "ACTIVO" ? "#34c759" : "#ff3b30";
+            const estatusColor = f[6] === "ENROLADO" ? "#34c759" : "#ff3b30";
 
             return `
                 <div class="card">
@@ -152,15 +161,14 @@
                             <span class="eco">${f[2]}</span>
                         </div>
                         <div style="text-align: right;">
-                            <span class="label">EMPRESA PRINCIPAL</span>
-                            <span class="value" style="font-weight:700;">${f[1]}</span>
+                            <span class="base-tag">${f[9]}</span>
                         </div>
                     </div>
 
                     <div class="info-grid">
                         <div>
                             <span class="label">ESTATUS</span>
-                            <span class="value" style="color: ${estatusColor};">● ${f[6]}</span>
+                            <span class="value" style="color: ${estatusColor};font-weight: 600;">${f[6]}</span>
                         </div>
                         <div>
                             <span class="label">NO. DE SERIE</span>
@@ -173,10 +181,15 @@
                     </div>
 
                     <div class="divider"></div>
-
-                    <div style="margin-bottom: 12px;">
-                        <span class="label">SERVICIO</span>
-                        <span class="value" style="font-size: 15px;">${f[38]}</span>
+                    <div class="info-grid">
+                        <div>
+                            <span class="label">SERVICIO</span>
+                            <span class="value">${f[38]}</span>
+                        </div>
+                        <div>
+                            <span class="label">SOCIEDAD</span>
+                            <span class="value" style="font-weight: bold;">${f[37]}</span>
+                        </div>
                     </div>
 
                     <div class="info-grid" style="background: rgba(0,122,255,0.05); padding: 10px; border-radius: 8px;">
