@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Exportar Distribucion</title>
+    <style>
+        :root { --blue: #007aff; --bg: #f2f2f7; --cell: #ffffff; --border: #d1d1d6; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 40px; color: #1c1c1e; }
+        
+        .window { width: 500px; }
+        .title { font-size: 26px; font-weight: 700; margin-bottom: 20px; }
+        
+        .section-label { font-size: 12px; color: #6e6e73; margin: 15px 15px 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .group { background: var(--cell); border-radius: 12px; border: 0.5px solid var(--border); overflow: hidden; margin-bottom: 25px; }
+        
+        .field-tag { display: inline-block; background: #e9e9eb; padding: 4px 10px; border-radius: 6px; margin: 4px; font-size: 13px; color: #3a3a3c; }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--border); }
+        .row:last-child { border-bottom: none; }
+
+        /* Estética Switch de iOS */
+        .switch { position: relative; width: 51px; height: 31px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #e9e9ea; transition: .3s; border-radius: 34px; }
+        input:checked + .slider { background: var(--blue); }
+        .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; transition: .3s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-export { background: var(--blue); color: white; border: none; width: 100%; padding: 18px; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title">Exportar Distribucion</div>
+
+    <div class="section-label">Campos incluidos por default</div>
+    <div class="group" style="padding: 15px;">
+        <span class="field-tag">Autobús</span> <span class="field-tag">Clave Rol</span>
+        <span class="field-tag">Nombre Rol</span> <span class="field-tag">Base</span>
+        <span class="field-tag">Admin Flota</span> <span class="field-tag">Estatus</span>
+        <span class="field-tag">Empresa Principal</span> <span class="field-tag">Servicio</span>
+        <span class="field-tag">Marca</span> <span class="field-tag">Modelo</span><span class="field-tag">Serie</span>
+        <span class="field-tag">SAP</span><span class="field-tag">Centro de Costos</span>
+    </div>
+
+    <div class="section-label">Opciones de archivo</div>
+    <div class="group">
+        <div class="row">
+            <span>Incluir encabezados</span>
+            <label class="switch"><input type="checkbox" id="headers" checked><span class="slider"></span></label>
+        </div>
+        <div class="row">
+            <span>Formato CSV (Excel)</span>
+            <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <button class="btn-export" onclick="doExport()">Descargar Distribución</button>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+
+    function doExport() {
+        // El orden de campos ya está predefinido en el Backend por tu requerimiento
+        window.open(`${API_URL}?accion=exportFlota`, '_blank');
+    }
+</script>
+
+</body>
+</html>
