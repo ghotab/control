@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Visor anti contadores mutantes</title>
+<style>
+    body{
+        margin:0;
+        background:linear-gradient(135deg,#dfe7ef,#f4f6f9);
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+    }
+
+    .window{
+        width:1000px;
+        margin:40px auto;
+        background:rgba(255,255,255,.65);
+        backdrop-filter:blur(18px);
+        border-radius:14px;
+        box-shadow:0 20px 50px rgba(0,0,0,.2);
+        overflow:hidden;
+    }
+
+    .titlebar{
+        height:38px;
+        background:rgba(255,255,255,.6);
+        display:flex;
+        align-items:center;
+        padding:0 12px;
+    }
+
+    .traffic span{
+        display:inline-block;
+        width:12px;height:12px;
+        border-radius:50%;
+        margin-right:6px;
+    }
+    .red{background:#ff5f57}
+    .yellow{background:#ffbd2e}
+    .green{background:#28c840}
+
+    .title{
+        margin-left:12px;
+        font-weight:600;
+        color:#333;
+    }
+
+    .content{
+        padding:20px;
+    }
+
+    #dropzone{
+        border:2px dashed #bbb;
+        border-radius:12px;
+        padding:40px;
+        text-align:center;
+        color:#666;
+        font-size:18px;
+        transition:.2s;
+    }
+    #dropzone.hover{
+        background:#e8f0ff;
+        border-color:#4a8cff;
+    }
+
+    section{
+        margin-top:25px;
+    }
+
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+    th,td{
+        padding:8px;
+        border-bottom:1px solid #e5e5e5;
+        text-align:left;
+    }
+    
+    td{
+        vertical-align:top;
+        line-height:1.4;
+        white-space:nowrap;
+    }
+
+    .hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<div class="window">
+    <div class="titlebar">
+        <div class="traffic">
+            <span class="red"></span>
+            <span class="yellow"></span>
+            <span class="green"></span>
+        </div>
+        <div class="title">Visor CFDI - Anticontadores mutantes 👽</div>
+    </div>
+
+    <div class="content">
+
+        <div id="dropzone">
+            Arrastra aquí el XML de la factura
+        </div>
+
+        <div id="viewer" class="hidden">
+
+            <section>
+                <h2>Datos Generales</h2>
+                <div id="general"></div>
+            </section>
+
+            <section>
+                <h2>Emisor</h2>
+                <div id="emisor"></div>
+            </section>
+
+            <section>
+                <h2>Receptor</h2>
+                <div id="receptor"></div>
+            </section>
+
+            <section>
+                <h2>Conceptos</h2>
+                <table id="conceptos">
+                    <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Cant</th>
+                            <th>Precio</th>
+                            <th>Impuestos</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>Totales</h2>
+                <div id="totales"></div>
+            </section>
+
+            <section>
+                <h2>Timbre Fiscal</h2>
+                <div id="timbre"></div>
+            </section>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const dropzone = document.getElementById("dropzone");
+    const viewer = document.getElementById("viewer");
+
+    dropzone.addEventListener("dragover", e=>{
+        e.preventDefault();
+        dropzone.classList.add("hover");
+    });
+
+    dropzone.addEventListener("dragleave", ()=> dropzone.classList.remove("hover"));
+
+    dropzone.addEventListener("drop", e=>{
+        e.preventDefault();
+        dropzone.classList.remove("hover");
+
+        const file = e.dataTransfer.files[0];
+        const reader = new FileReader();
+
+        reader.onload = evt => parseXML(evt.target.result);
+        reader.readAsText(file);
+    });
+
+    function text(el,name){
+        return el?.getAttribute(name) || "";
+    }
+
+    function obtenerImpuestos(concepto){
+
+        const traslados = concepto.getElementsByTagName("cfdi:Traslado");
+        const retenciones = concepto.getElementsByTagName("cfdi:Retencion");
+
+        let resultado = [];
+
+        function nombreImpuesto(clave){
+            if(clave==="002") return "IVA";
+            if(clave==="003") return "IEPS";
+            if(clave==="001") return "ISR";
+            return clave;
+        }
+
+        function money(v){
+            if(!v) return "0.00";
+            return parseFloat(v).toLocaleString("es-MX",{minimumFractionDigits:2});
+        }
+
+        // ===== TRASLADOS =====
+        Array.from(traslados).forEach(t=>{
+
+            const impuesto = nombreImpuesto(t.getAttribute("Impuesto"));
+            const tipo = t.getAttribute("TipoFactor");
+            const tasa = t.getAttribute("TasaOCuota");
+            const importe = t.getAttribute("Importe");
+
+            if(tipo==="Exento"){
+                resultado.push(`${impuesto} Exento`);
+                return;
+            }
+
+            let porcentaje = tasa ? (parseFloat(tasa)*100).toFixed(2)+"%" : "";
+            resultado.push(`${impuesto} ${porcentaje} = $${money(importe)}`);
+        });
+
+        // ===== RETENCIONES =====
+        Array.from(retenciones).forEach(r=>{
+
+            const impuesto = nombreImpuesto(r.getAttribute("Impuesto"));
+            const tasa = r.getAttribute("TasaOCuota");
+            const importe = r.getAttribute("Importe");
+
+            let porcentaje = tasa ? (parseFloat(tasa)*100).toFixed(2)+"%" : "";
+            resultado.push(`Ret ${impuesto} ${porcentaje} = $${money(importe)}`);
+        });
+
+        if(!resultado.length) return "Sin impuestos";
+
+        return resultado.join("<br>");
+    }
+
+
+    function parseXML(xmlText){
+
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText,"text/xml");
+
+        const cfdi = xml.getElementsByTagName("cfdi:Comprobante")[0];
+        const emisor = xml.getElementsByTagName("cfdi:Emisor")[0];
+        const receptor = xml.getElementsByTagName("cfdi:Receptor")[0];
+        const conceptos = xml.getElementsByTagName("cfdi:Concepto");
+        const timbre = xml.getElementsByTagName("tfd:TimbreFiscalDigital")[0];
+
+        // GENERALES
+        document.getElementById("general").innerHTML = `
+            Serie: ${text(cfdi,"Serie")} <br>
+            Folio: ${text(cfdi,"Folio")} <br>
+            Fecha: ${text(cfdi,"Fecha")} <br>
+            Tipo: ${text(cfdi,"TipoDeComprobante")}
+        `;
+
+        // EMISOR
+        document.getElementById("emisor").innerHTML = `
+            RFC: ${text(emisor,"Rfc")} <br>
+            Nombre: ${text(emisor,"Nombre")} <br>
+            Régimen: ${text(emisor,"RegimenFiscal")}
+        `;
+
+        // RECEPTOR
+        document.getElementById("receptor").innerHTML = `
+            RFC: ${text(receptor,"Rfc")} <br>
+            Nombre: ${text(receptor,"Nombre")} <br>
+            Uso CFDI: ${text(receptor,"UsoCFDI")}
+        `;
+
+        // CONCEPTOS
+        const tbody = document.querySelector("#conceptos tbody");
+        tbody.innerHTML="";
+
+        Array.from(conceptos).forEach(c=>{
+            const impuestos = obtenerImpuestos(c);
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${text(c,"ClaveProdServ")}</td>
+                    <td>${text(c,"Descripcion")}</td>
+                    <td>${text(c,"Cantidad")}</td>
+                    <td>${text(c,"ValorUnitario")}</td>
+                    <td>${impuestos}</td>
+                    <td>${text(c,"Importe")}</td>
+                </tr>
+            `;
+        });
+
+        // TOTALES
+        document.getElementById("totales").innerHTML = `
+            Subtotal: ${text(cfdi,"SubTotal")} <br>
+            Total: ${text(cfdi,"Total")} <br>
+            Moneda: ${text(cfdi,"Moneda")}
+        `;
+
+        // TIMBRE
+        if(timbre){
+            document.getElementById("timbre").innerHTML = `
+                UUID: ${text(timbre,"UUID")} <br>
+                Fecha Timbrado: ${text(timbre,"FechaTimbrado")} <br>
+                SAT: ${text(timbre,"RfcProvCertif")}
+            `;
+        }
+
+        viewer.classList.remove("hidden");
+    }
+
+</script>
+</body>
+</html>
