@@ -38,6 +38,7 @@
         }
 
         .icon-flota { background: linear-gradient(145deg, #007aff, #00c6ff); }
+        .icon-admin { background: linear-gradient(145deg, #08aa23, #09cf80); }
         .dock-container { width: 100%; display: flex; justify-content: center; padding-bottom: 20px; }
         .dock {
             background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px);
@@ -147,8 +148,7 @@
                 <a href="distro.html" class="menu-item"><i class="fa-solid fa-tag"></i> Explorar por Autobus</a>
                 <a href="xrol.html" class="menu-item"><i class="fa-solid fa-users-cog"></i> Explorar por Roles</a>
                 <a href="xbase.html" class="menu-item"><i class="fa-solid fa-industry"></i> Explorar por Base</a>
-                <div class="menu-divider"></div>
-                <a href="export.html" class="menu-item"><i class="fa-solid fa-download"></i></i> Exportar...</a>
+                
             </div>
         </div>
 
@@ -184,6 +184,19 @@
                 <a href="https://ghotab.github.io/control/failreporting/pendientes.html" class="menu-item"><i class="fas fa-exclamation-triangle"></i> Dashboard de Reportes</a>
                 <div class="menu-divider"></div>
                 <a href="https://ghotab.github.io/control/failreporting/historial.html" class="menu-item"><i class="fas fa-clipboard-check"></i> Historial de Reportes</a>
+            </div>
+        </div>
+
+        <div class="menu-container">
+            <div class="app-link" onclick="toggleMenu(event, 'menuAdmin')">
+                <div class="app-icon icon-admin">
+                    <i class="fa-solid fa-calculator" style="color: white;"></i>
+                </div>
+                <span>Contabilidad</span>
+            </div>
+
+            <div id="menuAdmin" class="dropdown-menu">
+                <a href="https://ghotab.github.io/control/admin/visor_cfdi.html" class="menu-item"><i class="fa-solid fa-file-contract"></i> Visor CFDI</a>
             </div>
         </div>
 
