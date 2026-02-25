@@ -139,9 +139,16 @@
             </section>
 
             <section>
+                <h2>Clasificación Operativa</h2>
+                <div id="clasificacion"></div>
+            </section>
+
+            <section>
                 <h2>Totales</h2>
                 <div id="totales"></div>
             </section>
+
+
 
             <section>
                 <h2>Timbre Fiscal</h2>
@@ -230,6 +237,80 @@
         return resultado.join("<br>");
     }
 
+    function obtenerISH(xml){
+        const locales = xml.getElementsByTagName("implocal:TrasladosLocales");
+
+        let totalISH = 0;
+
+        Array.from(locales).forEach(l=>{
+            const nombre = (l.getAttribute("ImpLocTrasladado") || "").toUpperCase();
+            const importe = parseFloat(l.getAttribute("Importe") || 0);
+
+            if(nombre.includes("HOSPED") || nombre.includes("ISH")){
+                totalISH += importe;
+            }
+        });
+
+        return totalISH;
+    }
+
+    function clasificarConceptos(conceptos){
+        let consumoConIVA = 0;
+        let consumoSinIVA = 0;
+        let iepsAlimentos = 0;
+        let ish = 0;
+
+        function esIVA(n){ return n==="002"; }
+        function esIEPS(n){ return n==="003"; }
+
+        Array.from(conceptos).forEach(c=>{
+
+            const importeConcepto = parseFloat(c.getAttribute("Importe") || 0);
+            const traslados = c.getElementsByTagName("cfdi:Traslado");
+
+            let tieneIVA = false;
+            let ivaImporte = 0;
+
+            Array.from(traslados).forEach(t=>{
+
+                const impuesto = t.getAttribute("Impuesto");
+                const importe = parseFloat(t.getAttribute("Importe") || 0);
+
+                if(esIVA(impuesto)){
+
+                    const tipo = t.getAttribute("TipoFactor");
+                    const tasa = parseFloat(t.getAttribute("TasaOCuota") || 0);
+
+                    // Solo IVA real gravado
+                    if(tipo === "Tasa" && tasa > 0){
+                        tieneIVA = true;
+                        ivaImporte += importe;
+                    }
+                }
+                else if(esIEPS(impuesto)){
+                    iepsAlimentos += importe;
+                }
+                else{
+                    ish += importe;
+                }
+            });
+
+            if(tieneIVA){
+                consumoConIVA += importeConcepto + ivaImporte;
+            }else{
+                consumoSinIVA += importeConcepto;
+            }
+
+        });
+
+        return {
+            consumoConIVA,
+            consumoSinIVA,
+            iepsAlimentos,
+            ish
+        };
+    }
+
 
     function parseXML(xmlText){
 
@@ -283,6 +364,24 @@
             `;
         });
 
+        // CLASIFICACION DE NEGOCIO DE LOS CONCEPTOS
+        const resumen = clasificarConceptos(conceptos);
+
+        const ishLocal = obtenerISH(xml);
+        resumen.ish += ishLocal;
+
+
+        function money(v){
+            return v.toLocaleString("es-MX",{minimumFractionDigits:2});
+        }
+
+        document.getElementById("clasificacion").innerHTML = `
+            Consumo Con IVA: $${money(resumen.consumoConIVA)} <br>
+            Consumo Sin IVA: $${money(resumen.consumoSinIVA)} <br>
+            IEPS Alimentos: $${money(resumen.iepsAlimentos)} <br>
+            ISH: $${money(resumen.ish)}
+        `;
+
         // TOTALES
         document.getElementById("totales").innerHTML = `
             Subtotal: ${text(cfdi,"SubTotal")} <br>
@@ -300,6 +399,24 @@
         }
 
         viewer.classList.remove("hidden");
+
+        const totalCFDI = parseFloat(cfdi.getAttribute("Total") || 0);
+
+        const totalOperativo =
+            resumen.consumoConIVA +
+            resumen.consumoSinIVA +
+            resumen.iepsAlimentos +
+            resumen.ish;
+
+        const diferencia = Math.abs(totalCFDI - totalOperativo);
+
+        if(diferencia > 0.01){
+            document.getElementById("clasificacion").innerHTML +=
+                `<br><span style="color:#d00;font-weight:600">
+                Diferencia detectada vs Total CFDI: $${diferencia.toFixed(2)}
+                </span>`;
+        }
+
     }
 
 </script>
