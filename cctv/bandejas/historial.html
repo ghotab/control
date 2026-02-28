@@ -3,167 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trazabilidad CCTV</title>
+    <title>Rastreo de Eventos y Bandejas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --ios-bg: #f2f2f7;
-            --ios-card: #ffffff;
+            --finder-sidebar: #efeff0;
+            --finder-border: #d2d2d2;
             --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
             --ios-green: #34c759;
             --ios-red: #ff3b30;
-            --ios-gray: #8e8e93;
-            --ios-sep: #d1d1d6;
         }
 
-        .header {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            position: sticky; top: 0; z-index: 1000;
-            padding: 15px 20px;
-            border-bottom: 0.5px solid var(--ios-border);
-            display: flex; align-items: center; justify-content: space-between;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background-color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--ios-bg);
-            margin: 0;
-        }
-
-        /* Header Estilo Apple Settings */
-        .nav-header {
-            position: sticky; top: 0; z-index: 1000;
-            background: rgba(242, 242, 247, 0.8); backdrop-filter: blur(20px);
-            padding: 40px 16px 10px; border-bottom: 0.5px solid var(--ios-sep);
-        }
-        .nav-header h1 { font-size: 34px; font-weight: 700; margin: 0; letter-spacing: -1px; }
-
-        /* Controles de Interfaz Estilo iPhone */
-        .ios-group-title { font-size: 13px; color: var(--ios-gray); text-transform: uppercase; margin: 20px 20px 8px; }
+        /* --- LAYOUT MAC: FINDER --- */
+        .mac-container { display: flex; height: 100vh; width: 100%; }
         
-        .ios-group {
-            background: var(--ios-card); border-radius: 10px; margin: 0 16px 20px;
-            border: 0.5px solid var(--ios-sep); overflow: hidden;
+        .sidebar {
+            width: 210px; background: var(--finder-sidebar); border-right: 1px solid var(--finder-border);
+            padding: 10px; display: flex; flex-direction: column; gap: 5px;
         }
+        .traffic-lights { display: flex; gap: 8px; padding: 10px 0 20px 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
 
-        .ios-row {
-            display: flex; align-items: center; padding: 12px 16px; gap: 12px;
-            border-bottom: 0.5px solid var(--ios-sep);
+        .sidebar-item {
+            padding: 7px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; color: #444;
         }
-        .ios-row:last-child { border-bottom: none; }
+        .sidebar-item.active { background: #cecece; font-weight: 500; }
 
-        .segmented-control {
-            display: flex; background: #dbdbdf; padding: 2px; border-radius: 8px; margin: 0 16px 20px;
-        }
-        .segment {
-            flex: 1; text-align: center; padding: 6px 0; font-size: 13px; font-weight: 600;
-            border-radius: 7px; cursor: pointer; transition: 0.1s;
-        }
-        .segment.active { background: white; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
-
-        input { border: none; outline: none; font-size: 17px; width: 100%; background: transparent; }
-
-        /* Tarjetas de Ciclo de Vida */
-        .journey-card {
-            background: var(--ios-card); border-radius: 12px; margin: 0 16px 16px;
-            padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .journey-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .main-id { font-size: 20px; font-weight: 700; color: var(--ios-blue); }
-
-        /* Timeline de Estancia */
-        .staircase { margin-left: 10px; border-left: 2px solid #e5e5ea; padding-left: 20px; position: relative; }
+        .finder-content { flex: 1; display: flex; flex-direction: column; position: relative; background: #fff; }
         
-        .step { position: relative; margin-bottom: 20px; }
-        .step:last-child { margin-bottom: 0; }
-        .step::before {
-            content: ''; position: absolute; left: -26px; top: 5px;
-            width: 10px; height: 10px; border-radius: 50%; background: #c6c6c8;
-            border: 2px solid var(--ios-card);
+        /* TOOLBAR (SEARCH ARRIBA EN MAC) */
+        .toolbar {
+            height: 52px; border-bottom: 1px solid var(--finder-border);
+            display: flex; align-items: center; padding: 0 15px; background: #fff;
+            justify-content: space-between;
         }
-        .step.up::before { background: var(--ios-green); }
-        .step.down::before { background: var(--ios-red); }
 
-        .step-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ios-gray); display: block; }
-        .step-date { font-size: 15px; font-weight: 600; display: block; }
-        .step-meta { font-size: 13px; color: var(--ios-gray); }
-
-        .duration-badge {
-            margin-top: 15px; background: #f2f2f7; padding: 10px; border-radius: 8px;
-            font-size: 13px; font-weight: 600; color: #3a3a3c; text-align: center;
+        .search-box {
+            background: #f1f1f1; border: 1px solid #ccc; border-radius: 8px;
+            padding: 5px 10px; display: flex; align-items: center; gap: 8px; width: 280px;
         }
+        .search-box input { border: none; background: transparent; outline: none; font-size: 13px; width: 100%; }
+
+        /* --- RESULTADOS & TIMELINE --- */
+        .results-view { flex: 1; overflow-y: auto; padding: 25px; background: var(--ios-bg); }
+
+        .timeline-card {
+            background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08); border: 0.5px solid #d1d1d6;
+            max-width: 650px; margin-left: auto; margin-right: auto;
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+        .bus-id { font-size: 19px; font-weight: 800; color: #000; letter-spacing: -0.5px; }
+        .status-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+
+        /* Estilo Escalera (Timeline) */
+        .staircase { margin-left: 12px; border-left: 2px solid #e5e5ea; padding-left: 24px; position: relative; }
+        .node { position: relative; margin-bottom: 25px; }
+        .node:last-child { margin-bottom: 0; }
+        .node::before {
+            content: ''; position: absolute; left: -31px; top: 4px;
+            width: 12px; height: 12px; border-radius: 50%; background: #c6c6c8; border: 3px solid #fff;
+            box-shadow: 0 0 0 1px #e5e5ea;
+        }
+        .node.up::before { background: var(--ios-green); }
+        .node.down::before { background: var(--ios-red); }
+        .node.active-node::before { background: var(--ios-blue); }
+        
+        .node-label { font-size: 10px; font-weight: 700; color: #8e8e93; text-transform: uppercase; }
+        .node-val { font-size: 16px; font-weight: 600; display: block; color: #000; margin-top: 2px; }
+        .node-meta { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+
+        .duration-footer {
+            margin-top: 18px; padding-top: 12px; border-top: 0.5px solid #f2f2f7;
+            font-size: 13px; font-weight: 700; color: var(--ios-blue); display: flex; align-items: center; gap: 8px;
+        }
+
+        /* --- RESPONSIVE: IPHONE (SEARCH ABAJO) --- */
+        @media (max-width: 850px) {
+            .sidebar { display: none; }
+            .toolbar { height: 60px; justify-content: center; } /* Solo título arriba */
+            .toolbar .search-box { display: none; } /* Ocultar buscador de arriba */
+
+            /* Buscador Flotante Inferior */
+            .mobile-search-bar {
+                display: flex !important;
+                position: fixed; bottom: 30px; left: 16px; right: 16px;
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border: 0.5px solid rgba(0,0,0,0.1);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+                border-radius: 18px; padding: 12px 20px; z-index: 1000;
+                align-items: center; gap: 12px;
+            }
+            .mobile-search-bar input { border: none; background: transparent; outline: none; font-size: 17px; width: 100%; }
+            .mobile-search-bar i { color: var(--ios-blue); font-size: 20px; }
+
+            .results-view { padding: 16px; padding-bottom: 120px; }
+            .timeline-card { max-width: 100%; }
+        }
+
+        .mobile-search-bar { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> </a>
-        <span style="font-weight: 600;">Historial de Cambios</span>
-        <div style="width: 50px;"></div> </div>
+    <div class="mac-container">
+        <aside class="sidebar">
+            <div class="traffic-lights">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            </div>
+            <p style="font-size: 11px; font-weight: 700; color: #8e8e93; margin: 10px 0 5px 10px;">TRAZABILIDAD</p>
+            <div id="segBus" class="sidebar-item active" onclick="cambiarModo('bus')">
+                <i class="fa-solid fa-bus"></i> Por Autobús
+            </div>
+            <div id="segDisco" class="sidebar-item" onclick="cambiarModo('disco')">
+                <i class="fa-solid fa-hard-drive"></i> Por Bandeja
+            </div>
+            <div id="status-text" style="font-size: 10px; color: #999; margin-top: auto; text-align: center; padding: 10px;">Sincronizando...</div>
+        </aside>
 
-    <div id="status-text" style="font-size: 13px; color: var(--ios-gray); padding-top: 15px;text-align: center;">Sincronizando...</div>
-    <p class="ios-group-title">Filtrar Historial</p>
+        <div class="finder-content">
+            <header class="toolbar">
+                <div style="font-size: 14px; font-weight: 700; color: #333;">Rastreo de Eventos y Bandejas</div>
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass" style="color:#aaa"></i>
+                    <input type="text" id="userInput" placeholder="Buscar..." oninput="syncAndProcess(this.value)">
+                </div>
+                <div style="width: 20px;"></div>
+            </header>
 
-    <div class="segmented-control">
-        <div id="segBus" class="segment active" onclick="cambiarModo('bus')">AUTOBÚS</div>
-        <div id="segDisco" class="segment" onclick="cambiarModo('disco')">BANDEJA</div>
-    </div>
+            <main class="results-view" id="resultados">
+                <div style="text-align: center; margin-top: 100px; color: #8e8e93;">
+                    <i class="fa-solid fa-timeline" style="font-size: 45px; margin-bottom: 15px; opacity: 0.2;"></i>
+                    <p>Ingresa un número de Autobús para comenzar el rastreo</p>
+                </div>
+            </main>
 
-    <div class="ios-group">
-        <div class="ios-row">
-            <i class="fa-solid fa-magnifying-glass" style="color:var(--ios-gray)"></i>
-            <input type="text" id="userInput" placeholder="Número económico..." oninput="procesar()">
+            <div class="mobile-search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="userInputMobile" placeholder="Buscar unidad o bandeja..." oninput="syncAndProcess(this.value)">
+            </div>
         </div>
     </div>
 
-    <div id="resultados"></div>
-
 <script>
+    // --- LÓGICA CORE (CEREBRO PRINCIPAL) ---
     const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec"; 
     let database = [];
     let modoActual = 'bus';
 
     async function cargar() {
-        const statusText = document.getElementById('status-text');
+        const st = document.getElementById('status-text');
         try {
-            statusText.innerText = "⏳ Sincronizando registros...";
+            st.innerText = "⏳ Sincronizando...";
             const res = await fetch(`${scriptURL}?accion=leerHistorial`);
             const data = await res.json();
-            // Ordenar por tiempo absoluto para evitar errores de secuencia
             database = data.sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
-            statusText.innerText = "✅ Trazabilidad lista";
-        } catch (e) {
-            statusText.innerText = "❌ Error de conexión";
-        }
+            st.innerText = "✅ Finder Activo";
+        } catch (e) { st.innerText = "❌ Error Red"; }
+    }
+
+    // Sincroniza ambos inputs (Mac/iPhone) para que funcionen igual
+    function syncAndProcess(val) {
+        document.getElementById('userInput').value = val;
+        document.getElementById('userInputMobile').value = val;
+        procesar();
     }
 
     function cambiarModo(m) {
         modoActual = m;
         document.getElementById('segBus').classList.toggle('active', m === 'bus');
         document.getElementById('segDisco').classList.toggle('active', m === 'disco');
-        document.getElementById('userInput').value = "";
+        syncAndProcess("");
         document.getElementById('resultados').innerHTML = "";
     }
 
     function procesar() {
         const container = document.getElementById('resultados');
         const query = document.getElementById('userInput').value.trim().toUpperCase();
+        if (!query) {
+            container.innerHTML = `<div style="text-align: center; margin-top: 100px; color: #8e8e93;"><i class="fa-solid fa-timeline" style="font-size: 45px; margin-bottom: 15px; opacity: 0.2;"></i><p>Ingresa un ID para comenzar el rastreo</p></div>`;
+            return;
+        }
         container.innerHTML = "";
-        if (!query) return;
 
-        // Filtrar universo de datos según el modo seleccionado
         let subset = modoActual === 'bus' 
             ? database.filter(r => r[3] && r[3].toString() === query)
             : database.filter(r => (r[4] && r[4].toString().toUpperCase() === query) || (r[5] && r[5].toString().toUpperCase() === query));
 
-        // Identificar todas las subidas (Eventos de instalación)
         const subidas = subset.filter(r => {
-            if (modoActual === 'bus') return r[4]; // Todo lo que subió a este bus
-            return r[4] && r[4].toString().toUpperCase() === query; // Veces que esta bandeja subió a cualquier bus
+            if (modoActual === 'bus') return r[4]; 
+            return r[4] && r[4].toString().toUpperCase() === query; 
         });
 
         subidas.forEach(rSube => {
@@ -171,15 +208,11 @@
             const idBandejaSube = rSube[4];
             const idBusSube = rSube[3];
 
-            // BUSCAR BAJA: La primera baja que coincida con el ID después de la subida
             const rBaja = database.find(r => 
                 r[5] && r[5].toString().toUpperCase() === (modoActual === 'bus' ? idBandejaSube.toUpperCase() : query) &&
                 new Date(r[0]).getTime() > tSube
             );
 
-            // DETECTAR INCONSISTENCIA: ¿Hubo otra subida antes de que esta bajara?
-            // Si buscamos por bus: ¿Subió otro disco antes de que bajara el anterior?
-            // Si buscamos por disco: ¿Subió a otro bus antes de que lo bajaran del anterior?
             const proximaSubida = database.find(r => {
                 const tRef = new Date(r[0]).getTime();
                 if (modoActual === 'bus') {
@@ -189,10 +222,8 @@
                 }
             });
 
-            // Lógica de estado
-            let status = "activo"; // Por defecto está operando
+            let status = "activo";
             if (rBaja) {
-                // Si hay una baja, pero hubo otra subida antes, la baja pertenece a otro ciclo
                 if (proximaSubida && new Date(rBaja[0]).getTime() > new Date(proximaSubida[0]).getTime()) {
                     status = "inconsistente";
                 } else {
@@ -202,54 +233,55 @@
                 status = "inconsistente";
             }
 
-            const titulo = modoActual === 'bus' ? idBandejaSube : `Unidad #${idBusSube}`;
+            const titulo = modoActual === 'bus' ? idBandejaSube : `Unidad ${idBusSube}`;
             container.insertAdjacentHTML('afterbegin', renderCard(titulo, rSube, (status === "finalizado" ? rBaja : null), status));
         });
     }
 
     function renderCard(titulo, sube, baja, status) {
-        let config = {
-            color: "#34c759",
-            label: "EN OPERACIÓN",
-            desc: "Bandeja trabajando",
-            duracion: "---"
-        };
+        let config = { color: "#34c759", label: "EN OPERACIÓN", icon: "fa-circle-play" };
+        let duracionStr = "En Tránsito";
 
         if (status === "finalizado") {
-            config = { color: "#8e8e93", label: "CICLO CERRADO", desc: "Movimiento completado", duracion: "" };
+            config = { color: "#8e8e93", label: "CICLO TERMINADO", icon: "fa-circle-check" };
             const diff = Math.abs(new Date(baja[0]) - new Date(sube[0]));
-            config.duracion = `Permanencia: ${Math.floor(diff/864e5)}d ${Math.floor((diff%864e5)/36e5)}h`;
+            duracionStr = `${Math.floor(diff/864e5)}d ${Math.floor((diff%864e5)/36e5)}h en DVR`;
         } else if (status === "inconsistente") {
-            config = { color: "#ff9500", label: "SIN CIERRE", desc: "El técnico no registró la baja", duracion: "⚠️ Inconsistencia" };
+            config = { color: "#ff9500", label: "SIN CIERRE", icon: "fa-triangle-exclamation" };
+            duracionStr = "⚠️ Error de registro";
         }
 
         const f1 = new Date(sube[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
-        const f2 = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : (status === "inconsistente" ? "Omitida" : "Presente");
+        const f2 = baja ? new Date(baja[0]).toLocaleString('es-MX', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : (status === "inconsistente" ? "Desconocida" : "Operando");
 
         return `
-            <div class="journey-card" style="border-left: 5px solid ${config.color}">
-                <div class="journey-header">
-                    <span class="main-id">${titulo}</span>
-                    <span class="status-pill" style="background:${config.color}15; color:${config.color}">${config.label}</span>
+            <div class="timeline-card">
+                <div class="card-header">
+                    <span class="bus-id">${titulo}</span>
+                    <span class="status-tag" style="background:${config.color}15; color:${config.color}">
+                        <i class="fa-solid ${config.icon}"></i> ${config.label}
+                    </span>
                 </div>
                 <div class="staircase">
-                    <div class="step up">
-                        <span class="step-label">REGISTRO SUBIDA</span>
-                        <span class="step-date">${f1}</span>
-                        <span class="step-meta">${sube[2]} • ${sube[1]}</span>
+                    <div class="node up">
+                        <span class="node-label">INSTALACIÓN (SUBIDA)</span>
+                        <span class="node-val">${f1}</span>
+                        <span class="node-meta">${sube[2]} • ${sube[1]}</span>
                     </div>
-                    <div class="step ${status === 'finalizado' ? 'down' : (status === 'inconsistente' ? 'missing' : 'active-step')}">
-                        <span class="step-label">${status === 'finalizado' ? 'REGISTRO BAJADA' : 'ESTADO ACTUAL'}</span>
-                        <span class="step-date">${f2}</span>
-                        <span class="step-meta">${baja ? `${baja[2]} • ${baja[1]}` : config.desc}</span>
+                    <div class="node ${status === 'finalizado' ? 'down' : 'active-node'}">
+                        <span class="node-label">${status === 'finalizado' ? 'RETIRO (BAJADA)' : 'ESTADO ACTUAL'}</span>
+                        <span class="node-val">${f2}</span>
+                        <span class="node-meta">${baja ? (baja[2] + ' • ' + baja[1]) : 'Bandeja activa en la unidad'}</span>
                     </div>
                 </div>
-                <div class="duration-badge">${config.duracion}</div>
-            </div>`;
+                <div class="duration-footer">
+                    <i class="fa-solid fa-hourglass-half"></i> Permanencia: ${duracionStr}
+                </div>
+            </div>
+        `;
     }
 
     window.onload = cargar;
 </script>
-    
 </body>
 </html>
