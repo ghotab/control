@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Riesgos de Sobreescritura</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --table-cols: 100px 180px 1fr 120px 90px 140px;
+            --finder-sidebar: #efeff0;
+            --finder-border: #d2d2d2;
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --danger: #ff3b30;
+            --warning: #ff9500;
+            --success: #34c759;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--ios-bg); height: 100vh; overflow: hidden; display: flex; }
+
+        /* --- NAVEGACIÓN ESTILO MAC --- */
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0; /* FIX: era "shrink: 0", propiedad CSS inválida */
+            background: linear-gradient(to bottom, #f4f4f6, #ededf0);
+            border-right: 1px solid var(--finder-border);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .traffic-lights { display: flex; gap: 8px; padding: 10px 0 20px 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+
+        .sidebar-label { font-size: 11px; font-weight: 700; color: #8a8a8a; margin: 15px 10px 5px; text-transform: uppercase; }
+        .sidebar-item {
+            padding: 8px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between; color: #444; margin-bottom: 2px;
+        }
+        .sidebar-item:hover { background: #e5e5e6; }
+        .sidebar-item.active {
+            background: var(--ios-blue);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
+        }
+        .sidebar-item.active i { color: #fff !important; }
+
+        .badge {
+            background: var(--danger);
+            color: white;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            box-shadow: 0 2px 6px rgba(255,59,48,.3);
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+        .toolbar {
+            height: 52px;
+            backdrop-filter: blur(12px);
+            background: rgba(255,255,255,.85);
+            border-bottom: 1px solid var(--finder-border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .search-mac {
+            background: #f1f1f2; border: 1px solid #ccc; border-radius: 8px;
+            padding: 4px 10px; display: flex; align-items: center; gap: 8px; width: 250px;
+        }
+        .search-mac input { border: none; background: transparent; outline: none; font-size: 13px; width: 100%; }
+
+        /* PESTAÑAS */
+        .tabs { display: flex; background: #e3e3e8; padding: 2px; border-radius: 10px; margin: 10px 20px; flex-shrink: 0; }
+        .tab { flex: 1; text-align: center; padding: 6px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; }
+        .tab.active { background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* ===== CONTENEDOR TABLA — ahora envuelve header + filas ===== */
+        .table-wrapper {
+            background: #fff;
+            margin: 0 20px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--finder-border);
+            overflow: hidden;                /* FIX: clip del border-radius */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;                  /* FIX: permite que flex-child sea scrollable */
+        }
+
+        /* ===== HEADER DE TABLA (único, sin duplicados) ===== */
+        .table-header {
+            display: grid;
+            grid-template-columns: var(--table-cols);
+            align-items: center;
+            padding: 14px 24px;
+            gap: 18px;
+            background: #f9f9fb;
+            border-bottom: 1px solid var(--finder-border);
+            font-size: 11px;
+            font-weight: 700;
+            color: #8e8e93;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        /* ===== SCROLL AREA — ahora dentro del wrapper ===== */
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            display: block;
+        }
+
+        /* ===== FILAS ===== */
+        .row-item {
+            display: grid;
+            grid-template-columns: var(--table-cols);
+            align-items: center;
+            padding: 16px 24px;
+            gap: 18px;
+            border-bottom: 1px solid #f0f0f2;
+            transition: background .15s ease, transform .05s ease;
+            min-height: 58px;
+        }
+        .row-item:last-child { border-bottom: none; }
+        .row-item:hover { background: #f4f8ff; transform: translateY(-1px); }
+        .row-vacio { opacity: .55; background: #fafafa; }
+
+        /* Loader centrado — FIX: ya no necesita grid-column */
+        .loader-wrap {
+            text-align: center;
+            padding: 80px 20px;
+            color: #8e8e93;
+        }
+        .loader-wrap p { margin-top: 15px; }
+
+        /* ===== CELDAS ===== */
+        .cell-bus {
+            display: flex; flex-direction: column;
+            font-weight: 800; font-size: 15px; letter-spacing: -.3px;
+        }
+        .cell-bus span { font-size: 10px; font-weight: 700; color: var(--danger); }
+        .cell-bandeja { font-family: ui-monospace, SFMono-Regular, monospace; font-weight: 600; color: #444; font-size: 13px; }
+        .cell-base { font-size: 12px; color: var(--ios-blue); font-weight: 600; }
+        .cell-dias { font-size: 14px; font-weight: 700; }
+        .cell-dias.critico { color: var(--danger); }
+        .cell-fecha { font-size: 12px; color: #8e8e93; }
+
+        .cell-bus, .cell-bandeja, .cell-base, .cell-dias, .cell-fecha { padding-right: 8px; }
+
+        /* ===== PROGRESS ===== */
+        .progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .progress-head { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; letter-spacing: .4px; }
+        .progress-bar { height: 7px; background: #eceef3; border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width .4s ease; box-shadow: 0 0 6px rgba(0,0,0,0.08) inset; }
+
+        /* --- SELECTOR DE BASE MÓVIL --- */
+        .mobile-base-picker {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 1000;
+            background: rgba(249,249,251,0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(0,0,0,0.12);
+            padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+        }
+        .mob-picker-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #aeaeb2;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            padding: 0 16px 8px;
+        }
+        .mob-picker-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 2px 16px 4px;
+            scrollbar-width: none;
+        }
+        .mob-picker-scroll::-webkit-scrollbar { display: none; }
+        .mob-base-pill {
+            flex-shrink: 0;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #e5e5ea;
+            color: #3a3a3c;
+            cursor: pointer;
+            border: none;
+            transition: background .15s, color .15s;
+            white-space: nowrap;
+        }
+        .mob-base-pill.active {
+            background: var(--ios-blue);
+            color: #fff;
+        }
+
+        /* ===== RESPONSIVE — TARJETAS MÓVIL ===== */
+        @media (max-width: 850px) {
+            .table-header { display: none; }
+            .sidebar, .toolbar .search-mac { display: none; }
+            .mobile-base-picker { display: block; }
+
+            body { background: var(--ios-bg); }
+
+            /* Sacar el table-wrapper del modelo flex-scroll para que no corte nada */
+            .table-wrapper {
+                flex: none;
+                overflow: visible;
+                height: auto;
+                min-height: 0;
+                margin: 0;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+                background: transparent;
+            }
+
+            /* El scroll ahora lo hace el propio main-content overflow-y */
+            .main-content {
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            .scroll-area {
+                flex: none;
+                overflow: visible;
+                height: auto;
+                padding: 12px 16px 130px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                background: var(--ios-bg);
+            }
+
+            /* ── TARJETA ── */
+            .row-item {
+                display: flex !important;
+                flex-direction: column !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                gap: 0 !important;
+                border-radius: 16px !important;
+                border: none !important;
+                background: #fff !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.08) !important;
+                overflow: hidden;
+                transform: none !important;
+                transition: box-shadow .15s ease !important;
+            }
+            .row-item:hover {
+                box-shadow: 0 4px 16px rgba(0,0,0,0.11), 0 0 0 0.5px rgba(0,0,0,0.08) !important;
+            }
+            .row-vacio { opacity: .6; }
+
+            /* ── CABECERA DE TARJETA: número + pill ── */
+            .card-mob-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px 10px;
+                border-bottom: 0.5px solid #f0f0f2;
+            }
+
+            /* ── NÚMERO DE UNIDAD ── */
+            .cell-bus {
+                font-size: 22px !important;
+                font-weight: 900 !important;
+                letter-spacing: -0.8px;
+                color: #1c1c1e;
+                flex-direction: row !important;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* ── PILL DE ESTADO ── */
+            .mob-status-pill {
+                font-size: 11px;
+                font-weight: 700;
+                padding: 4px 10px;
+                border-radius: 20px;
+                letter-spacing: .4px;
+                text-transform: uppercase;
+            }
+
+            /* ── BARRA DE PROGRESO: zona destacada ── */
+            .card-mob-progress {
+                padding: 12px 16px;
+                border-bottom: 0.5px solid #f0f0f2;
+            }
+
+            /* Ocultar el progress-wrap original en móvil */
+            .row-item .progress-wrap { display: none; }
+
+            /* ── GRID DE DATOS 2 × 2 ── */
+            .card-mob-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                padding: 12px 16px 14px;
+                gap: 12px 8px;
+            }
+
+            .card-mob-cell {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .card-mob-label {
+                font-size: 10px;
+                font-weight: 700;
+                color: #aeaeb2;
+                text-transform: uppercase;
+                letter-spacing: .5px;
+            }
+
+            .card-mob-value {
+                font-size: 14px;
+                font-weight: 600;
+                color: #1c1c1e;
+            }
+
+            /* Ocultar celdas originales en móvil (las reemplaza el JS) */
+            .row-item .cell-bandeja,
+            .row-item .cell-base,
+            .row-item .cell-dias,
+            .row-item .cell-fecha { display: none; }
+        }
+
+        #status-text { margin-top: auto; font-size: 10px; color: #999; text-align: center; padding: 15px; }
+
+        /* Ocultar estructura de tarjeta móvil en desktop */
+        @media (min-width: 851px) {
+            .card-mob-header,
+            .card-mob-progress,
+            .card-mob-grid { display: none; }
+        }
+
+        /* En móvil ocultar el cell-bus del grid de desktop (ya aparece en card-mob-header) */
+        @media (max-width: 850px) {
+            .row-item > .cell-bus:first-child { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="traffic-lights">
+            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+        </div>
+        <p class="sidebar-label">Alertas</p>
+        <div class="sidebar-item active" onclick="setFiltro('todos', this)">
+            <span><i class="fa-solid fa-grid-2"></i> Flota Completa</span>
+        </div>
+        <div class="sidebar-item" onclick="setFiltro('critico', this)">
+            <span><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Riesgos Críticos</span>
+            <span class="badge" id="badgeCritico">0</span>
+        </div>
+        <div class="sidebar-item" onclick="setFiltro('vacio', this)">
+            <span><i class="fa-solid fa-hdd" style="color:#aaa"></i> Sin Disco</span>
+        </div>
+
+        <p class="sidebar-label">Bases Detectadas</p>
+        <div id="listaBasesMenu"></div>
+
+        <div id="status-text">Sincronizando...</div>
+    </aside>
+
+    <div class="main-content">
+        <header class="toolbar">
+            <div style="font-weight: 700; font-size: 15px;">Riesgos de Sobreescritura <span style="font-weight: 400; color: #8e8e93;">CCTV</span></div>
+            <div class="search-mac">
+                <i class="fa-solid fa-magnifying-glass" style="color:#aaa"></i>
+                <input type="text" id="macSearch" placeholder="Buscar unidad..." oninput="syncInputs(this.value)">
+            </div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" id="tab-todos" onclick="setFiltro('todos')">Flota Completa</div>
+            <div class="tab" id="tab-critico" onclick="setFiltro('critico')">Riesgos Críticos</div>
+            <div class="tab" id="tab-vacio" onclick="setFiltro('vacio')">Sin Disco</div>
+        </div>
+
+        <!-- FIX: table-header ahora está DENTRO de table-wrapper, junto con scroll-area -->
+        <div class="table-wrapper">
+            <div class="table-header">
+                <div>Unidad</div>
+                <div>Bandeja</div>
+                <div>Progreso / Riesgo</div>
+                <div>Base</div>
+                <div>Días</div>
+                <div>Instalación</div>
+            </div>
+            <main class="scroll-area" id="mainGrid">
+                <div class="loader-wrap">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 30px;"></i>
+                    <p>Analizando Distribución...</p>
+                </div>
+            </main>
+        </div>
+
+        <div class="mobile-base-picker">
+            <div class="mob-picker-label"><i class="fa-solid fa-location-dot"></i> &nbsp;Base</div>
+            <div class="mob-picker-scroll" id="mobBasePicker">
+                <button class="mob-base-pill active" onclick="setMobBase('todas', this)">Todas</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const URL_DISTRIBUCION = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+    const URL_HISTORIAL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec";
+
+    let rawFlota = [];
+    let rawHistorial = [];
+    let config = { filtro: 'todos', base: 'todas', query: '' };
+    const DIAS_LIMITE = 7;
+
+    async function init() {
+        try {
+            const [d, h] = await Promise.all([
+                fetch(`${URL_DISTRIBUCION}?accion=getFlota`).then(r => r.json()),
+                fetch(`${URL_HISTORIAL}?accion=leerHistorial`).then(r => r.json())
+            ]);
+            rawFlota = d;
+            rawHistorial = h;
+            crearMenuBases();
+            render();
+            document.getElementById('status-text').innerText = "✅ Datos actualizados";
+        } catch(e) {
+            document.getElementById('status-text').innerText = "❌ Error de conexión";
+            console.error("Error en init:", e);
+        }
+    }
+
+    function crearMenuBases() {
+        const bases = [...new Set(rawFlota.map(u => u[9]))].filter(b => b).sort();
+
+        // --- Sidebar desktop (sin cambios) ---
+        const menu = document.getElementById('listaBasesMenu');
+        if (menu) {
+            menu.innerHTML = "";
+            bases.forEach(b => {
+                menu.insertAdjacentHTML('beforeend', `
+                    <div class="sidebar-item" onclick="setBase('${b}', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> ${b}</span>
+                    </div>
+                `);
+            });
+        }
+
+        // --- Picker móvil ---
+        const picker = document.getElementById('mobBasePicker');
+        if (picker) {
+            // Mantener el pill "Todas" y añadir una por base
+            bases.forEach(b => {
+                const btn = document.createElement('button');
+                btn.className = 'mob-base-pill';
+                btn.textContent = b;
+                btn.onclick = () => setMobBase(b, btn);
+                picker.appendChild(btn);
+            });
+        }
+    }
+
+    function setMobBase(b, el) {
+        // Actualizar pills activos
+        document.querySelectorAll('.mob-base-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        // Reusar la lógica existente de config + render
+        config.base = b;
+        render();
+    }
+
+    function syncInputs(val) {
+        document.getElementById('macSearch').value = val;
+        config.query = val.toUpperCase();
+        render();
+    }
+
+    function setFiltro(f, el) {
+        config.filtro = f;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+f)?.classList.add('active');
+        if(el) {
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        }
+        render();
+    }
+
+    function setBase(b, el) {
+        config.base = b;
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        render();
+    }
+
+    function render() {
+        const grid = document.getElementById('mainGrid');
+        if (!grid) return;
+
+        grid.innerHTML = "";
+
+        let criticosTotal = 0;
+        const estadoActualBuses = {};
+        const listaParaOrdenar = [];
+
+        // 1. Mapeo de estados
+        rawHistorial.forEach(fila => {
+            const eco = fila[3] ? fila[3].toString().trim() : null;
+            if (!eco) return;
+            if (!estadoActualBuses[eco]) {
+                const bSube = fila[4] ? fila[4].toString().trim() : "";
+                const bBaja = fila[5] ? fila[5].toString().trim() : "";
+                if (bSube !== "") {
+                    estadoActualBuses[eco] = { registro: fila, tieneDisco: true };
+                } else if (bBaja !== "") {
+                    estadoActualBuses[eco] = { registro: fila, tieneDisco: false };
+                }
+            }
+        });
+
+        // 2. Preparar lista unificada
+        rawFlota.forEach(unidad => {
+            const busId = unidad[2] ? unidad[2].toString().trim() : null;
+            if (!busId) return;
+
+            const infoActual = estadoActualBuses[busId];
+            let dias = -1;
+            let fechaUnix = 0;
+
+            if (infoActual && infoActual.tieneDisco) {
+                const fechaInst = new Date(infoActual.registro[0]);
+                fechaUnix = fechaInst.getTime();
+                dias = Math.floor((new Date() - fechaInst) / 864e5);
+            }
+
+            listaParaOrdenar.push({
+                busId,
+                base: unidad[9] || 'N/D',
+                estatus: unidad[6] || 'S/E',
+                dias,
+                fechaUnix,
+                discoData: infoActual && infoActual.tieneDisco ? infoActual.registro : null
+            });
+        });
+
+        // 3. ORDENAR
+        listaParaOrdenar.sort((a, b) => {
+            if (a.dias === -1 && b.dias !== -1) return 1;
+            if (a.dias !== -1 && b.dias === -1) return -1;
+            return a.fechaUnix - b.fechaUnix;
+        });
+
+        // 4. RENDERIZAR FILAS
+        listaParaOrdenar.forEach(item => {
+            if (config.query && !item.busId.includes(config.query)) return;
+            if (config.base !== 'todas' && item.base !== config.base) return;
+
+            let tipo = "vacio";
+            let pct = 0;
+            if (item.dias !== -1) {
+                pct = Math.min((item.dias / DIAS_LIMITE) * 100, 100);
+                tipo = pct >= 90 ? "critico" : (pct >= 65 ? "alerta" : "seguro");
+                if (tipo === "critico") criticosTotal++;
+            }
+
+            if (config.filtro === 'critico' && tipo !== 'critico') return;
+            if (config.filtro === 'vacio' && tipo !== 'vacio') return;
+
+            const color = tipo === 'critico' ? 'var(--danger)' : (tipo === 'alerta' ? 'var(--warning)' : (tipo === 'vacio' ? '#aaa' : 'var(--success)'));
+
+            const pillBg  = tipo === 'critico' ? 'rgba(255,59,48,.12)'  : (tipo === 'alerta' ? 'rgba(255,149,0,.12)' : (tipo === 'vacio' ? 'rgba(142,142,147,.12)' : 'rgba(52,199,89,.12)'));
+            const pillTxt = tipo === 'critico' ? 'var(--danger)' : (tipo === 'alerta' ? 'var(--warning)' : (tipo === 'vacio' ? '#8e8e93' : 'var(--success)'));
+            const bandeja = item.discoData ? item.discoData[4] : '---';
+            const fecha   = item.discoData ? new Date(item.discoData[0]).toLocaleDateString('es-MX') : 'Sin dato';
+            const diasTxt = item.dias === -1 ? '-' : item.dias + ' días';
+
+            grid.insertAdjacentHTML('beforeend', `
+                <div class="row-item ${item.dias === -1 ? 'row-vacio' : ''}">
+
+                    <!-- DESKTOP: celdas planas en grid -->
+                    <div class="cell-bus">${item.busId}</div>
+                    <div class="cell-bandeja">${bandeja}</div>
+                    <div class="progress-wrap">
+                        <div class="progress-head" style="color:${color}">
+                            <span>${tipo.toUpperCase()}</span>
+                            <span>${item.dias === -1 ? '0%' : Math.round(pct) + '%'}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:${pct}%; background:${color};"></div>
+                        </div>
+                    </div>
+                    <div class="cell-base">${item.base}</div>
+                    <div class="cell-dias ${item.dias >= 6 ? 'critico' : ''}">${diasTxt}</div>
+                    <div class="cell-fecha">${fecha}</div>
+
+                    <!-- MÓVIL: estructura de tarjeta iOS -->
+                    <div class="card-mob-header">
+                        <div class="cell-bus">${item.busId}</div>
+                        <span class="mob-status-pill" style="background:${pillBg}; color:${pillTxt}">${tipo.toUpperCase()}</span>
+                    </div>
+
+                    <div class="card-mob-progress">
+                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:${color}; margin-bottom:6px;">
+                            <span>Riesgo de sobreescritura</span>
+                            <span>${item.dias === -1 ? '0%' : Math.round(pct) + '%'}</span>
+                        </div>
+                        <div class="progress-bar" style="height:8px;">
+                            <div class="progress-fill" style="width:${pct}%; background:${color};"></div>
+                        </div>
+                    </div>
+
+                    <div class="card-mob-grid">
+                        <div class="card-mob-cell">
+                            <span class="card-mob-label">Bandeja</span>
+                            <span class="card-mob-value" style="font-family: ui-monospace, monospace; font-size:13px;">${bandeja}</span>
+                        </div>
+                        <div class="card-mob-cell">
+                            <span class="card-mob-label">Base</span>
+                            <span class="card-mob-value" style="color:var(--ios-blue)">${item.base}</span>
+                        </div>
+                        <div class="card-mob-cell">
+                            <span class="card-mob-label">Días A BORDO</span>
+                            <span class="card-mob-value" style="color:${item.dias >= 6 ? 'var(--danger)' : '#1c1c1e'}">${diasTxt}</span>
+                        </div>
+                        <div class="card-mob-cell">
+                            <span class="card-mob-label">SE SUBIÓ EL</span>
+                            <span class="card-mob-value" style="color:#8e8e93; font-size:13px;">${fecha}</span>
+                        </div>
+                    </div>
+
+                </div>
+            `);
+        });
+
+        document.getElementById('badgeCritico').innerText = criticosTotal;
+    }
+
+    // Iniciar carga
+    init();
+</script>
+</body>
+</html>
