@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>S.I.M. - Control de Recepción</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        /* Eliminamos el posicionamiento absoluto que ocultaba el input */
+        #desktop-scanner-input {
+            transition: all 0.3s ease;
+        }
+        
+        #reader__video {
+            object-fit: cover !important;
+            border-radius: 1rem;
+        }
+        
+        #reader__dashboard, #reader__camera_selection {
+            display: none !important;
+        }
+
+        /* Scrollbar estética para la lista */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-xl text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-950">Registro de SIMs <span class="text-blue-600">Recibidas</span></h1>
+            </div>
+            <div class="flex items-center gap-2 text-sm font-medium">
+                <span id="platform-icon"></span>
+                <span id="env-badge" class="px-3 py-1 rounded-full"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white p-7 rounded-3xl shadow-sm border border-slate-100 sticky top-24">
+                <h2 class="text-lg font-semibold mb-5 text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Datos de la Remesa
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1.5">Operadora</label>
+                        <select id="operadora" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none">
+                            <option>Yumovil</option>
+                            <option>Telcel</option>
+                            <option>AT&T</option>
+                            <option>Movistar</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1.5">Procedencia</label>
+                        <select id="procedencia" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none">
+                            <option value="Proveedor">Proveedor</option>
+                            <option value="ACAP">ACAP</option>
+                            <option value="ATLA">ATLA</option>
+                            <option value="COLI">COLI</option>
+                            <option value="GDLJ">GDLJ</option>
+                            <option value="GUZM">GUZM</option>
+                            <option value="JILO">JILO</option>
+                            <option value="JRIO">JRIO</option>
+                            <option value="MORE">MORE</option>
+                            <option value="OFOC">OFOC</option>
+                            <option value="TOLU">TOLU</option>
+                            <option value="TSAT">TSAT</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1.5">Clave Colaborador</label>
+                        <input type="text" id="colaborador" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50" placeholder="Ej: 1004386">
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-slate-600 mb-1.5">Observaciones</label>
+                        <textarea id="observaciones" rows="2" 
+                            class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none resize-none transition" 
+                            placeholder="Ej: Paquete dañado, entrega parcial..."></textarea>
+                    </div>                    
+
+                    <div class="pt-4 border-t border-slate-100 mt-6">
+                        <div class="flex justify-between items-baseline mb-2">
+                            <span class="text-sm text-slate-600">Total en lista</span>
+                            <span id="count" class="text-5xl font-extrabold text-blue-600">0</span>
+                        </div>
+                        <button onclick="enviarDatos()" id="btnEnviar" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg disabled:bg-slate-300">
+                            GUARDAR RECEPCIÓN DE SIMS
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div id="iphone-view" class="hidden space-y-4">
+                <div class="bg-black p-2 rounded-3xl shadow-inner relative aspect-[4/3] md:aspect-video overflow-hidden border-4 border-slate-950">
+                    <div id="reader" class="w-full h-full"></div>
+                    <div id="scan-overlay" class="absolute inset-0 border-4 border-dashed border-white/30 rounded-2xl pointer-events-none flex items-center justify-center m-12">
+                        <div class="w-full h-0.5 bg-red-500 animate-pulse"></div>
+                    </div>
+                </div>
+                <button onclick="reiniciarCamara()" class="w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600">Reiniciar Cámara</button>
+            </div>
+
+            <div id="desktop-view" class="hidden">
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="bg-blue-100 text-blue-600 p-3 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h2M4 8h16M4 16h16M4 12a4 4 0 1012 0 4 4 0 00-12 0z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-950">Captura de SIMs</h3>
+                            <p class="text-sm text-slate-500">Lector láser activo o entrada manual.</p>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <input type="text" id="desktop-scanner-input" 
+                            class="w-full p-5 bg-slate-50 border-2 border-blue-100 rounded-2xl text-2xl font-mono tracking-wider text-blue-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-300 shadow-inner"
+                            placeholder="ICCID..."
+                            autocomplete="off">
+                        
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 hidden md:block">
+                            <kbd class="px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-400">ENTER</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-7 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-lg font-semibold text-slate-800 uppercase tracking-wider text-sm">Lista de Captura</h3>
+                    <button onclick="limpiarLista()" class="text-sm text-red-500 font-medium hover:bg-red-50 rounded-lg px-3 py-1 transition">Limpiar Todo</button>
+                </div>
+                <div id="scannedList" class="max-h-[400px] overflow-y-auto space-y-2 pr-2 scrollbar-thin">
+                    <div id="list-placeholder" class="text-center py-20 text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                        Aún no hay SIMs en la lista.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx2W9sDTwLxuKo3cIRvFIzgwXUXr-PSAHCaCG2p4M4eQshWeOp3UNSHtfK-_2NDfP7xLw/exec';
+        
+        let scannedIccids = [];
+        let html5QrCode;
+        let isMobile = false;
+
+        const desktopInput = document.getElementById('desktop-scanner-input');
+        const scanOverlay = document.getElementById('scan-overlay');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            detectEnvironment();
+            initApp();
+        });
+
+        function detectEnvironment() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            isMobile = /iPhone|iPod|iPad|Android/i.test(userAgent);
+
+            const badge = document.getElementById('env-badge');
+            const icon = document.getElementById('platform-icon');
+
+            if (isMobile) {
+                badge.innerText = 'MÓVIL';
+                badge.className = 'px-3 py-1 rounded-full bg-indigo-100 text-indigo-700';
+                icon.innerHTML = `<svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05 1.79-3.72 1.79-1.61 0-2.12-.96-3.7-.96-1.61 0-2.19.98-3.71.98-1.53 0-2.61-.83-3.73-1.81-2.2-2.16-2.94-5.5-2.94-7.85 0-3.35 2.1-5.11 4.1-5.11 1.01 0 1.88.58 2.61.58.71 0 1.63-.61 2.89-.61 1.15 0 2.22.42 2.97 1.15-1.99 1.29-1.68 4.29.6 5.17-1.16 2.02-2.31 3.93-3.28 4.67m-2.19-14.71c.72-.88 1.19-2.03 1.19-3.22 0-.21-.02-.4-.05-.53-1.12.03-2.37.76-3.08 1.62-.64.73-1.1 1.95-1.1 3.13 0 .23.04.44.07.51.12.01.25.02.37.02 1 0 2-.59 2.6-.53z"/></svg>`;
+            } else {
+                badge.innerText = 'ESCRITORIO';
+                badge.className = 'px-3 py-1 rounded-full bg-green-100 text-green-700';
+                icon.innerHTML = `<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>`;
+            }
+        }
+
+        function initApp() {
+            if (isMobile) {
+                document.getElementById('iphone-view').classList.remove('hidden');
+                startIphoneScanner();
+            } else {
+                document.getElementById('desktop-view').classList.remove('hidden');
+                initDesktopScanner();
+            }
+        }
+
+        function initDesktopScanner() {
+            // Aseguramos que el foco regrese al input principal automáticamente
+            enfocarInput();
+
+            document.addEventListener('click', (e) => {
+                const manualFields = ['colaborador', 'procedencia', 'operadora','observaciones'];
+                if (!isMobile && !manualFields.includes(e.target.id)) {
+                    enfocarInput();
+                }
+            });
+
+            desktopInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const val = desktopInput.value.trim();
+                    if (val.length > 5) {
+                        procesarCaptura(val);
+                        desktopInput.value = '';
+                        // Feedback visual de éxito
+                        desktopInput.classList.add('bg-green-50', 'border-green-400');
+                        setTimeout(() => desktopInput.classList.remove('bg-green-50', 'border-green-400'), 200);
+                    }
+                }
+            });
+        }
+
+        function enfocarInput() {
+            if(!isMobile) desktopInput.focus();
+        }
+
+        function startIphoneScanner() {
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 20, qrbox: { width: 280, height: 150 } };
+
+            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                procesarCaptura(decodedText);
+                scanOverlay.classList.add('border-green-500', 'bg-green-500/10');
+                setTimeout(() => scanOverlay.classList.remove('border-green-500', 'bg-green-500/10'), 400);
+            }).catch(err => alert("Error de cámara: " + err));
+        }
+
+        function reiniciarCamara() {
+            if(html5QrCode) html5QrCode.stop().then(() => startIphoneScanner());
+        }
+
+        function procesarCaptura(iccid) {
+            if(scannedIccids.includes(iccid)) {
+                if(!isMobile) alert('SIM duplicada en lista');
+                return;
+            }
+            scannedIccids.unshift(iccid);
+            updateUI();
+        }
+
+        function updateUI() {
+            const list = document.getElementById('scannedList');
+            const countDisplay = document.getElementById('count');
+            
+            // 1. Actualizar el contador siempre
+            countDisplay.innerText = scannedIccids.length;
+
+            // 2. Si la lista está vacía, mostrar el placeholder y salir
+            if (scannedIccids.length === 0) {
+                list.innerHTML = `
+                    <div id="list-placeholder" class="text-center py-20 text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                        Aún no hay SIMs en la lista.
+                    </div>
+                `;
+                return;
+            }
+
+            // 3. Si hay datos, construir el HTML completo de la lista
+            // Usamos un mapeo limpio y join para inyectar todo el bloque de una vez
+            const listHtml = scannedIccids.map((id, index) => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-100 border-l-4 border-l-blue-500 flex justify-between items-center shadow-sm mb-2">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-400 font-sans">${scannedIccids.length - index}.</span>
+                        <span class="font-mono font-bold text-slate-700 tracking-tight">${id}</span>
+                    </div>
+                    <button onclick="eliminarSim(${index})" class="text-slate-300 hover:text-red-500 transition p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            // 4. Inyectar el HTML al contenedor
+            list.innerHTML = listHtml;
+        }
+
+        function eliminarSim(index) {
+            scannedIccids.splice(index, 1);
+            updateUI();
+        }
+
+        function limpiarLista() {
+            if(confirm('¿Vaciar la lista?')) {
+                scannedIccids = [];
+                updateUI();
+            }
+        }
+
+        async function enviarDatos() {
+            const colaborador = document.getElementById('colaborador').value;
+            const procedencia = document.getElementById('procedencia').value;
+            const operadora = document.getElementById('operadora').value;
+            const obsManual = document.getElementById('observaciones').value; // <--- Capturamos el texto
+
+            if(scannedIccids.length === 0) return alert('Escanea al menos una SIM');
+            if(!colaborador) return alert('Falta Clave Colaborador');
+
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            // Preparamos el paquete de datos para enviar a BD
+            const payload = scannedIccids.map(id => ({
+                iccid: id,
+                operadora: operadora,
+                estatus: 'Recibida',
+                procedencia: procedencia,
+                claveColaborador: colaborador,
+                fechaRecepcion: new Date().toISOString().split('T')[0],
+                observaciones: obsManual || 'Registro Masivo Web' // Usa lo manual o un default
+            }));
+
+            try {
+                
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                });
+
+                alert(`Se registraron éxitosamente ${scannedIccids.length} SIMs.`);
+                
+                // --- LIMPIEZA POST-ENVÍO ---
+                scannedIccids = [];
+                updateUI();
+                document.getElementById('colaborador').value = '';
+                document.getElementById('observaciones').value = ''; // <--- Limpiamos el campo
+                
+            } catch (e) {
+                console.error(e);
+                alert('Error al conectar con el servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "GUARDAR EN SHEETS";
+                enfocarInput();
+            }
+        }
+    </script>
+</body>
+</html>
