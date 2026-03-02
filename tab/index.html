@@ -39,6 +39,7 @@
 
         .icon-flota { background: linear-gradient(145deg, #007aff, #00c6ff); }
         .icon-admin { background: linear-gradient(145deg, #08aa23, #09cf80); }
+        .icon-sim { background: linear-gradient(145deg, #f42a5f, #ad1a55); }
         .dock-container { width: 100%; display: flex; justify-content: center; padding-bottom: 20px; }
         .dock {
             background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px);
@@ -189,6 +190,23 @@
                 <a href="https://ghotab.github.io/control/failreporting/historial.html" class="menu-item"><i class="fas fa-clipboard-check"></i> Historial de Reportes</a>
             </div>
         </div>
+
+        <div class="menu-container">
+            <div class="app-link" onclick="toggleMenu(event, 'menuSIMS')">
+                <div class="app-icon icon-sim">
+                    <i class="fas fa-sim-card" style="color: white;"></i>
+                </div>
+                <span>Control de SIMs</span>
+            </div>
+            <div id="menuSIMS" class="dropdown-menu">
+                <a href="https://ghotab.github.io/control/sims/recordsim.html" class="menu-item"><i class="fa-solid fa-marker"></i> Recepción de SIMs</a>
+                <a href="https://ghotab.github.io/control/sims/simsassign.html" class="menu-item"><i class="fa-solid fa-hand-pointer"></i> Asignación de SIMs</a>
+                <div class="menu-divider"></div>
+                <a href="https://ghotab.github.io/control/sims/install.html" class="menu-item"><i class="fas fa-window-restore"></i> Instalación de SIM</a>
+            </div>
+        </div>
+
+        
 
         <div class="menu-container">
             <div class="app-link" onclick="toggleMenu(event, 'menuAdmin')">
