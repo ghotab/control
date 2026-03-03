@@ -257,47 +257,76 @@
         }
 
         async function procesarAsignacion() {
-            // Validaciones básicas
-            const eco = document.getElementById('busquedaUnidad').value;
+            // 1. Obtención de valores y limpieza de espacios
+            const eco = document.getElementById('busquedaUnidad').value.trim();
             const iccid = document.getElementById('selectIccid').value;
-            const colab = document.getElementById('colaborador').value;
+            const colab = document.getElementById('colaborador').value.trim();
+            const equipoBase = document.getElementById('equipoDestino').value;
+            const equipoOtro = document.getElementById('equipoOtro').value.trim();
+            const sociedad = document.getElementById('displayBase').innerText;
 
-            if(!eco || !iccid || !colab) return alert('Por favor, completa los campos obligatorios.');
+            // 2. VALIDACIÓN DE CAMPOS OBLIGATORIOS
+            if (!eco || eco === "") return alert('⚠️ El No. Económico es obligatorio.');
+            if (sociedad === "---" || sociedad === "NO ENCONTRADO") return alert('⚠️ Debes seleccionar una unidad válida de la distribución.');
+            if (!iccid) return alert('⚠️ Debes seleccionar un ICCID disponible.');
+            
+            // Validación específica para el campo "Otro"
+            let equipoFinal = equipoBase;
+            if (equipoBase === 'Otro') {
+                if (!equipoOtro) return alert('⚠️ Por favor, especifica el equipo destino.');
+                equipoFinal = equipoOtro;
+            }
 
+            // 3. VALIDACIÓN DE COLABORADOR (7 a 10 dígitos)
+            // Usamos una expresión regular para asegurar que solo sean números
+            const esNumero = /^\d+$/.test(colab);
+            if (!esNumero || colab.length < 7 || colab.length > 10) {
+                return alert('⚠️ La clave de colaborador debe ser numérica y tener entre 7 y 10 dígitos.');
+            }
+
+            // --- Bloqueo de botón para evitar duplicados ---
             const btn = document.getElementById('btnAsignar');
             btn.disabled = true;
             btn.innerText = "REGISTRANDO...";
 
-            // Payload para tu Google Sheets (Acción: Asignar)
+            // 4. Preparación del Payload
             const data = {
                 accion: 'asignarSim',
                 unidad: eco,
                 iccid: iccid,
                 operadora: document.getElementById('displayOperadora').innerText,
-                sociedad: document.getElementById('displayBase').innerText,
+                sociedad: sociedad,
                 ceco: document.getElementById('displayCeCo').innerText,
-                equipo: document.getElementById('equipoDestino').value === 'Otro' ? document.getElementById('equipoOtro').value : document.getElementById('equipoDestino').value,
+                equipo: equipoFinal,
                 colaborador: colab,
                 observaciones: document.getElementById('observaciones').value,
                 fecha: new Date().toISOString()
             };
 
-            await fetch(URL_SIMS_DISPONIBLES, {
-                method: 'POST',
-                mode: 'no-cors', // Importante para Google Apps Script
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data) // 'data' ya lleva la propiedad 'accion'
-            });
+            try {
+                console.log('Enviando datos:', data);
+                
+                await fetch(URL_SIMS_DISPONIBLES, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
+                // Simulación de espera para confirmación visual
+                setTimeout(() => {
+                    alert('✅ ¡Éxito! La asignación se guardó y el estatus cambió a "Asignada".');
+                    location.reload(); 
+                }, 1000);
 
-            // Aquí enviarías el POST a tu Apps Script
-            console.log('Enviando:', data);
-            
-            setTimeout(() => {
-                alert('✅ Asignación completada con éxito.');
-                location.reload(); // Recargar para limpiar y refrescar inventario
-            }, 1500);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Hubo un error al conectar con el servidor.');
+                btn.disabled = false;
+                btn.innerText = "CONFIRMAR ASIGNACIÓN";
+            }
         }
+
     </script>
 </body>
 </html>
