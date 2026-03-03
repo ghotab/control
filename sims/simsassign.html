@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>S.I.M. - Asignación a Unidades</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .apple-blur { backdrop-filter: blur(15px); background-color: rgba(255, 255, 255, 0.8); }
+        .ios-input { -webkit-appearance: none; border-radius: 12px; }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { to { background-position: -200% 0; } }
+        /* Estilo MacOs para escritorio */
+        @media (min-width: 1024px) {
+            .mac-card { border-radius: 18px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); }
+        }
+        input:invalid, select:invalid {
+            border-color: #fecaca; /* Rojo suave de Tailwind (red-200) */
+        }
+        input:valid, select:valid {
+            border-color: #e2e8f0; /* Color normal (slate-200) */
+        }
+    </style>
+</head>
+<body class="bg-[#F2F2F7] text-slate-900 min-h-screen">
+
+    <nav class="apple-blur border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-xl text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight">Asignación de <span class="text-indigo-600">SIMs</span></h1>
+            </div>
+            <div id="status-badge" class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 text-slate-500">CONECTANDO...</div>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
+        
+        <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> 1. Identificación de Unidad
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 ml-1">Eco de Unidad</label>
+                    <input type="text" id="busquedaUnidad" list="listaUnidades" 
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-lg"
+                        placeholder="Escribe el No. Económico..."
+                        onchange="validarUnidad()">
+                    <datalist id="listaUnidades"></datalist>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-2">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">Base / Sociedad</span>
+                        <span id="displayBase" class="text-sm font-semibold text-slate-700">---</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">Centro de Costos</span>
+                        <span id="displayCeCo" class="text-sm font-semibold text-slate-700">---</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> 2. Selección de Material
+            </h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 ml-1">ICCID Disponible</label>
+                    <select id="selectIccid" onchange="actualizarOperadora()"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-100 outline-none font-mono text-sm">
+                        <option value="">Cargando SIMs disponibles...</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center gap-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <div class="bg-white p-2 rounded-lg shadow-sm">
+                        <img id="logoOperadora" src="https://via.placeholder.com/40?text=SIM" class="w-8 h-8 object-contain opacity-20">
+                    </div>
+                    <div>
+                        <span class="block text-[10px] text-emerald-600 uppercase font-bold">Operadora Detectada</span>
+                        <span id="displayOperadora" class="text-lg font-bold text-emerald-900">---</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 bg-orange-500 rounded-full"></span> 3. Detalles de Instalación
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 ml-1">Equipo Destino</label>
+                    <select id="equipoDestino" onchange="toggleOtroEquipo()"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-orange-100 outline-none">
+                        <option value="Modem">Modem</option>
+                        <option value="DVR">DVR</option>
+                        <option value="Otro">Otro...</option>
+                    </select>
+                </div>
+                <div id="wrapperOtro" class="hidden">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 ml-1">Especifique Equipo</label>
+                    <input type="text" id="equipoOtro" class="w-full p-4 bg-orange-50 border border-orange-200 rounded-2xl outline-none" placeholder="¿Qué equipo es?">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 ml-1">Clave Colaborador</label>
+                    <input type="number" id="colaborador" 
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none" 
+                        placeholder="Ej. 1004386"
+                        min="1000000" 
+                        max="9999999999"
+                        oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);"
+                        required>
+                    </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 ml-1">Observaciones</label>
+                    <textarea id="observaciones" rows="1" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none resize-none" placeholder="Opcional..."></textarea>
+                </div>
+            </div>
+
+            <button onclick="procesarAsignacion()" id="btnAsignar" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-200">
+                CONFIRMAR ASIGNACIÓN
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // URLs de los Microservicios
+        const URL_FLOTA = 'https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec?accion=getFlota';
+        const URL_SIMS_DISPONIBLES = 'https://script.google.com/macros/s/AKfycbx2W9sDTwLxuKo3cIRvFIzgwXUXr-PSAHCaCG2p4M4eQshWeOp3UNSHtfK-_2NDfP7xLw/exec';
+        
+        let databaseFlota = [];
+        let databaseSims = [];
+
+        window.onload = async () => {
+            await cargarFlota();
+            await cargarSimsDisponibles();
+        };
+
+        async function cargarFlota() {
+            try {
+                const response = await fetch(URL_FLOTA);
+                databaseFlota = await response.json();
+                
+                const list = document.getElementById('listaUnidades');
+                // Asumiendo que el Económico es la columna 2 (indice 1) según el mapeo de tu script
+                databaseFlota.forEach(row => {
+                    let option = document.createElement('option');
+                    option.value = row[2]; // Ajustar según posición real del No. Económico
+                    list.appendChild(option);
+                });
+                updateStatus('FLOTA LISTA', 'bg-green-100 text-green-700');
+            } catch (e) {
+                updateStatus('ERROR FLOTA', 'bg-red-100 text-red-700');
+            }
+        }
+
+        async function cargarSimsDisponibles() {
+            try {
+                const response = await fetch(`${URL_SIMS_DISPONIBLES}?accion=getDisponibles&t=${Date.now()}`);
+                const datos = await response.json();
+                
+                // LIMPIEZA CRÍTICA: Forzamos a que todo sea String desde el inicio
+                databaseSims = datos.map(s => ({
+                    iccid: String(s.iccid).trim(),
+                    operadora: String(s.operadora).trim()
+                }));
+
+                const select = document.getElementById('selectIccid');
+                select.innerHTML = '<option value="">-- Seleccione ICCID --</option>';
+                
+                databaseSims.forEach(sim => {
+                    let opt = document.createElement('option');
+                    opt.value = sim.iccid; // Ahora es un String limpio
+                    opt.text = sim.iccid;
+                    select.appendChild(opt);
+                });
+
+            } catch (e) {
+                console.error("Error al cargar:", e);
+            }
+        }
+
+        function validarUnidad() {
+            const valor = document.getElementById('busquedaUnidad').value;
+            // Buscamos la fila en la data de flota
+            const unidad = databaseFlota.find(row => row[2].toString() === valor);
+
+            if (unidad) {
+                // Según tu código GS, ajustamos los índices:
+                // indices = [2, 4, 3, 9, 11, 6, 1, 12...]
+                document.getElementById('displayBase').innerText = `${unidad[9]} / ${unidad[37]}`;
+                document.getElementById('displayCeCo').innerText = unidad[36] || 'N/A';
+            } else {
+                document.getElementById('displayBase').innerText = 'NO ENCONTRADO';
+                document.getElementById('displayCeCo').innerText = '---';
+            }
+        }
+
+        function actualizarOperadora() {
+            const select = document.getElementById('selectIccid');
+            const valorSeleccionado = select.value.toString().trim();
+            
+            // Buscamos la coincidencia
+            const simEncontrada = databaseSims.find(s => s.iccid === valorSeleccionado);
+
+            const displayOp = document.getElementById('displayOperadora');
+            const logo = document.getElementById('logoOperadora');
+
+            if (simEncontrada) {
+                const nombreOp = simEncontrada.operadora;
+                displayOp.innerText = nombreOp;
+                logo.style.opacity = "1";
+
+                const opUpper = nombreOp.toUpperCase();
+                if (opUpper.includes('TELCEL')) {
+                    logo.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Telcel_logo.svg/2560px-Telcel_logo.svg.png';
+                } else if (opUpper.includes('AT&T') || opUpper.includes('ATT')) {
+                    logo.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/AT%26T_logo_2016.svg/1200px-AT%26T_logo_2016.svg.png';
+                } else if (opUpper.includes('YUMOVIL')) {
+                    logo.src = 'https://yumovil.com.mx/assets/logo2-Docf8OGU.png';
+                } else {
+                    logo.src = 'https://cdn-icons-png.flaticon.com/512/933/933261.png';
+                }
+            } else {
+                displayOp.innerText = "No encontrada";
+                logo.style.opacity = "0.1";
+            }
+        }
+
+        function toggleOtroEquipo() {
+            const val = document.getElementById('equipoDestino').value;
+            document.getElementById('wrapperOtro').classList.toggle('hidden', val !== 'Otro');
+        }
+
+        function updateStatus(text, classes) {
+            const b = document.getElementById('status-badge');
+            b.innerText = text;
+            b.className = `text-[10px] font-bold px-2 py-1 rounded-full ${classes}`;
+        }
+
+        async function procesarAsignacion() {
+            // Validaciones básicas
+            const eco = document.getElementById('busquedaUnidad').value;
+            const iccid = document.getElementById('selectIccid').value;
+            const colab = document.getElementById('colaborador').value;
+
+            if(!eco || !iccid || !colab) return alert('Por favor, completa los campos obligatorios.');
+
+            const btn = document.getElementById('btnAsignar');
+            btn.disabled = true;
+            btn.innerText = "REGISTRANDO...";
+
+            // Payload para tu Google Sheets (Acción: Asignar)
+            const data = {
+                accion: 'asignarSim',
+                unidad: eco,
+                iccid: iccid,
+                operadora: document.getElementById('displayOperadora').innerText,
+                sociedad: document.getElementById('displayBase').innerText,
+                ceco: document.getElementById('displayCeCo').innerText,
+                equipo: document.getElementById('equipoDestino').value === 'Otro' ? document.getElementById('equipoOtro').value : document.getElementById('equipoDestino').value,
+                colaborador: colab,
+                observaciones: document.getElementById('observaciones').value,
+                fecha: new Date().toISOString()
+            };
+
+            await fetch(URL_SIMS_DISPONIBLES, {
+                method: 'POST',
+                mode: 'no-cors', // Importante para Google Apps Script
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data) // 'data' ya lleva la propiedad 'accion'
+            });
+
+
+            // Aquí enviarías el POST a tu Apps Script
+            console.log('Enviando:', data);
+            
+            setTimeout(() => {
+                alert('✅ Asignación completada con éxito.');
+                location.reload(); // Recargar para limpiar y refrescar inventario
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
