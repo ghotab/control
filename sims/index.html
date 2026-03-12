@@ -2,175 +2,180 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logística TAB / SIMS </title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de SIMs</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         :root {
-            --primary: #007aff; /* Azul Apple */
-            --bg: #ffffff;      /* Blanco Puro */
-            --text-main: #1d1d1f;
-            --text-sub: #86868b;
-            --border: #f2f2f7;
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-text: #000000;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+            --ios-arrow: #c4c4c6;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--ios-bg);
             margin: 0;
-            padding: 40px 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            color: var(--ios-text);
             -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            width: 100%;
-            max-width: 400px;
+        /* Título Grande Estilo iOS */
+        .header-ios {
+            padding: 40px 20px 10px 20px;
         }
 
-        /* Encabezado Principal */
-        .header {
-            margin-bottom: 50px;
-            text-align: left;
-        }
-
-        .header h1 {
-            font-size: 42px;
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: -2px;
-            line-height: 1.1;
-        }
-
-        .header p {
-            color: var(--text-sub);
-            margin-top: 12px;
-            font-size: 19px;
-            font-weight: 500;
-        }
-
-        /* Contenedor de Opciones */
-        .menu-options {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        /* Tarjetas de Opción */
-        .menu-card {
-            background: white;
-            border-radius: 30px;
-            padding: 25px;
-            text-decoration: none;
-            color: inherit;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .menu-card:active {
-            transform: scale(0.96);
-            background: #f5f5f7;
-        }
-
-        /* Iconos circulares */
-        .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-right: 20px;
-        }
-
-        .blue { background: #e1f0ff; color: #007aff; }
-        .masiveblue { background: #007aff; color: #e1f0ff; }
-        .green { background: #e2f9eb; color: #34c759; }
-        .orange { background: #ff9500; color: white; }/* Naranja estilo iOS */
-
-        /* Texto de la tarjeta */
-        .info h2 {
-            font-size: 20px;
-            font-weight: 800;
+        .header-ios h1 {
+            font-size: 34px;
+            font-weight: 700;
             margin: 0;
             letter-spacing: -0.5px;
         }
 
-        .info span {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-sub);
+        .header-ios p {
+            color: var(--ios-label);
+            font-size: 15px;
+            margin: 5px 0 0 0;
         }
 
-        .arrow {
-            margin-left: auto;
-            color: #c1c1c6;
-            font-size: 18px;
+        /* Contenedor de Grupos */
+        .menu-container {
+            padding: 20px 16px;
+        }
+
+        .ios-group-title {
+            font-size: 13px;
+            color: var(--ios-label);
+            text-transform: uppercase;
+            margin: 0 0 8px 16px;
+            letter-spacing: 0.3px;
+        }
+
+        /* La "Card" de iOS que agrupa filas */
+        .ios-group {
+            background: var(--ios-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 0.5px solid var(--ios-border);
+            margin-bottom: 30px;
+        }
+
+        /* Filas del Menú */
+        .ios-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: var(--ios-text);
+            background-color: var(--ios-card);
+            transition: background-color 0.2s;
+            min-height: 44px;
+            border-bottom: 0.5px solid var(--ios-border);
+        }
+
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        .ios-row:active {
+            background-color: #e5e5ea;
+        }
+
+        /* Iconos circulares de colores tipo Settings */
+        .icon-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+            color: white;
+        }
+
+        /* Colores Apple Standard */
+        .bg-blue   { background-color: #007aff; }
+        .bg-orange { background-color: #ff9500; }
+        .bg-green  { background-color: #34c759; }
+        .bg-red    { background-color: #ff3b30; }
+        .bg-purple { background-color: #5856d6; }
+
+        .row-text {
+            flex: 1;
+            font-size: 17px;
+            font-weight: 400;
+        }
+
+        .chevron {
+            color: var(--ios-arrow);
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--ios-label);
+            font-size: 12px;
+            font-weight: 400;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>Logística de Conectividad a Bordo</h1>
-        <p>Selecciona una acción</p>
+    <div class="header-ios">
+        <h1>Control de SIMs</h1>
+        <p>Logística de Conectividad a Bordo</p>
     </div>
 
-    <div class="menu-options">
-        <a href="recepcion.html" class="menu-card">
-            <div class="icon-box blue">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-            <div class="info">
-                <h2>Registrar una SIM</h2>
-                <span>Alta de SIM de datos y estatus</span>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </a>
-
-        <a href="recepcion_masiva.html" class="menu-card">
-            <div class="icon-box masiveblue">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-            <div class="info">
-                <h2>Registro Masivo de SIMs</h2>
-                <span>Registro masivo de SIMs</span>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </a>
-
-        <a href="asignacion_sim.html" class="menu-card">
-            <div class="icon-box orange">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
-            </div>
-            <div class="info">
-                <h2>Asignación de SIMs</h2>
-                <span>Asignar a Autobús o Persona</span>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </a>
+    <div class="menu-container">
         
-        <a href="inventario.html" class="menu-card">
-            <div class="icon-box green">
-                <i class="fa-solid fa-magnifying-glass"></i>
+        <p class="ios-group-title">Control de Activos</p>
+            <div class="ios-group">
+                <a href="recordsim.html" class="ios-row">
+                    <div class="icon-box bg-green">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div class="row-text">Registrar SIMs Recibidas</div>
+                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+                <a href="simsassign.html" class="ios-row">
+                    <div class="icon-box bg-blue">
+                        <i class="fa-solid fa-chart-gantt"></i>
+                    </div>
+                    <div class="row-text">Asignar SIMs</div>
+                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>
+                
             </div>
-            <div class="info">
-                <h2>Consultar SIM</h2>
-                <span>Inventario maestro</span>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </a>
+        
+        <p class="ios-group-title">Operaciones de Campo</p>
+        <div class="ios-group">
+            <a href="install.html" class="ios-row">
+                <div class="icon-box bg-orange">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+                <div class="row-text">Instalación de SIMs</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+        </div>
+
     </div>
-</div>
+
+    <div class="footer">
+        GRUPO HERRADURA OCCIDENTE<br>
+        2026 • © Todos los derechos reservados
+    </div>
 
 </body>
 </html>
