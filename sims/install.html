@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Instalar SIM</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            background: #f2f2f7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+        }
+
+        .label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            font-size: 16px;
+            background: #fafafa;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            font-size: 16px;
+            background: #fafafa;
+            box-sizing: border-box;
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        textarea:focus,
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
+        }
+
+        .obs-required {
+            border: 2px solid #b00020;
+            background: #fff5f5;
+        }
+
+        .obs-warning {
+            display: none;
+            color: #b00020;
+            font-size: 13px;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #007aff;
+            background: white;
+        }
+
+        .infoBox {
+            background: #f9fafb;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            background: #007aff;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .suggestions {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            width: 100%;
+            max-height: 180px;
+            overflow: auto;
+            z-index: 10;
+        }
+
+        .suggestion {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestion:hover {
+            background: #f3f4f6;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg)
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        .infobox {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .info-card {
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .info-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            opacity: .65;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .info-base {
+            background: #eef5ff;
+            border-color: #cfe1ff;
+        }
+
+        .info-sociedad {
+            background: #f5efff;
+            border-color: #ddd2ff;
+        }
+
+        .info-ceco {
+            background: #eefbf3;
+            border-color: #c9f0d6;
+        }
+
+        .obs-required {
+            border: 2px solid #b00020;
+            background: #fff5f5;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #d1d1d6;
+            transition: .25s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: .25s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+        }
+
+        input:checked+.slider {
+            background: #34c759;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #111;
+        }
+
+        .settings-group {
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .simLoader {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .simSpinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #007aff;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="min-h-screen flex items-center justify-center p-4">
+
+        <div class="card w-full max-w-xl p-6 space-y-5">
+
+            <h1 class="text-xl font-semibold text-gray-800">
+                Instalación de SIMs
+            </h1>
+
+            <form id="formSim" class="space-y-4">
+                <div class="settings-group">
+
+                    <div class="settings-row">
+
+                        <span class="settings-label">Reemplazar SIM</span>
+
+                        <label class="switch">
+                            <input type="checkbox" id="modoReemplazo">
+                            <span class="slider"></span>
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="relative">
+
+                    <div class="label">Unidad</div>
+
+                    <input id="unidadInput" class="input" placeholder="Ej. 50652" maxlength="5" inputmode="numeric"
+                        pattern="[0-9]{5}">
+
+                    <div id="sugerencias" class="suggestions hidden"></div>
+
+                </div>
+
+                <div id="loadingUnidad" class="hidden">
+                    <div class="loader"></div>
+                </div>
+
+                <div class="infobox">
+                    <div class="info-card info-base">
+                        <div class="info-title">Base</div>
+                        <div id="baseTxt" class="info-value">—</div>
+                    </div>
+
+                    <div class="info-card info-sociedad">
+                        <div class="info-title">Sociedad</div>
+                        <div id="sociedadTxt" class="info-value">—</div>
+                    </div>
+
+                    <div class="info-card info-ceco">
+                        <div class="info-title">CECO</div>
+                        <div id="cecoTxt" class="info-value">—</div>
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <div class="label">SIM disponible</div>
+
+                    <select id="simSelect" class="input"></select>
+
+                </div>
+
+                <div>
+
+                    <div class="label">Operadora</div>
+
+                    <input id="operadora" class="input" readonly>
+
+                </div>
+
+                <div>
+
+                    <div class="label">Equipo</div>
+
+                    <input id="equipo" class="input" placeholder="DVR / Router">
+
+                </div>
+
+                <div id="simAnteriorBox" style="display:none">
+
+                    <div class="label">SIM anterior</div>
+
+                    <input class="input" type="text" id="simAnterior" maxlength="20"
+                        placeholder="ICCID de la SIM retirada">
+
+                    <div id="simLoader" class="simLoader hidden">
+                        <div class="simSpinner"></div>
+                        <span>Buscando SIM instalada...</span>
+                    </div>
+
+
+                </div>
+
+
+
+                <div>
+
+                    <div class="label">Clave Técnico</div>
+
+                    <input id="tecnico" class="input">
+
+                </div>
+
+                <div>
+
+                    <div class="label">Observaciones</div>
+
+                    <textarea id="obs" class="form-control" placeholder="Observaciones"></textarea>
+                    <div id="obsWarning" style="
+                        display:none;
+                        color:#b00020;
+                        font-size:13px;
+                        margin-top:4px;
+                        font-weight:500;
+                        ">
+                        ⚠ Está realizando una instalación distinta a la asignada. Justifique el motivo.
+                    </div>
+
+                </div>
+
+                <button class="btn" id="btnGuardar">Registrar instalación
+                </button>
+
+            </form>
+
+            <div id="msg" class="text-green-600 text-center font-semibold"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const API_SIM = "https://script.google.com/macros/s/AKfycbxY0sS0WNIENpPpQ6DTTz5s5GiVFhZM0cOQ_MhxTme0B9yZ10iU9FQXf6tgfOtoedZ8Nw/exec";
+        const API_FLOTA = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec?accion=getFlota";
+
+        const switchReemplazo = document.getElementById("modoReemplazo");
+        const boxAnterior = document.getElementById("simAnteriorBox");
+        const labelModo = document.getElementById("modoLabel");
+
+        switchReemplazo.addEventListener("change", function () {
+
+            if (this.checked) {
+
+                boxAnterior.style.display = "block";
+                labelModo.innerText = "Reemplazar SIM";
+
+            } else {
+
+                boxAnterior.style.display = "none";
+                labelModo.innerText = "Instalar SIM";
+
+            }
+
+        });
+
+
+
+        let flota = [];
+        let equipoAsignado = "";
+        let unidadAsignada = "";
+
+        function normalizar(v) {
+            return (v || "").toString().trim().toLowerCase();
+        }
+
+        function validarCambiosInstalacion() {
+            const unidad = normalizar(document.getElementById("unidadInput").value);
+            const equipo = normalizar(document.getElementById("equipo").value);
+
+            const simSelect = document.getElementById("simSelect");
+            const selected = simSelect.selectedOptions[0];
+
+            if (!selected) return;
+
+            const unidadAsignada = normalizar(selected.dataset.unidad);
+            const equipoAsignado = normalizar(selected.dataset.equipo);
+
+            console.log("Unidad ingresada:", unidad);
+            console.log("Unidad asignada:", unidadAsignada);
+            console.log("Equipo ingresado:", equipo);
+            console.log("Equipo asignado:", equipoAsignado);
+
+            const cambioUnidad = unidadAsignada && unidad !== unidadAsignada;
+            const cambioEquipo = equipoAsignado && equipo !== equipoAsignado;
+
+            const obs = document.getElementById("obs");
+            const warning = document.getElementById("obsWarning");
+
+            if (cambioUnidad || cambioEquipo) {
+                obs.classList.add("obs-required");
+                warning.style.display = "block";
+            } else {
+                obs.classList.remove("obs-required");
+                warning.style.display = "none";
+            }
+        }
+
+
+        async function cargarFlota() {
+
+            document.getElementById("loadingUnidad").classList.remove("hidden");
+
+            const res = await fetch(API_FLOTA);
+            flota = await res.json();
+
+            document.getElementById("loadingUnidad").classList.add("hidden");
+
+        }
+
+        function mostrarSugerencias(text) {
+
+            const cont = document.getElementById("sugerencias");
+
+            if (text.length < 3) {
+                cont.classList.add("hidden");
+                return;
+            }
+
+            const lista = flota
+                .filter(u => u[2].toString().includes(text))
+                .slice(0, 8);
+
+            cont.innerHTML = "";
+
+            lista.forEach(row => {
+
+                const div = document.createElement("div");
+                div.className = "suggestion";
+                div.innerText = row[2];
+
+                div.onclick = () => seleccionarUnidad(row);
+
+                cont.appendChild(div);
+
+            });
+
+            cont.classList.remove("hidden");
+
+        }
+
+        function seleccionarUnidad(row) {
+
+            document.getElementById("unidadInput").value = row[2];
+            document.getElementById("baseTxt").innerText = row[9];
+            document.getElementById("sociedadTxt").innerText = row[37];
+            document.getElementById("cecoTxt").innerText = row[36];
+
+            document.getElementById("sugerencias").classList.add("hidden");
+
+        }
+
+        const unidadInput = document.getElementById("unidadInput");
+
+        unidadInput.addEventListener("input", function () {
+
+            this.value = this.value.replace(/\D/g, '');
+
+            if (this.value.length > 5) {
+                this.value = this.value.slice(0, 5);
+            }
+
+            mostrarSugerencias(this.value);
+
+        });
+
+        async function cargarSIMS() {
+
+            const res = await fetch(API_SIM + "?accion=getAsignadas");
+            const data = await res.json();
+
+            const select = document.getElementById("simSelect");
+
+            select.innerHTML = '<option value="">Seleccione</option>';
+
+            data.forEach(sim => {
+
+                const opt = document.createElement("option");
+
+                opt.value = sim.iccid;
+                opt.text = sim.iccid + " - " + sim.operadora + " (Autobús " + sim.autobus + ")";
+
+                opt.dataset.unidad = sim.autobus;
+                opt.dataset.operadora = sim.operadora;
+                opt.dataset.equipo = sim.equipo;
+
+                select.appendChild(opt);
+
+            });
+
+
+        }
+
+        async function buscarSimActual(unidad) {
+            const loader = document.getElementById("simLoader")
+            const btn = document.getElementById("btnGuardar")
+
+            loader.classList.remove("hidden")
+            btn.disabled = true
+
+            try {
+                const res = await fetch(API_SIM + "?accion=getSimInstalada&unidad=" + unidad);
+                const data = await res.json();
+
+                if (data.iccid) {
+                    document.getElementById("simAnterior").value = data.iccid;
+                }
+            } catch(err){
+                console.error(err)
+            }
+            loader.classList.add("hidden")
+            btn.disabled = false
+            
+        }
+
+        function validarSimAnterior() {
+            const sim = document.getElementById("simAnterior").value.trim();
+
+            if (sim.length === 19 || sim.length === 20) {
+                return true;
+            }
+
+            alert("La SIM anterior debe tener 19 o 20 dígitos");
+            return false;
+        }
+
+        switchReemplazo.addEventListener("change", function () {
+            if (this.checked) {
+                boxAnterior.style.display = "block"
+            } else {
+                boxAnterior.style.display = "none"
+                document.getElementById("simAnterior").value = ""
+            }
+        })
+
+
+
+
+
+        document.getElementById("unidadInput").addEventListener("input", validarCambiosInstalacion);
+        document.getElementById("unidadInput").addEventListener("change", function () {
+            if (modoReemplazo.checked) {
+                buscarSimActual(this.value)
+            }
+        })
+
+
+        document.getElementById("equipo").addEventListener("input", validarCambiosInstalacion);
+
+        document.getElementById("simSelect").addEventListener("change", validarCambiosInstalacion);
+
+
+        document.getElementById("simSelect")
+            .addEventListener("change", function () {
+
+                const selected = this.selectedOptions[0];
+
+                document.getElementById("operadora").value =
+                    selected.dataset.operadora || "";
+
+                document.getElementById("equipo").value =
+                    selected.dataset.equipo || "";
+                validarCambiosInstalacion();
+
+                // guardar valores originales
+                equipoAsignado = selected.dataset.equipo || "";
+                unidadAsignada = selected.dataset.unidad || "";
+
+            });
+
+
+        document.getElementById("formSim").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const unidad = document.getElementById("unidadInput").value.trim();
+            const iccid = document.getElementById("simSelect").value;
+            const operadora = document.getElementById("operadora").value;
+            const equipo = document.getElementById("equipo").value.trim();
+            const tecnico = document.getElementById("tecnico").value.trim();
+            const base = document.getElementById("baseTxt").innerText;
+            const sociedad = document.getElementById("sociedadTxt").innerText;
+            const ceco = document.getElementById("cecoTxt").innerText;
+            const obs = document.getElementById("obs").value.trim();
+
+            const selected = document.getElementById("simSelect").selectedOptions[0];
+
+            const equipoAsignado = selected?.dataset?.equipo || "";
+            const unidadAsignada = selected?.dataset?.unidad || "";
+
+            /* VALIDACION UNIDAD */
+
+            if (!/^\d{5}$/.test(unidad)) {
+                alert("La unidad debe tener 5 dígitos.");
+                return;
+            }
+
+            /* VALIDACION SIM */
+
+            if (!iccid) {
+                alert("Debes seleccionar una SIM.");
+                return;
+            }
+
+            /* VALIDACION SIM ANTERIOR */
+            if (modoReemplazo.checked) {
+                if (!validarSimAnterior()) return;
+            }
+
+
+            /* DETECTAR CAMBIOS */
+
+            const cambioEquipo = equipoAsignado && equipo !== equipoAsignado;
+            const cambioUnidad = unidadAsignada && unidad !== unidadAsignada;
+
+            /* OBSERVACIONES OBLIGATORIAS */
+
+            if ((cambioEquipo || cambioUnidad) && obs === "") {
+                alert("⚠ Está realizando una instalación distinta a la asignada. Justifique el motivo.");
+                document.getElementById("obs").focus();
+                return;
+            }
+
+            /* PAYLOAD */
+
+            const btn = document.getElementById("btnGuardar");
+
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            const payload = {
+
+                accion: "registrarInstalacion",
+
+                unidad: unidad,
+                iccid: iccid,
+                operadora: operadora,
+                equipo: equipo,
+                claveTecnico: tecnico,
+                base: base,
+                sociedad: sociedad,
+                ceco: ceco,
+                observaciones: obs
+
+            };
+
+            /* ENVIO */
+
+            try {
+
+                const res = await fetch(API_SIM, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+
+                const msg = await res.text();
+
+                document.getElementById("msg").innerText = msg;
+
+                /* refrescar SIMs disponibles */
+                await cargarSIMS();
+                document.getElementById("simSelect").value = "";
+
+                /* LIMPIAR FORM */
+
+                document.getElementById("formSim").reset();
+                btn.disabled = false
+                btn.innerText = "Registrar instalación"
+
+                document.getElementById("baseTxt").innerText = "-";
+                document.getElementById("sociedadTxt").innerText = "-";
+                document.getElementById("cecoTxt").innerText = "-";
+
+            } catch (err) {
+
+                console.error(err);
+                alert("Error enviando el registro");
+
+                btn.disabled = false;
+                btn.innerText = "Registrar instalación";
+
+            }
+
+        });
+
+        cargarFlota();
+        cargarSIMS();
+
+    </script>
+
+</body>
+
+</html>
