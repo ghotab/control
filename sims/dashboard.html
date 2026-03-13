@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Dashboard SIM</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #F2F2F7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        .apple-blur {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, .8);
+        }
+
+        .mac-card {
+            border-radius: 18px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .1);
+        }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200% 0;
+            }
+        }
+
+        .pb-safe {
+            padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+            padding-top: env(safe-area-inset-top);
+        }
+    </style>
+</head>
+
+<body class="bg-[#F2F2F7] text-slate-900 min-h-screen pb-28 md:pb-0">
+
+    <nav class="apple-blur pt-safe border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+
+            <div class="flex items-center gap-3">
+
+                <div class="bg-indigo-600 p-2 rounded-xl text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-6h13M9 5l-7 7 7 7" />
+                    </svg>
+                </div>
+
+                <h1 class="text-xl font-bold tracking-tight">
+                    Dashboard <span class="text-indigo-600">SIM</span>
+                </h1>
+
+            </div>
+
+            <div class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 text-slate-500">
+                MONITOR OPERATIVO
+            </div>
+
+        </div>
+    </nav>
+
+
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+
+        <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                Filtros de consulta
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+
+                <select id="filtroEstado" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+
+                    <option value="asignada">SIMs por Instalar</option>
+                    <option value="instalada">SIMs Instaladas</option>
+
+                </select>
+
+                <select id="filtroOperadora" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+
+                    <option value="">Todas las operadoras</option>
+                    <option value="Telcel">Telcel</option>
+                    <option value="Yumovil">Yumovil</option>
+
+                </select>
+
+                <button id="btnActualizar" onclick="cargarDatos()"
+                    class="px-5 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 transition flex items-center gap-2">
+
+                    <span id="textoBtn">Actualizar</span>
+
+                    <div id="spinnerBtn"
+                        class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
+                    </div>
+
+                </button>
+
+            </div>
+
+        </section>
+
+        <section class="bg-white mac-card border border-slate-100 overflow-hidden">
+
+            <div class="px-6 py-4 border-b border-slate-100">
+
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    Resultados
+                </h2>
+
+            </div>
+
+            <div id="loadingBar"
+                class="hidden flex items-center gap-3 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-3 rounded-xl">
+
+                <div class="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+
+                <span class="text-sm font-semibold">
+                    Cargando información del sistema...
+                </span>
+
+            </div>
+
+
+
+            <div class="grid grid-cols-3 gap-4 mb-6">
+
+                <div class="bg-white mac-card p-5 border border-slate-100">
+                    <div class="text-xs uppercase text-slate-400 font-bold">Pendientes</div>
+                    <div id="kpiPendientes" class="text-3xl font-bold text-amber-500">0</div>
+                </div>
+
+                <div class="bg-white mac-card p-5 border border-slate-100">
+                    <div class="text-xs uppercase text-slate-400 font-bold">Instaladas</div>
+                    <div id="kpiInstaladas" class="text-3xl font-bold text-emerald-600">0</div>
+                </div>
+
+                <div class="bg-white mac-card p-5 border border-slate-100">
+                    <div class="text-xs uppercase text-slate-400 font-bold">Avance</div>
+                    <div id="kpiAvance" class="text-3xl font-bold text-indigo-600">0%</div>
+                </div>
+
+            </div>
+
+            <div class="hidden md:block">
+
+                <div class="hidden md:block">
+
+                    <input id="buscadorDesktop" type="text" placeholder="Buscar ICCID, Autobus, Base o Sociedad" style="margin-bottom:20px;margin-left: 15px;padding-right: 50px;"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400" />
+                    
+                </div>
+
+                <table class="w-full text-sm">
+
+                    <thead class="bg-slate-100 text-slate-500 text-xs uppercase tracking-wider">
+
+                        <tr>
+                            <th class="p-3 text-left">ICCID</th>
+                            <th class="p-3">Operadora</th>
+                            <th class="p-3">Bus</th>
+                            <th class="p-3">Equipo</th>
+                            <th class="p-3">Sociedad</th>
+                            <th class="p-3">CECO</th>
+                            <th class="p-3">Base</th>
+                            <th class="p-3">Estado</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tablaSIM"></tbody>
+
+                </table>
+
+            </div>
+
+            <div id="cardsSIM" class="md:hidden space-y-4 active:scale-95 transition"></div>
+
+        </section>
+
+        <div
+            class="md:hidden fixed bottom-0 left-0 right-0 p-4 pb-safe bg-white/90 backdrop-blur border-t border-slate-200">
+            <input id="buscadorMobile" type="text" placeholder="Buscar ICCID, Autobus, Base o Sociedad"
+                class="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none" />
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const API_SIM = "https://script.google.com/macros/s/AKfycbxY0sS0WNIENpPpQ6DTTz5s5GiVFhZM0cOQ_MhxTme0B9yZ10iU9FQXf6tgfOtoedZ8Nw/exec"
+
+        let datos = []
+
+        async function cargarDatos() {
+
+            const btn = document.getElementById("btnActualizar")
+            const spinner = document.getElementById("spinnerBtn")
+            const texto = document.getElementById("textoBtn")
+            const loadingBar = document.getElementById("loadingBar")
+
+            btn.disabled = true
+            spinner.classList.remove("hidden")
+            loadingBar.classList.remove("hidden")
+            texto.innerText = "Actualizando..."
+
+            try {
+
+                const estado = document.getElementById("filtroEstado").value
+                // consulta para la tabla
+                const tablaReq = fetch(API_SIM + "?accion=getDashboard&estado=" + estado)
+
+                // consultas para KPI
+                const pendientesReq = fetch(API_SIM + "?accion=getDashboard&estado=asignada")
+                const instaladasReq = fetch(API_SIM + "?accion=getDashboard&estado=instalada")
+
+                const [tablaRes, pendientesRes, instaladasRes] = await Promise.all([
+                    tablaReq,
+                    pendientesReq,
+                    instaladasReq
+                ])
+
+                const datosTabla = await tablaRes.json()
+                const pendientes = await pendientesRes.json()
+                const instaladas = await instaladasRes.json()
+
+                datos = datosTabla
+
+                render()
+
+                actualizarKPIs(pendientes.length, instaladas.length)
+
+            } catch (err) {
+
+                console.error(err)
+                alert("Error cargando datos")
+
+            }
+
+            btn.disabled = false
+            spinner.classList.add("hidden")
+            loadingBar.classList.add("hidden")
+            texto.innerText = "Actualizar"
+
+        }
+
+        function actualizarKPIs(pendientes, instaladas) {
+
+            const total = pendientes + instaladas
+
+            const avance = total > 0
+                ? Math.round((instaladas / total) * 100)
+                : 0
+
+            document.getElementById("kpiPendientes").innerText = pendientes
+            document.getElementById("kpiInstaladas").innerText = instaladas
+            document.getElementById("kpiAvance").innerText = avance + "%"
+
+        }
+
+        function render() {
+
+            const tbody = document.getElementById("tablaSIM")
+            const cards = document.getElementById("cardsSIM")
+
+            tbody.innerHTML = ""
+            cards.innerHTML = ""
+
+            datos.forEach(sim => {
+
+                const row = `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-mono">${sim.iccid}</td>
+                        <td class="p-3">${sim.operadora}</td>
+                        <td class="p-3">${sim.autobus}</td>
+                        <td class="p-3">${sim.equipo}</td>
+                        <td class="p-3">${sim.sociedad}</td>
+                        <td class="p-3">${sim.ceco}</td>
+                        <td class="p-3">${sim.base}</td>
+                        <td class="p-3">${sim.estado}</td>
+                    </tr>
+                    `
+
+                tbody.insertAdjacentHTML("beforeend", row)
+
+                const card = `
+                    <div class="bg-white mac-card border border-slate-100 p-4 space-y-2">
+
+                    <div class="flex justify-between items-center">
+
+                    <div class="font-mono text-sm font-bold" style="font-size:18px;">
+                    ${sim.iccid}
+                    </div>
+
+                    <div class="text-xs bg-slate-100 px-2 py-1 rounded-full">
+                    ${sim.estado}
+                    </div>
+
+                    </div>
+
+                    <div class="text-sm">
+
+                    <div><b>Autobus:</b> ${sim.autobus}</div>
+                    <div><b>Sociedad:</b> ${sim.sociedad}</div>
+                    <div><b>Operadora:</b> ${sim.operadora}</div>
+                    <div><b>Equipo:</b> ${sim.equipo}</div>
+                    <div><b>Base:</b> ${sim.base}</div>
+
+                    </div>
+
+                    </div>
+                    `
+
+                cards.insertAdjacentHTML("beforeend", card)
+
+            })
+
+        }
+
+        const buscador = document.getElementById("buscador")
+
+        buscador.addEventListener("input", function () {
+
+            const texto = this.value.toLowerCase()
+
+            const filtrados = datos.filter(sim =>
+
+                sim.iccid.toLowerCase().includes(texto) ||
+                sim.autobus.toLowerCase().includes(texto) ||
+                sim.base.toLowerCase().includes(texto) ||
+                sim.sociedad.toLowerCase().includes(texto)
+
+            )
+
+            renderFiltrado(filtrados)
+
+        })
+
+        function renderFiltrado(lista) {
+            const tbody = document.getElementById("tablaSIM")
+            const cards = document.getElementById("cardsSIM")
+
+            tbody.innerHTML = ""
+            cards.innerHTML = ""
+
+            lista.forEach(sim => {
+
+                const row = `
+                    <tr class="hover:bg-slate-50">
+                    <td class="p-3 font-mono">${sim.iccid}</td>
+                    <td class="p-3">${sim.operadora}</td>
+                    <td class="p-3">${sim.autobus}</td>
+                    <td class="p-3">${sim.equipo}</td>
+                    <td class="p-3">${sim.sociedad}</td>
+                    <td class="p-3">${sim.ceco}</td>
+                    <td class="p-3">${sim.base}</td>
+                    </tr>
+                    `
+                tbody.insertAdjacentHTML("beforeend", row)
+
+            })
+        }
+
+        function activarBusqueda(input) {
+
+            if (!input) return
+
+            input.addEventListener("input", function () {
+
+                const texto = this.value.toLowerCase()
+                const filtrados = datos.filter(sim =>
+                    sim.iccid.toLowerCase().includes(texto) ||
+                    sim.autobus.toLowerCase().includes(texto) ||
+                    sim.sociedad.toLowerCase().includes(texto) ||
+                    sim.base.toLowerCase().includes(texto)
+                )
+                renderFiltrado(filtrados)
+            })
+
+        }
+
+        activarBusqueda(document.getElementById("buscadorDesktop"))
+        activarBusqueda(document.getElementById("buscadorMobile"))
+
+        cargarDatos()
+
+
+
+    </script>
+
+</body>
+
+</html>
