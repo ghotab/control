@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de SIMs</title>
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -104,11 +105,25 @@
         }
 
         /* Colores Apple Standard */
-        .bg-blue   { background-color: #007aff; }
-        .bg-orange { background-color: #ff9500; }
-        .bg-green  { background-color: #34c759; }
-        .bg-red    { background-color: #ff3b30; }
-        .bg-purple { background-color: #5856d6; }
+        .bg-blue {
+            background-color: #007aff;
+        }
+
+        .bg-orange {
+            background-color: #ff9500;
+        }
+
+        .bg-green {
+            background-color: #34c759;
+        }
+
+        .bg-red {
+            background-color: #ff3b30;
+        }
+
+        .bg-purple {
+            background-color: #5856d6;
+        }
 
         .row-text {
             flex: 1;
@@ -131,6 +146,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="header-ios">
@@ -139,31 +155,38 @@
     </div>
 
     <div class="menu-container">
-        
+
         <p class="ios-group-title">Control de Activos</p>
-            <div class="ios-group">
-                <a href="recordsim.html" class="ios-row">
-                    <div class="icon-box bg-purple">
-                        <i class="fa-solid fa-receipt"></i>
-                    </div>
-                    <div class="row-text">Registrar SIMs Recibidas</div>
-                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
-                <a href="simsassign.html" class="ios-row">
-                    <div class="icon-box bg-purple">
-                        <i class="fa-solid fa-chart-gantt"></i>
-                    </div>
-                    <div class="row-text">Asignar SIMs</div>
-                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
-                
-            </div>
-        
+        <div class="ios-group">
+            <a href="recordsim.html" class="ios-row">
+                <div class="icon-box bg-green">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div class="row-text">Registrar SIMs Recibidas</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+            <a href="simsassign.html" class="ios-row">
+                <div class="icon-box bg-blue">
+                    <i class="fa-solid fa-chart-gantt"></i>
+                </div>
+                <div class="row-text">Asignar SIMs</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+            <a href="dashboard.html" class="ios-row">
+                <div class="icon-box bg-purple">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div class="row-text">Dashboard de Instalaciones</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+
+        </div>
+
         <p class="ios-group-title">Operaciones de Campo</p>
         <div class="ios-group">
             <a href="install.html" class="ios-row">
-                <div class="icon-box bg-purple">
-                    <i class="fa-solid fa-sim-card"></i>
+                <div class="icon-box bg-orange">
+                    <i class="fa-solid fa-inbox"></i>
                 </div>
                 <div class="row-text">Instalación de SIMs</div>
                 <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
@@ -178,4 +201,5 @@
     </div>
 
 </body>
+
 </html>
