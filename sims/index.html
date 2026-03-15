@@ -200,6 +200,48 @@
         2026 • © Todos los derechos reservados
     </div>
 
+    <script>
+
+        const URL_FLOTA = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec?accion=getFlota";
+
+        async function precargarFlota() {
+
+            const cache = localStorage.getItem("flota_cache");
+            const cacheTime = localStorage.getItem("flota_cache_time");
+
+            const ahora = Date.now();
+
+            // 1 hora de vigencia
+            if (cache && cacheTime && (ahora - cacheTime < 3600000)) {
+                console.log("Precarga de distribución: Listo");
+                return;
+            }
+
+            try {
+
+                console.log("Precargando distribución...");
+
+                const res = await fetch(URL_FLOTA);
+                const data = await res.json();
+
+                localStorage.setItem("flota_cache", JSON.stringify(data));
+                localStorage.setItem("flota_cache_time", ahora);
+
+                console.log("Distribución guardada en cache");
+
+            } catch (e) {
+
+                console.error("Error precargando flota", e);
+
+            }
+
+        }
+
+        precargarFlota();
+
+    </script>
+
+
 </body>
 
 </html>

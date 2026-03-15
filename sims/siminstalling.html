@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Instalación de SIMs</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            background: #F2F2F7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+
+        .apple-blur {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, .8);
+        }
+
+        .mac-card {
+            border-radius: 18px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .1);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #d1d1d6;
+            transition: .25s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: .25s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+        }
+
+        input:checked+.slider {
+            background: #34c759;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .simLoader {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .simSpinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #007aff;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg)
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        .obs-required {
+            border: 2px solid #b00020;
+            background: #fff5f5;
+        }
+    </style>
+
+</head>
+
+<body class="text-slate-900 min-h-screen">
+
+    <nav class="apple-blur border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+
+            <div class="flex items-center gap-3">
+
+                <div class="bg-indigo-600 p-2 rounded-xl text-white">
+
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+
+                </div>
+
+                <h1 class="text-xl font-bold tracking-tight">
+                    Instalación de <span class="text-indigo-600">SIMs</span>
+                </h1>
+
+            </div>
+
+            <div class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 text-slate-500">
+                INSTALACIÓN
+            </div>
+
+        </div>
+    </nav>
+
+
+    <main class="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
+
+        <form id="formSim" class="space-y-6">
+
+            <!-- MODO INSTALACION -->
+
+            <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                    1. Tipo de operación
+                </h2>
+
+                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border">
+
+                    <div>
+                        <div class="text-sm font-semibold">Reemplazar SIM existente</div>
+                        <div class="text-xs text-slate-400">Activar si se retirará una SIM anterior</div>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" id="modoReemplazo">
+                        <span class="slider"></span>
+                    </label>
+
+                </div>
+
+                <div id="simAnteriorBox" class="hidden">
+
+                    <label class="text-xs font-semibold text-slate-500 ml-1">
+                        SIM anterior
+                    </label>
+
+                    <input id="simAnterior"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-mono"
+                        maxlength="20" placeholder="ICCID de SIM retirada" />
+
+                    <div id="simLoader" class="simLoader hidden">
+                        <div class="simSpinner"></div>
+                        <span>Buscando SIM instalada...</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- UNIDAD -->
+
+            <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                    2. Identificación de Unidad
+                </h2>
+
+                <div>
+
+                    <label class="text-xs font-semibold text-slate-500 ml-1">
+                        No. Económico
+                    </label>
+
+                    <input id="unidadInput"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-lg"
+                        maxlength="5" placeholder="Ej. 50652" inputmode="numeric" pattern="[0-9]{5}" />
+
+                    <div id="loadingUnidad" class="hidden flex justify-center py-2">
+                        <div class="simSpinner"></div>
+                    </div>
+
+                    <div id="sugerencias"
+                        class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden z-20">
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+                    <div class="p-3 bg-slate-50 rounded-xl border">
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">Base</span>
+                        <span id="baseTxt" class="text-sm font-semibold">---</span>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-xl border">
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">Sociedad</span>
+                        <span id="sociedadTxt" class="text-sm font-semibold">---</span>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-xl border">
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">CECO</span>
+                        <span id="cecoTxt" class="text-sm font-semibold">---</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SIM -->
+
+            <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    3. SIM a instalar
+                </h2>
+
+                <label class="text-xs font-semibold text-slate-500 ml-1">
+                    SIM disponible
+                </label>
+
+                <select id="simSelect"
+                    class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-mono text-sm"></select>
+
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+
+                    <span class="block text-[10px] text-emerald-600 uppercase font-bold">
+                        Operadora
+                    </span>
+
+                    <input id="operadora" readonly
+                        class="w-full p-4 bg-emerald-50 border border-emerald-200 rounded-2xl outline-none font-bold text-emerald-900" />
+
+                </div>
+
+            </section>
+
+
+            <!-- INSTALACION -->
+
+            <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
+
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                    4. Detalles de instalación
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-xs font-semibold text-slate-500 ml-1">
+                            Equipo
+                        </label>
+
+                        <input id="equipo"
+                            class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none"
+                            placeholder="Ej. Modem o DVR" />
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-xs font-semibold text-slate-500 ml-1">
+                            Clave Técnico
+                        </label>
+
+                        <input id="tecnico"
+                            class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none"
+                            maxlength="10" placeholder="Ej. 1004386" inputmode="numeric" pattern="[0-9]{7,10}" />
+
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <label class="text-xs font-semibold text-slate-500 ml-1">
+                        Observaciones
+                    </label>
+
+                    <textarea id="obs" rows="2"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none resize-none"
+                        placeholder="Opcional..."></textarea>
+
+                    <div id="obsWarning" class="hidden text-red-600 text-xs mt-2 font-semibold">
+                        ⚠ Instalación distinta a la asignada. Justifique el motivo.
+                    </div>
+
+                </div>
+
+                <button id="btnGuardar"
+                    class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-200">
+
+                    REGISTRAR INSTALACIÓN
+
+                </button>
+
+                <div id="msg" class="text-green-600 text-center font-semibold"></div>
+
+            </section>
+
+        </form>
+
+    </main>
+
+
+    <script>
+
+        const API_SIM = "https://script.google.com/macros/s/AKfycbxY0sS0WNIENpPpQ6DTTz5s5GiVFhZM0cOQ_MhxTme0B9yZ10iU9FQXf6tgfOtoedZ8Nw/exec";
+        const API_FLOTA = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec?accion=getFlota";
+
+        const switchReemplazo = document.getElementById("modoReemplazo");
+        const boxAnterior = document.getElementById("simAnteriorBox");
+        const labelModo = document.getElementById("modoLabel");
+
+        switchReemplazo.addEventListener("change", function () {
+
+            if (this.checked) {
+
+                boxAnterior.classList.remove("hidden")
+
+            } else {
+
+                boxAnterior.classList.add("hidden")
+                document.getElementById("simAnterior").value = ""
+
+            }
+
+        })
+
+        let flota = [];
+        let equipoAsignado = "";
+        let unidadAsignada = "";
+
+        function normalizar(v) {
+            return (v || "").toString().trim().toLowerCase();
+        }
+
+        function validarCambiosInstalacion() {
+            const unidad = normalizar(document.getElementById("unidadInput").value);
+            const equipo = normalizar(document.getElementById("equipo").value);
+
+            const simSelect = document.getElementById("simSelect");
+            const selected = simSelect.selectedOptions[0];
+
+            if (!selected) return;
+
+            const unidadAsignada = normalizar(selected.dataset.unidad);
+            const equipoAsignado = normalizar(selected.dataset.equipo);
+
+            console.log("Unidad ingresada:", unidad);
+            console.log("Unidad asignada:", unidadAsignada);
+            console.log("Equipo ingresado:", equipo);
+            console.log("Equipo asignado:", equipoAsignado);
+
+            const cambioUnidad = unidadAsignada && unidad !== unidadAsignada;
+            const cambioEquipo = equipoAsignado && equipo !== equipoAsignado;
+
+            const obs = document.getElementById("obs");
+            const warning = document.getElementById("obsWarning");
+
+            if (cambioUnidad || cambioEquipo) {
+                obs.classList.add("obs-required");
+                warning.style.display = "block";
+            } else {
+                obs.classList.remove("obs-required");
+                warning.style.display = "none";
+            }
+        }
+
+
+        async function cargarFlota() {
+            document.getElementById("loadingUnidad").classList.remove("hidden");
+
+            const cache = localStorage.getItem("flota_cache");
+
+            if (cache) {
+                console.log("Flota cargada desde cache");
+
+                flota = JSON.parse(cache);
+
+                document.getElementById("loadingUnidad").classList.add("hidden");
+                return;
+            }
+
+            console.log("Cache vacío, consultando API");
+
+            const res = await fetch(API_FLOTA);
+            flota = await res.json();
+
+            localStorage.setItem("flota_cache", JSON.stringify(flota));
+            localStorage.setItem("flota_cache_time", Date.now());
+
+            document.getElementById("loadingUnidad").classList.add("hidden");
+
+        }
+
+        function mostrarSugerencias(text) {
+
+            const cont = document.getElementById("sugerencias");
+
+            if (text.length < 3) {
+                cont.classList.add("hidden");
+                return;
+            }
+
+            const lista = flota
+                .filter(u => u[2].toString().includes(text))
+                .slice(0, 8);
+
+            cont.innerHTML = "";
+
+            lista.forEach(row => {
+
+                const div = document.createElement("div");
+                div.className = "px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition";
+                div.innerText = row[2];
+
+                div.onclick = () => seleccionarUnidad(row);
+
+                cont.appendChild(div);
+
+            });
+
+            cont.classList.remove("hidden");
+
+        }
+
+        function seleccionarUnidad(row) {
+
+            document.getElementById("unidadInput").value = row[2];
+            document.getElementById("baseTxt").innerText = row[9];
+            document.getElementById("sociedadTxt").innerText = row[37];
+            document.getElementById("cecoTxt").innerText = row[36];
+
+            document.getElementById("sugerencias").classList.add("hidden");
+
+        }
+
+        const unidadInput = document.getElementById("unidadInput");
+
+        unidadInput.addEventListener("input", function () {
+
+            this.value = this.value.replace(/\D/g, '');
+
+            if (this.value.length > 5) {
+                this.value = this.value.slice(0, 5);
+            }
+
+            mostrarSugerencias(this.value);
+
+        });
+
+        const claveTec = document.getElementById("tecnico");
+
+        claveTec.addEventListener("input", function () {
+
+            this.value = this.value.replace(/\D/g, '');
+
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+        });
+
+        async function cargarSIMS() {
+
+            const res = await fetch(API_SIM + "?accion=getAsignadas");
+            const data = await res.json();
+
+            const select = document.getElementById("simSelect");
+
+            select.innerHTML = '<option value="">Seleccione</option>';
+
+            data.forEach(sim => {
+
+                const opt = document.createElement("option");
+
+                opt.value = sim.iccid;
+                opt.text = sim.iccid + " - " + sim.operadora + " (Autobús " + sim.autobus + ")";
+
+                opt.dataset.unidad = sim.autobus;
+                opt.dataset.operadora = sim.operadora;
+                opt.dataset.equipo = sim.equipo;
+
+                select.appendChild(opt);
+
+            });
+
+
+        }
+
+        async function buscarSimActual(unidad) {
+            const loader = document.getElementById("simLoader")
+            const btn = document.getElementById("btnGuardar")
+
+            loader.classList.remove("hidden")
+            btn.disabled = true
+
+            try {
+                const res = await fetch(API_SIM + "?accion=getSimInstalada&unidad=" + unidad);
+                const data = await res.json();
+
+                if (data.iccid) {
+                    document.getElementById("simAnterior").value = data.iccid;
+                }
+            } catch (err) {
+                console.error(err)
+            }
+            loader.classList.add("hidden")
+            btn.disabled = false
+
+        }
+
+        function validarSimAnterior() {
+            const sim = document.getElementById("simAnterior").value.trim();
+
+            if (sim.length === 19 || sim.length === 20) {
+                return true;
+            }
+
+            alert("La SIM anterior debe tener 19 o 20 dígitos");
+            return false;
+        }
+
+        switchReemplazo.addEventListener("change", function () {
+            if (this.checked) {
+                boxAnterior.style.display = "block"
+            } else {
+                boxAnterior.style.display = "none"
+                document.getElementById("simAnterior").value = ""
+            }
+        })
+
+
+
+
+
+        document.getElementById("unidadInput").addEventListener("input", validarCambiosInstalacion);
+        document.getElementById("unidadInput").addEventListener("change", function () {
+            if (modoReemplazo.checked) {
+                buscarSimActual(this.value)
+            }
+        })
+
+
+        document.getElementById("equipo").addEventListener("input", validarCambiosInstalacion);
+
+        document.getElementById("simSelect").addEventListener("change", validarCambiosInstalacion);
+
+
+        document.getElementById("simSelect")
+            .addEventListener("change", function () {
+
+                const selected = this.selectedOptions[0];
+
+                document.getElementById("operadora").value =
+                    selected.dataset.operadora || "";
+
+                document.getElementById("equipo").value =
+                    selected.dataset.equipo || "";
+                validarCambiosInstalacion();
+
+                // guardar valores originales
+                equipoAsignado = selected.dataset.equipo || "";
+                unidadAsignada = selected.dataset.unidad || "";
+
+            });
+
+
+        document.getElementById("formSim").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const unidad = document.getElementById("unidadInput").value.trim();
+            const iccid = document.getElementById("simSelect").value;
+            const operadora = document.getElementById("operadora").value;
+            const equipo = document.getElementById("equipo").value.trim();
+            const tecnico = document.getElementById("tecnico").value.trim();
+
+            if (!/^\d{7,10}$/.test(tecnico)) {
+                alert("La clave del técnico debe tener entre 7 y 10 dígitos.");
+                document.getElementById("tecnico").focus();
+                return;
+            }
+
+            const base = document.getElementById("baseTxt").innerText;
+            const sociedad = document.getElementById("sociedadTxt").innerText;
+            const ceco = document.getElementById("cecoTxt").innerText;
+            const obs = document.getElementById("obs").value.trim();
+
+            const selected = document.getElementById("simSelect").selectedOptions[0];
+
+            const equipoAsignado = selected?.dataset?.equipo || "";
+            const unidadAsignada = selected?.dataset?.unidad || "";
+
+            /* VALIDACION UNIDAD */
+
+            if (!/^\d{5}$/.test(unidad)) {
+                alert("La unidad debe tener 5 dígitos.");
+                return;
+            }
+
+            /* VALIDACION SIM */
+
+            if (!iccid) {
+                alert("Debes seleccionar una SIM.");
+                return;
+            }
+
+            /* VALIDACION SIM ANTERIOR */
+            if (modoReemplazo.checked) {
+                if (!validarSimAnterior()) return;
+            }
+
+
+            /* DETECTAR CAMBIOS */
+
+            const cambioEquipo = equipoAsignado && equipo !== equipoAsignado;
+            const cambioUnidad = unidadAsignada && unidad !== unidadAsignada;
+
+            /* OBSERVACIONES OBLIGATORIAS */
+
+            if ((cambioEquipo || cambioUnidad) && obs === "") {
+                alert("⚠ Está realizando una instalación distinta a la asignada. Justifique el motivo.");
+                document.getElementById("obs").focus();
+                return;
+            }
+
+            /* PAYLOAD */
+
+            const btn = document.getElementById("btnGuardar");
+
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            const payload = {
+
+                accion: "registrarInstalacion",
+
+                unidad: unidad,
+                iccid: iccid,
+                operadora: operadora,
+                equipo: equipo,
+                claveTecnico: tecnico,
+                base: base,
+                sociedad: sociedad,
+                ceco: ceco,
+                observaciones: obs
+
+            };
+
+            /* ENVIO */
+
+            try {
+
+                const res = await fetch(API_SIM, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+
+                const msg = await res.text();
+
+                document.getElementById("msg").innerText = msg;
+
+                /* refrescar SIMs disponibles */
+                await cargarSIMS();
+                document.getElementById("simSelect").value = "";
+
+                /* LIMPIAR FORM */
+
+                document.getElementById("formSim").reset();
+                btn.disabled = false
+                btn.innerText = "Registrar instalación"
+
+                document.getElementById("baseTxt").innerText = "-";
+                document.getElementById("sociedadTxt").innerText = "-";
+                document.getElementById("cecoTxt").innerText = "-";
+
+            } catch (err) {
+
+                console.error(err);
+                alert("Error enviando el registro");
+
+                btn.disabled = false;
+                btn.innerText = "Registrar instalación";
+
+            }
+
+        });
+
+        cargarFlota();
+        cargarSIMS();
+
+    </script>
+
+</body>
+
+</html>
