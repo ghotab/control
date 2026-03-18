@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>S.I.M. - Control de Recepción</title>
+    <title>Registro de SIMs Recibidas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -107,7 +107,7 @@
                             <span id="count" class="text-5xl font-extrabold text-blue-600">0</span>
                         </div>
                         <button onclick="enviarDatos()" id="btnEnviar" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg disabled:bg-slate-300">
-                            GUARDAR RECEPCIÓN DE SIMS
+                            GUARDAR REMESA
                         </button>
                     </div>
                 </div>
@@ -166,7 +166,7 @@
     </main>
 
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx2W9sDTwLxuKo3cIRvFIzgwXUXr-PSAHCaCG2p4M4eQshWeOp3UNSHtfK-_2NDfP7xLw/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxY0sS0WNIENpPpQ6DTTz5s5GiVFhZM0cOQ_MhxTme0B9yZ10iU9FQXf6tgfOtoedZ8Nw/exec';
         
         let scannedIccids = [];
         let html5QrCode;
@@ -323,7 +323,7 @@
             btn.disabled = true;
             btn.innerText = "Guardando...";
 
-            // Preparamos el paquete de datos para enviar a BD
+            // Preparamos el paquete de datos para Sheets
             const payload = scannedIccids.map(id => ({
                 iccid: id,
                 operadora: operadora,
@@ -335,14 +335,14 @@
             }));
 
             try {
-                
+                // El modo 'no-cors' es necesario para Google Apps Script si no manejas OPTIONS
                 await fetch(WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     body: JSON.stringify(payload)
                 });
 
-                alert(`Se registraron éxitosamente ${scannedIccids.length} SIMs.`);
+                alert(`✅ ¡Éxito! Se registraron ${scannedIccids.length} SIMs.`);
                 
                 // --- LIMPIEZA POST-ENVÍO ---
                 scannedIccids = [];
