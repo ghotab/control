@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>S.I.M. - Asignación a Unidades</title>
+    <title>Asignación de SIMs a Unidades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .apple-blur {
@@ -74,7 +74,7 @@
 
         <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
             <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> 1. Identificación de Unidad
+                <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> 1. Datos de la Unidad
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -176,7 +176,7 @@
     <script>
         // URLs de los Microservicios
         const URL_FLOTA = 'https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec?accion=getFlota';
-        const URL_SIMS_DISPONIBLES = 'https://script.google.com/macros/s/AKfycbx2W9sDTwLxuKo3cIRvFIzgwXUXr-PSAHCaCG2p4M4eQshWeOp3UNSHtfK-_2NDfP7xLw/exec';
+        const URL_SIMS_DISPONIBLES = 'https://script.google.com/macros/s/AKfycbxY0sS0WNIENpPpQ6DTTz5s5GiVFhZM0cOQ_MhxTme0B9yZ10iU9FQXf6tgfOtoedZ8Nw/exec';
 
         let databaseFlota = [];
         let databaseSims = [];
@@ -192,38 +192,67 @@
             return [];
         }
 
-        
+        function obtenerFlotaCache() {
+
+            const cache = localStorage.getItem("flota_cache");
+            const cacheTime = localStorage.getItem("flota_cache_time");
+
+            const ahora = Date.now();
+
+            if (cache && cacheTime && (ahora - cacheTime < 300000)) {
+                return JSON.parse(cache);
+            }
+
+            return null;
+        }
+
         async function cargarFlota() {
             try {
                 const response = await fetch(URL_FLOTA);
                 databaseFlota = await response.json();
 
-                const list = document.getElementById('listaUnidades');
-                // Asumiendo que el Económico es la columna 2 (indice 1) según el mapeo de tu script
-                databaseFlota.forEach(row => {
-                    let option = document.createElement('option');
-                    option.value = row[2]; // Ajustar según posición real del No. Económico
-                    list.appendChild(option);
-                });
+                localStorage.setItem("flota_cache", JSON.stringify(databaseFlota));
+                localStorage.setItem("flota_cache_time", Date.now());
+
+                renderizarFlota();
+
                 updateStatus('FLOTA LISTA', 'bg-green-100 text-green-700');
             } catch (e) {
                 updateStatus('ERROR FLOTA', 'bg-red-100 text-red-700');
             }
         }
-        
+
+        function renderizarFlota() {
+
+            const list = document.getElementById('listaUnidades');
+
+            let html = "";
+
+            databaseFlota.forEach(row => {
+                html += `<option value="${row[2]}"></option>`;
+            });
+
+            list.innerHTML = html;
+
+        }
+
+
         window.onload = async () => {
-            databaseFlota = obtenerFlota();
-            if (databaseFlota.length === 0) {
+            const cache = obtenerFlotaCache();
+
+            if (cache) {
+                databaseFlota = cache;
+                renderizarFlota();
+            } else {
                 await cargarFlota();
             }
             await cargarSimsDisponibles();
         };
 
 
-
         async function cargarSimsDisponibles() {
             try {
-                const response = await fetch(`${URL_SIMS_DISPONIBLES}?accion=getDisponibles&t=${Date.now()}`);
+                const response = await fetch(`${URL_SIMS_DISPONIBLES}?accion=getDisponibles`);
                 const datos = await response.json();
 
                 // LIMPIEZA CRÍTICA: Forzamos a que todo sea String desde el inicio
@@ -237,7 +266,7 @@
 
                 databaseSims.forEach(sim => {
                     let opt = document.createElement('option');
-                    opt.value = sim.iccid; // Ahora es un String limpio
+                    opt.value = sim.iccid; 
                     opt.text = sim.iccid;
                     select.appendChild(opt);
                 });
