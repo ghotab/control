@@ -2,45 +2,49 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Dashboard SIM</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
+
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body {
             background: #F2F2F7;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
         }
-
         .apple-blur {
             backdrop-filter: blur(15px);
             background: rgba(255, 255, 255, .8);
         }
-
         .mac-card {
             border-radius: 18px;
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .1);
         }
-
-        .loading-shimmer {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            to {
-                background-position: -200% 0;
-            }
-        }
-
         .pb-safe {
             padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
             padding-top: env(safe-area-inset-top);
+        }
+        .page-btn {
+            min-width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all .15s;
+        }
+        .page-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+        .page-btn:not(.active):hover {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+        .page-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -49,125 +53,101 @@
 
     <nav class="apple-blur pt-safe border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-
             <div class="flex items-center gap-3">
-
                 <div class="bg-indigo-600 p-2 rounded-xl text-white flex items-center justify-center">
                     <i class="fa-solid fa-chalkboard-user text-lg"></i>
                 </div>
-
                 <h1 class="text-xl font-bold tracking-tight">
                     Dashboard <span class="text-indigo-600">SIM</span>
                 </h1>
-
             </div>
-
             <div class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 text-slate-500">
                 MONITOR OPERATIVO
             </div>
-
         </div>
     </nav>
 
-
     <div class="max-w-6xl mx-auto p-6 space-y-6">
 
+        <!-- FILTROS -->
         <section class="bg-white p-6 mac-card border border-slate-100 space-y-4">
-
             <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
                 Filtros de consulta
             </h2>
-
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-
                 <select id="filtroEstado" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-
                     <option value="asignada">SIMs por Instalar</option>
                     <option value="instalada">SIMs Instaladas</option>
-
                 </select>
 
                 <select id="filtroOperadora" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-
                     <option value="">Todas las operadoras</option>
                     <option value="Telcel">Telcel</option>
                     <option value="Yumovil">Yumovil</option>
-
                 </select>
 
                 <button id="btnActualizar" onclick="cargarDatos()"
                     class="px-5 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 transition flex items-center gap-2">
-
                     <span id="textoBtn">Actualizar</span>
-
-                    <div id="spinnerBtn"
-                        class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
-                    </div>
-
+                    <div id="spinnerBtn" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 </button>
-
             </div>
-
         </section>
 
+        <!-- RESULTADOS -->
         <section class="bg-white mac-card border border-slate-100 overflow-hidden">
-
             <div class="px-6 py-4 border-b border-slate-100">
-
                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
                     Resultados
                 </h2>
-
             </div>
 
-            <div id="loadingBar"
-                class="hidden flex items-center gap-3 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-3 rounded-xl">
-
+            <div id="loadingBar" class="hidden flex items-center gap-3 bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-3 mx-6 mt-4 rounded-xl">
                 <div class="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-
-                <span class="text-sm font-semibold">
-                    Cargando información del sistema...
-                </span>
-
+                <span class="text-sm font-semibold">Cargando información del sistema...</span>
             </div>
 
-
-
-            <div class="grid grid-cols-3 gap-4 mb-6">
-
+            <!-- KPIs -->
+            <div class="grid grid-cols-3 gap-4 m-6">
                 <div class="bg-white mac-card p-5 border border-slate-100">
                     <div class="text-xs uppercase text-slate-400 font-bold">Pendientes</div>
                     <div id="kpiPendientes" class="text-3xl font-bold text-amber-500">0</div>
                 </div>
-
                 <div class="bg-white mac-card p-5 border border-slate-100">
                     <div class="text-xs uppercase text-slate-400 font-bold">Instaladas</div>
                     <div id="kpiInstaladas" class="text-3xl font-bold text-emerald-600">0</div>
                 </div>
-
                 <div class="bg-white mac-card p-5 border border-slate-100">
                     <div class="text-xs uppercase text-slate-400 font-bold">Avance</div>
                     <div id="kpiAvance" class="text-3xl font-bold text-indigo-600">0%</div>
                 </div>
-
             </div>
 
-            <div class="hidden md:block">
-
-                <div class="hidden md:block">
-
-                    <input id="buscadorDesktop" type="text" placeholder="Buscar ICCID, Autobus, Base o Sociedad"
-                        style="margin-bottom:20px;margin-left: 15px;padding-right: 50px;"
-                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400" />
-
+            <!-- BUSCADOR + PAGINACIÓN SELECTOR (Desktop) -->
+            <div class="hidden md:flex items-center gap-3 px-6 mb-4">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input id="buscadorDesktop" type="text"
+                        placeholder="Buscar ICCID, Autobús, Base o Sociedad"
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 text-sm" />
                 </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-semibold whitespace-nowrap">Filas por página:</span>
+                    <select id="selectPorPagina" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="0">Todos</option>
+                    </select>
+                </div>
+                <button onclick="exportarCSV()" class="flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition whitespace-nowrap"><i class="fa-solid fa-file-csv mr-1"></i>Exportar vista</button>
+            </div>
 
+            <!-- TABLA Desktop -->
+            <div class="hidden md:block px-6">
                 <table class="w-full text-sm">
-
                     <thead class="bg-slate-100 text-slate-500 text-xs uppercase tracking-wider">
-
                         <tr>
                             <th class="p-3 text-left">ICCID</th>
                             <th class="p-3">Operadora</th>
@@ -178,230 +158,333 @@
                             <th class="p-3">Base</th>
                             <th class="p-3">Estado</th>
                         </tr>
-
                     </thead>
-
                     <tbody id="tablaSIM"></tbody>
-
                 </table>
 
+                <!-- Paginación Desktop -->
+                <div id="paginacionDesktop" class="flex items-center justify-between py-4 border-t border-slate-100 mt-2">
+                    <span id="infoResultados" class="text-xs text-slate-400 font-semibold"></span>
+                    <div id="btnsPagina" class="flex items-center gap-1"></div>
+                </div>
             </div>
 
-            <div id="cardsSIM" class="md:hidden space-y-4 active:scale-95 transition"></div>
+            <!-- CARDS Mobile -->
+            <div id="cardsSIM" class="md:hidden space-y-4 p-4"></div>
 
+            <!-- Paginación Mobile -->
+            <div id="paginacionMobile" class="md:hidden flex items-center justify-between px-4 pb-4 gap-2">
+                <span id="infoResultadosMobile" class="text-xs text-slate-400 font-semibold"></span>
+                <div id="btnsPaginaMobile" class="flex items-center gap-1"></div>
+            </div>
         </section>
 
-        <div
-            class="md:hidden fixed bottom-0 left-0 right-0 p-4 pb-safe bg-white/90 backdrop-blur border-t border-slate-200">
-            <input id="buscadorMobile" type="text" placeholder="Buscar ICCID, Autobus, Base o Sociedad"
-                class="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none" />
+    </div>
 
+    <!-- BUSCADOR MOBILE fijo abajo -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 p-4 pb-safe bg-white/90 backdrop-blur border-t border-slate-200 space-y-2">
+        <input id="buscadorMobile" type="text"
+            placeholder="Buscar ICCID, Autobús, Base o Sociedad"
+            class="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none" />
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-semibold">Filas:</span>
+            <select id="selectPorPaginaMobile" class="flex-1 p-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold">
+                <option value="25">25 por página</option>
+                <option value="50">50 por página</option>
+                <option value="0">Todos</option>
+            </select>
         </div>
-
+            <button onclick="exportarCSV()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition"><i class="fa-solid fa-file-csv"></i>Exportar vista actual</button>
     </div>
 
     <script>
 
         const API_SIM = "https://script.google.com/macros/s/AKfycbxY0sS0WNIENpPpQ6DTTz5s5GiVFhZM0cOQ_MhxTme0B9yZ10iU9FQXf6tgfOtoedZ8Nw/exec"
 
-        let datos = []
+        let datosOriginales = []   // Todo lo que llega de la API
+        let datosFiltrados  = []   // Después de buscador + operadora
+        let paginaActual    = 1
+        let porPagina       = 25   // default
 
+        // ─── CARGA PRINCIPAL ────────────────────────────────────────────────
         async function cargarDatos() {
-
-            const btn = document.getElementById("btnActualizar")
-            const spinner = document.getElementById("spinnerBtn")
-            const texto = document.getElementById("textoBtn")
-            const loadingBar = document.getElementById("loadingBar")
+            const btn      = document.getElementById("btnActualizar")
+            const spinner  = document.getElementById("spinnerBtn")
+            const texto    = document.getElementById("textoBtn")
+            const loading  = document.getElementById("loadingBar")
 
             btn.disabled = true
             spinner.classList.remove("hidden")
-            loadingBar.classList.remove("hidden")
+            loading.classList.remove("hidden")
             texto.innerText = "Actualizando..."
 
             try {
-
                 const estado = document.getElementById("filtroEstado").value
-                // consulta para la tabla
-                const tablaReq = fetch(API_SIM + "?accion=getDashboard&estado=" + estado)
-
-                // consultas para KPI
-                const pendientesReq = fetch(API_SIM + "?accion=getDashboard&estado=asignada")
-                const instaladasReq = fetch(API_SIM + "?accion=getDashboard&estado=instalada")
 
                 const [tablaRes, pendientesRes, instaladasRes] = await Promise.all([
-                    tablaReq,
-                    pendientesReq,
-                    instaladasReq
+                    fetch(API_SIM + "?accion=getDashboard&estado=" + estado),
+                    fetch(API_SIM + "?accion=getDashboard&estado=asignada"),
+                    fetch(API_SIM + "?accion=getDashboard&estado=instalada")
                 ])
 
-                const datosTabla = await tablaRes.json()
+                datosOriginales = await tablaRes.json()
                 const pendientes = await pendientesRes.json()
                 const instaladas = await instaladasRes.json()
 
-                datos = datosTabla
-
-                render()
-
                 actualizarKPIs(pendientes.length, instaladas.length)
+                paginaActual = 1
+                aplicarFiltros()
 
             } catch (err) {
-
                 console.error(err)
                 alert("Error cargando datos")
-
             }
 
             btn.disabled = false
             spinner.classList.add("hidden")
-            loadingBar.classList.add("hidden")
+            loading.classList.add("hidden")
             texto.innerText = "Actualizar"
-
         }
 
+        // ─── KPIs ────────────────────────────────────────────────────────────
         function actualizarKPIs(pendientes, instaladas) {
-
-            const total = pendientes + instaladas
-
-            const avance = total > 0
-                ? Math.round((instaladas / total) * 100)
-                : 0
-
+            const total  = pendientes + instaladas
+            const avance = total > 0 ? Math.round((instaladas / total) * 100) : 0
             document.getElementById("kpiPendientes").innerText = pendientes
             document.getElementById("kpiInstaladas").innerText = instaladas
-            document.getElementById("kpiAvance").innerText = avance + "%"
-
+            document.getElementById("kpiAvance").innerText     = avance + "%"
         }
 
-        function render() {
+        // ─── FILTRADO (buscador + operadora) ────────────────────────────────
+        function aplicarFiltros() {
+            const vDesktop = document.getElementById("buscadorDesktop").value.trim()
+            const vMobile  = document.getElementById("buscadorMobile").value.trim()
+            const textoBusqueda = (vDesktop || vMobile).toLowerCase()
 
-            const tbody = document.getElementById("tablaSIM")
-            const cards = document.getElementById("cardsSIM")
+            const operadora = document.getElementById("filtroOperadora").value.toLowerCase()
 
-            tbody.innerHTML = ""
-            cards.innerHTML = ""
+            datosFiltrados = datosOriginales.filter(sim => {
+                // Filtro operadora
+                if (operadora && sim.operadora.toLowerCase() !== operadora) return false
 
-            datos.forEach(sim => {
-
-                const row = `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 font-mono">${sim.iccid}</td>
-                        <td class="p-3">${sim.operadora}</td>
-                        <td class="p-3">${sim.autobus}</td>
-                        <td class="p-3">${sim.equipo}</td>
-                        <td class="p-3">${sim.sociedad}</td>
-                        <td class="p-3">${sim.ceco}</td>
-                        <td class="p-3">${sim.base}</td>
-                        <td class="p-3">${sim.estado}</td>
-                    </tr>
-                    `
-
-                tbody.insertAdjacentHTML("beforeend", row)
-
-                const card = `
-                    <div class="bg-white mac-card border border-slate-100 p-4 space-y-2">
-
-                    <div class="flex justify-between items-center">
-
-                    <div class="font-mono text-sm font-bold" style="font-size:18px;">
-                    ${sim.iccid}
-                    </div>
-
-                    <div class="text-xs bg-slate-100 px-2 py-1 rounded-full">
-                    ${sim.estado}
-                    </div>
-
-                    </div>
-
-                    <div class="text-sm">
-
-                    <div><b>Autobus:</b> ${sim.autobus}</div>
-                    <div><b>Sociedad:</b> ${sim.sociedad}</div>
-                    <div><b>Operadora:</b> ${sim.operadora}</div>
-                    <div><b>Equipo:</b> ${sim.equipo}</div>
-                    <div><b>Base:</b> ${sim.base}</div>
-
-                    </div>
-
-                    </div>
-                    `
-
-                cards.insertAdjacentHTML("beforeend", card)
-
+                // Filtro buscador (String() protege si el valor viene como número desde Sheets)
+                if (textoBusqueda) {
+                    return (
+                        String(sim.iccid    ?? "").toLowerCase().includes(textoBusqueda) ||
+                        String(sim.autobus  ?? "").toLowerCase().includes(textoBusqueda) ||
+                        String(sim.base     ?? "").toLowerCase().includes(textoBusqueda) ||
+                        String(sim.sociedad ?? "").toLowerCase().includes(textoBusqueda)
+                    )
+                }
+                return true
             })
 
+            paginaActual = 1
+            renderPagina()
         }
 
-        const buscador = document.getElementById("buscador")
+        // ─── RENDER CON PAGINACIÓN ───────────────────────────────────────────
+        function renderPagina() {
+            const total = datosFiltrados.length
+            const pp    = parseInt(porPagina)  // 0 = todos
 
-        buscador.addEventListener("input", function () {
+            const inicio = pp === 0 ? 0           : (paginaActual - 1) * pp
+            const fin    = pp === 0 ? total        : inicio + pp
+            const pagina = datosFiltrados.slice(inicio, fin)
 
-            const texto = this.value.toLowerCase()
+            // ── Tabla desktop ──
+            const tbody = document.getElementById("tablaSIM")
+            tbody.innerHTML = ""
+            pagina.forEach(sim => {
+                tbody.insertAdjacentHTML("beforeend", `
+                    <tr class="hover:bg-slate-50 border-b border-slate-50">
+                        <td class="p-3 font-mono text-xs">${String(sim.iccid ?? "")}</td>
+                        <td class="p-3 text-center">${sim.operadora ?? ""}</td>
+                        <td class="p-3 text-center">${sim.autobus   ?? ""}</td>
+                        <td class="p-3 text-center">${sim.equipo    ?? ""}</td>
+                        <td class="p-3 text-center">${sim.sociedad  ?? ""}</td>
+                        <td class="p-3 text-center">${sim.ceco      ?? ""}</td>
+                        <td class="p-3 text-center">${sim.base      ?? ""}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                ${sim.estado === 'instalada'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'}">
+                                ${sim.estado ?? ""}
+                            </span>
+                        </td>
+                    </tr>
+                `)
+            })
 
-            const filtrados = datos.filter(sim =>
+            // ── Cards mobile ──
+            const cards = document.getElementById("cardsSIM")
+            cards.innerHTML = ""
+            pagina.forEach(sim => {
+                cards.insertAdjacentHTML("beforeend", `
+                    <div class="bg-white mac-card border border-slate-100 p-4 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <div class="font-mono text-sm font-bold">${sim.iccid ?? ""}</div>
+                            <div class="text-xs px-2 py-1 rounded-full font-semibold
+                                ${sim.estado === 'instalada'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'}">
+                                ${sim.estado ?? ""}
+                            </div>
+                        </div>
+                        <div class="text-sm space-y-1">
+                            <div><b>Autobús:</b> ${sim.autobus  ?? ""}</div>
+                            <div><b>Sociedad:</b> ${sim.sociedad ?? ""}</div>
+                            <div><b>Operadora:</b> ${sim.operadora ?? ""}</div>
+                            <div><b>Equipo:</b> ${sim.equipo   ?? ""}</div>
+                            <div><b>Base:</b> ${sim.base     ?? ""}</div>
+                        </div>
+                    </div>
+                `)
+            })
 
-                sim.iccid.toLowerCase().includes(texto) ||
-                sim.autobus.toLowerCase().includes(texto) ||
-                sim.base.toLowerCase().includes(texto) ||
-                sim.sociedad.toLowerCase().includes(texto)
+            // ── Info resultados ──
+            const desde  = total === 0 ? 0 : inicio + 1
+            const hasta  = Math.min(fin, total)
+            const info   = `Mostrando ${desde}–${hasta} de ${total} registros`
+            document.getElementById("infoResultados").innerText      = info
+            document.getElementById("infoResultadosMobile").innerText = info
 
-            )
+            // ── Botones de paginación ──
+            renderBotonesPaginacion()
+        }
 
-            renderFiltrado(filtrados)
+        function renderBotonesPaginacion() {
+            const pp       = parseInt(porPagina)
+            const total    = datosFiltrados.length
+            const totalPag = pp === 0 ? 1 : Math.ceil(total / pp)
 
+            ;["btnsPagina", "btnsPaginaMobile"].forEach(id => {
+                const cont = document.getElementById(id)
+                cont.innerHTML = ""
+
+                if (totalPag <= 1) return
+
+                // Botón anterior
+                const prev = crearBtnPag("‹", paginaActual === 1, () => {
+                    paginaActual--; renderPagina()
+                })
+                cont.appendChild(prev)
+
+                // Páginas
+                const rango = paginasAMostrar(paginaActual, totalPag)
+                rango.forEach(p => {
+                    if (p === "…") {
+                        const span = document.createElement("span")
+                        span.textContent = "…"
+                        span.className = "px-1 text-slate-400 text-sm"
+                        cont.appendChild(span)
+                    } else {
+                        const btn = crearBtnPag(p, false, () => {
+                            paginaActual = p; renderPagina()
+                        })
+                        if (p === paginaActual) btn.classList.add("active")
+                        cont.appendChild(btn)
+                    }
+                })
+
+                // Botón siguiente
+                const next = crearBtnPag("›", paginaActual === totalPag, () => {
+                    paginaActual++; renderPagina()
+                })
+                cont.appendChild(next)
+            })
+        }
+
+        function crearBtnPag(label, disabled, onClick) {
+            const btn = document.createElement("button")
+            btn.textContent  = label
+            btn.className    = "page-btn px-2 bg-slate-100 text-slate-600"
+            btn.disabled     = disabled
+            btn.addEventListener("click", onClick)
+            return btn
+        }
+
+        function paginasAMostrar(actual, total) {
+            if (total <= 7) return Array.from({length: total}, (_, i) => i + 1)
+            const pages = []
+            if (actual <= 4) {
+                for (let i = 1; i <= 5; i++) pages.push(i)
+                pages.push("…")
+                pages.push(total)
+            } else if (actual >= total - 3) {
+                pages.push(1)
+                pages.push("…")
+                for (let i = total - 4; i <= total; i++) pages.push(i)
+            } else {
+                pages.push(1)
+                pages.push("…")
+                for (let i = actual - 1; i <= actual + 1; i++) pages.push(i)
+                pages.push("…")
+                pages.push(total)
+            }
+            return pages
+        }
+
+        // ─── EVENTOS ─────────────────────────────────────────────────────────
+
+        // Buscadores (desktop y mobile)
+        function onBusqueda(e) {
+            const otroId = e.target.id === "buscadorDesktop" ? "buscadorMobile" : "buscadorDesktop"
+            document.getElementById(otroId).value = e.target.value
+            paginaActual = 1
+            aplicarFiltros()
+        }
+        document.getElementById("buscadorDesktop").addEventListener("input", onBusqueda)
+        document.getElementById("buscadorMobile").addEventListener("input", onBusqueda)
+
+        // Filtro operadora — filtra en cliente sin llamar API de nuevo
+        document.getElementById("filtroOperadora").addEventListener("change", () => {
+            paginaActual = 1
+            aplicarFiltros()
         })
 
-        function renderFiltrado(lista) {
-            const tbody = document.getElementById("tablaSIM")
-            const cards = document.getElementById("cardsSIM")
-
-            tbody.innerHTML = ""
-            cards.innerHTML = ""
-
-            lista.forEach(sim => {
-
-                const row = `
-                    <tr class="hover:bg-slate-50">
-                    <td class="p-3 font-mono">${sim.iccid}</td>
-                    <td class="p-3">${sim.operadora}</td>
-                    <td class="p-3">${sim.autobus}</td>
-                    <td class="p-3">${sim.equipo}</td>
-                    <td class="p-3">${sim.sociedad}</td>
-                    <td class="p-3">${sim.ceco}</td>
-                    <td class="p-3">${sim.base}</td>
-                    </tr>
-                    `
-                tbody.insertAdjacentHTML("beforeend", row)
-
+        // Selector de filas por página
+        ;["selectPorPagina", "selectPorPaginaMobile"].forEach(id => {
+            document.getElementById(id).addEventListener("change", function () {
+                porPagina    = parseInt(this.value)
+                paginaActual = 1
+                // Sincronizar ambos selectores
+                const otro = id === "selectPorPagina" ? "selectPorPaginaMobile" : "selectPorPagina"
+                document.getElementById(otro).value = this.value
+                renderPagina()
             })
-        }
+        })
 
-        function activarBusqueda(input) {
-
-            if (!input) return
-
-            input.addEventListener("input", function () {
-
-                const texto = this.value.toLowerCase()
-                const filtrados = datos.filter(sim =>
-                    sim.iccid.toLowerCase().includes(texto) ||
-                    sim.autobus.toLowerCase().includes(texto) ||
-                    sim.sociedad.toLowerCase().includes(texto) ||
-                    sim.base.toLowerCase().includes(texto)
-                )
-                renderFiltrado(filtrados)
-            })
-
-        }
-
-        activarBusqueda(document.getElementById("buscadorDesktop"))
-        activarBusqueda(document.getElementById("buscadorMobile"))
-
+        // Carga inicial
         cargarDatos()
 
 
+        // ─── EXPORTAR CSV ────────────────────────────────────────────────────
+        function exportarCSV() {
+            if (!datosFiltrados.length) {
+                alert("No hay datos para exportar.")
+                return
+            }
+            const encabezados = ["ICCID","Operadora","Autobus","Equipo","Sociedad","CECO","Base","Estado"]
+            const filas = datosFiltrados.map(sim =>
+                [sim.iccid,sim.operadora,sim.autobus,sim.equipo,sim.sociedad,sim.ceco,sim.base,sim.estado]
+                .map(v => '"' + String(v ?? "").replace(/"/g, '""') + '"')
+                .join(",")
+            )
+            const csv    = [encabezados.join(","), ...filas].join("\n")
+            const blob   = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })
+            const url    = URL.createObjectURL(blob)
+            const estado = document.getElementById("filtroEstado").value
+            const fecha  = new Date().toISOString().slice(0,10)
+            const a      = document.createElement("a")
+            a.href       = url
+            a.download   = "SIM_" + estado + "_" + fecha + ".csv"
+            a.click()
+            URL.revokeObjectURL(url)
+        }
 
     </script>
 
 </body>
-
 </html>
