@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de SIMs</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-text: #000000;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+            --ios-arrow: #c4c4c6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
+            color: var(--ios-text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Título Grande Estilo iOS */
+        .header-ios {
+            padding: 40px 20px 10px 20px;
+        }
+
+        .header-ios h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .header-ios p {
+            color: var(--ios-label);
+            font-size: 15px;
+            margin: 5px 0 0 0;
+        }
+
+        /* Contenedor de Grupos */
+        .menu-container {
+            padding: 20px 16px;
+        }
+
+        .ios-group-title {
+            font-size: 13px;
+            color: var(--ios-label);
+            text-transform: uppercase;
+            margin: 0 0 8px 16px;
+            letter-spacing: 0.3px;
+        }
+
+        /* La "Card" de iOS que agrupa filas */
+        .ios-group {
+            background: var(--ios-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 0.5px solid var(--ios-border);
+            margin-bottom: 30px;
+        }
+
+        /* Filas del Menú */
+        .ios-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: var(--ios-text);
+            background-color: var(--ios-card);
+            transition: background-color 0.2s;
+            min-height: 44px;
+            border-bottom: 0.5px solid var(--ios-border);
+        }
+
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        .ios-row:active {
+            background-color: #e5e5ea;
+        }
+
+        /* Iconos circulares de colores tipo Settings */
+        .icon-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+            color: white;
+        }
+
+        /* Colores Apple Standard */
+        .bg-blue {
+            background-color: #007aff;
+        }
+
+        .bg-orange {
+            background-color: #ff9500;
+        }
+
+        .bg-green {
+            background-color: #34c759;
+        }
+
+        .bg-red {
+            background-color: #ff3b30;
+        }
+
+        .bg-purple {
+            background-color: #5856d6;
+        }
+
+        .row-text {
+            flex: 1;
+            font-size: 17px;
+            font-weight: 400;
+        }
+
+        .chevron {
+            color: var(--ios-arrow);
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--ios-label);
+            font-size: 12px;
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header-ios">
+        <h1>Consulta de Distribución</h1>
+        <p>Logística y Operación</p>
+    </div>
+
+    <div class="menu-container">
+
+        <p class="ios-group-title">Consultas</p>
+        <div class="ios-group">
+            <a href="distro.html" class="ios-row">
+                <div class="icon-box bg-blue">
+                    <i class="fa-solid fa-bus"></i>
+                </div>
+                <div class="row-text">Consultar por Unidad</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+            <a href="xrol.html" class="ios-row">
+                <div class="icon-box bg-blue">
+                    <i class="fa-solid fa-route"></i>
+                </div>
+                <div class="row-text">Consultar por Rol</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+            <a href="xbase.html" class="ios-row">
+                <div class="icon-box bg-blue">
+                    <i class="fa-solid fa-industry"></i>
+                </div>
+                <div class="row-text">Consultar por Base</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+
+        </div>
+
+      
+    </div>
+
+    <div class="footer">
+        GRUPO HERRADURA OCCIDENTE<br>
+        2026 • © Todos los derechos reservados
+    </div>
+
+    <script>
+
+        const URL_FLOTA = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec?accion=getFlota";
+
+        async function precargarFlota() {
+
+            const cache = localStorage.getItem("flota_cache");
+            const cacheTime = localStorage.getItem("flota_cache_time");
+
+            const ahora = Date.now();
+
+            // 1 hora de vigencia
+            if (cache && cacheTime && (ahora - cacheTime < 3600000)) {
+                console.log("Precarga de distribución: Listo");
+                return;
+            }
+
+            try {
+
+                console.log("Precargando distribución...");
+
+                const res = await fetch(URL_FLOTA);
+                const data = await res.json();
+
+                localStorage.setItem("flota_cache", JSON.stringify(data));
+                localStorage.setItem("flota_cache_time", ahora);
+
+                console.log("Distribución guardada en cache");
+
+            } catch (e) {
+
+                console.error("Error precargando flota", e);
+
+            }
+
+        }
+
+        precargarFlota();
+
+    </script>
+
+
+</body>
+
+</html>
