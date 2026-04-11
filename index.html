@@ -1,137 +1,158 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GHO | Operaciones TAB</title>
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <<meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <link rel="manifest" href="manifest.json">
+        <link rel="apple-touch-icon" href="icono.png">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <style>
-        :root {
-            --ios-blue: #007aff;
-            --ios-bg: #f2f2f7;
-            --ios-card: #ffffff;
-            --ios-text: #000000;
-            --ios-label: #8e8e93;
-            --ios-border: #d1d1d6;
-            --ios-arrow: #c4c4c6;
-        }
+        <style>
+            :root {
+                --ios-blue: #007aff;
+                --ios-bg: #f2f2f7;
+                --ios-card: #ffffff;
+                --ios-text: #000000;
+                --ios-label: #8e8e93;
+                --ios-border: #d1d1d6;
+                --ios-arrow: #c4c4c6;
+            }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-            background-color: var(--ios-bg);
-            margin: 0;
-            color: var(--ios-text);
-            -webkit-font-smoothing: antialiased;
-        }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+                background-color: var(--ios-bg);
+                margin: 0;
+                color: var(--ios-text);
+                -webkit-font-smoothing: antialiased;
+            }
 
-        /* Título Grande Estilo iOS */
-        .header-ios {
-            padding: 40px 20px 10px 20px;
-            background-color: var(--ios-bg);
-        }
+            /* Título Grande Estilo iOS */
+            .header-ios {
+                padding: 40px 20px 10px 20px;
+                background-color: var(--ios-bg);
+            }
 
-        .header-ios h1 {
-            font-size: 34px;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
+            .header-ios h1 {
+                font-size: 34px;
+                font-weight: 700;
+                margin: 0;
+                letter-spacing: -0.5px;
+            }
 
-        .header-ios p {
-            color: var(--ios-label);
-            font-size: 15px;
-            margin: 5px 0 0 0;
-            font-weight: 400;
-        }
+            .header-ios p {
+                color: var(--ios-label);
+                font-size: 15px;
+                margin: 5px 0 0 0;
+                font-weight: 400;
+            }
 
-        /* Contenedor de Menú */
-        .menu-container {
-            padding: 10px 16px 40px 16px;
-        }
+            /* Contenedor de Menú */
+            .menu-container {
+                padding: 10px 16px 40px 16px;
+            }
 
-        /* Títulos de sección */
-        .ios-group-title {
-            font-size: 13px;
-            color: var(--ios-label);
-            text-transform: uppercase;
-            margin: 20px 0 8px 16px;
-            letter-spacing: 0.3px;
-        }
+            /* Títulos de sección */
+            .ios-group-title {
+                font-size: 13px;
+                color: var(--ios-label);
+                text-transform: uppercase;
+                margin: 20px 0 8px 16px;
+                letter-spacing: 0.3px;
+            }
 
-        /* Grupos de Ajustes */
-        .ios-group {
-            background: var(--ios-card);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 0.5px solid var(--ios-border);
-        }
+            /* Grupos de Ajustes */
+            .ios-group {
+                background: var(--ios-card);
+                border-radius: 12px;
+                overflow: hidden;
+                border: 0.5px solid var(--ios-border);
+            }
 
-        /* Celdas del Menú */
-        .ios-row {
-            display: flex;
-            align-items: center;
-            padding: 10px 16px;
-            text-decoration: none;
-            color: var(--ios-text);
-            background-color: var(--ios-card);
-            transition: background-color 0.2s;
-            min-height: 44px;
-            border-bottom: 0.5px solid var(--ios-border);
-        }
+            /* Celdas del Menú */
+            .ios-row {
+                display: flex;
+                align-items: center;
+                padding: 10px 16px;
+                text-decoration: none;
+                color: var(--ios-text);
+                background-color: var(--ios-card);
+                transition: background-color 0.2s;
+                min-height: 44px;
+                border-bottom: 0.5px solid var(--ios-border);
+            }
 
-        .ios-row:last-child {
-            border-bottom: none;
-        }
+            .ios-row:last-child {
+                border-bottom: none;
+            }
 
-        .ios-row:active {
-            background-color: #e5e5ea;
-        }
+            .ios-row:active {
+                background-color: #e5e5ea;
+            }
 
-        /* Caja de Iconos de Colores */
-        .icon-box {
-            width: 30px;
-            height: 30px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 16px;
-            color: white;
-        }
+            /* Caja de Iconos de Colores */
+            .icon-box {
+                width: 30px;
+                height: 30px;
+                border-radius: 7px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+                font-size: 16px;
+                color: white;
+            }
 
-        /* Paleta de Colores iOS Settings */
-        .bg-blue    { background-color: #007aff; }
-        .bg-orange  { background-color: #ff9500; }
-        .bg-green   { background-color: #34c759; }
-        .bg-red     { background-color: #ff3b30; }
-        .bg-indigo  { background-color: #5856d6; }
-        .bg-teal    { background-color: #30b0c7; }
+            /* Paleta de Colores iOS Settings */
+            .bg-blue {
+                background-color: #007aff;
+            }
 
-        .row-text {
-            flex: 1;
-            font-size: 17px;
-            font-weight: 400;
-        }
+            .bg-orange {
+                background-color: #ff9500;
+            }
 
-        .chevron {
-            color: var(--ios-arrow);
-            font-size: 14px;
-            margin-left: 10px;
-        }
+            .bg-green {
+                background-color: #34c759;
+            }
 
-        .footer {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--ios-label);
-            font-size: 13px;
-        }
-    </style>
+            .bg-red {
+                background-color: #ff3b30;
+            }
+
+            .bg-indigo {
+                background-color: #5856d6;
+            }
+
+            .bg-teal {
+                background-color: #30b0c7;
+            }
+
+            .row-text {
+                flex: 1;
+                font-size: 17px;
+                font-weight: 400;
+            }
+
+            .chevron {
+                color: var(--ios-arrow);
+                font-size: 14px;
+                margin-left: 10px;
+            }
+
+            .footer {
+                text-align: center;
+                padding: 30px 20px;
+                color: var(--ios-label);
+                font-size: 13px;
+            }
+        </style>
 </head>
+
 <body>
 
     <div class="header-ios">
@@ -141,18 +162,6 @@
 
     <div class="menu-container">
 
-        <p class="ios-group-title">LOGÍSTICA Y OPERACIÓN</p>
-        <div class="ios-group">
-            <a href="tab/querydistro.html" class="ios-row">
-                <div class="icon-box bg-green">
-                    <i class="fa-solid fa-bus"></i>
-                </div>
-                <div class="row-text">Consultar Distribución</div>
-                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-            </a>
-          
-        </div>
-        
         <p class="ios-group-title">OPERACIONES DE CAMPO</p>
         <div class="ios-group">
             <a href="cctv/bandejas/index.html" class="ios-row">
@@ -163,15 +172,38 @@
                 <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
             </a>
 
-             <a href="sims/index.html" class="ios-row">
+            <a href="sims/index.html" class="ios-row">
                 <div class="icon-box bg-indigo">
                     <i class="fa-solid fa-signal"></i>
                 </div>
                 <div class="row-text">Control de SIMS</div>
                 <div class="chevron"><i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></div>
             </a>
-          
+
         </div>
+
+        <p class="ios-group-title">LOGÍSTICA Y OPERACIÓN</p>
+        <div class="ios-group">
+
+            <a href="refa/index.html" class="ios-row">
+                <div class="icon-box bg-indigo">
+                    <i class="fa-solid fa-tools"></i>
+                </div>
+                <div class="row-text">Refaccionamiento</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+
+            <a href="tab/querydistro.html" class="ios-row">
+                <div class="icon-box bg-green">
+                    <i class="fa-solid fa-bus"></i>
+                </div>
+                <div class="row-text">Consultar Distribución</div>
+                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+            </a>
+
+        </div>
+
+
 
 
         <p class="ios-group-title">BOLETERA A BORDO</p>
@@ -192,7 +224,8 @@
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
                 <div class="row-text">CCTV Inspección Preventiva</div>
-                <div class="chevron"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i></div>
+                <div class="chevron"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                </div>
             </a>
         </div>
 
@@ -203,5 +236,12 @@
         Grupo Herradura Occidente 2026
     </div>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => { });
+        }
+    </script>
+
 </body>
+
 </html>
