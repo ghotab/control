@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REFA Control — Recepción</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #F2F2F7;
+      --surface: #fff;
+      --border: #e2e8f0;
+      --border-lo: #f1f5f9;
+      --indigo: #4f46e5;
+      --indigo-lo: #eef2ff;
+      --text: #0f172a;
+      --muted: #94a3b8;
+      --mid: #64748b;
+      --sans: 'DM Sans', -apple-system, sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, .88);
+      border-bottom: 1px solid var(--border-lo);
+      padding: .7rem 1rem
+    }
+
+    .nb {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .nav-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0d9488, #059669);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      color: white;
+      flex-shrink: 0
+    }
+
+    .nav-t {
+      font-size: .9rem;
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .nav-s {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .btn-logout {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s
+    }
+
+    .btn-logout:hover {
+      background: #fee2e2;
+      color: #ef4444
+    }
+
+    .main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 5rem
+    }
+
+    .mac-card {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .09);
+      padding: 1.4rem;
+      margin-bottom: .85rem;
+      animation: fadeUp .3s ease both
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .section-header {
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1.1rem;
+      padding-bottom: .65rem;
+      border-bottom: 1px solid var(--border-lo)
+    }
+
+    .sdot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .field-label {
+      display: block;
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 4px
+    }
+
+    .field-input {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .85rem 1rem;
+      font-size: .9rem;
+      color: var(--text);
+      outline: none;
+      font-family: var(--sans);
+      transition: all .2s
+    }
+
+    .field-input:focus {
+      box-shadow: 0 0 0 2px #818cf8;
+      border-color: transparent
+    }
+
+    .field-input.readonly {
+      background: #f1f5f9;
+      color: var(--mid);
+      cursor: not-allowed
+    }
+
+    .field-input.mono {
+      font-family: var(--mono)
+    }
+
+    .field-input.error {
+      box-shadow: 0 0 0 2px #f87171;
+      border-color: transparent
+    }
+
+    .qr-wrap {
+      position: relative
+    }
+
+    .qr-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--indigo);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: .9rem;
+      transition: background .2s
+    }
+
+    .qr-btn:hover {
+      background: #4338ca
+    }
+
+    .error-msg {
+      font-size: .72rem;
+      color: #ef4444;
+      margin-top: 4px;
+      display: none
+    }
+
+    .error-msg.show {
+      display: block
+    }
+
+    /* ESTADO CARD - para mostrar los datos de la solicitud encontrada */
+    .sol-found {
+      display: none;
+      background: linear-gradient(135deg, #eef2ff, #f0fdf4);
+      border: 1px solid #c7d2fe;
+      border-radius: 14px;
+      padding: 1rem;
+      margin-top: .75rem;
+      animation: fadeUp .2s ease both
+    }
+
+    .sf-title {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .6rem;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .sf-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem
+    }
+
+    .sf-chip {
+      background: white;
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      padding: .25rem .75rem;
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--indigo);
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .sf-chip span {
+      color: var(--mid);
+      font-weight: 400
+    }
+
+    /* STATUS BADGE */
+    .sbadge {
+      font-size: .68rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: .25rem .7rem;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .s-ruta {
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #99f6e4
+    }
+
+    .s-entregado {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac
+    }
+
+    .s-inconsistencia {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca
+    }
+
+    .s-cerrado {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0
+    }
+
+    /* SERIES LIST para comparación */
+    .series-compare {
+      margin-top: .5rem
+    }
+
+    .serie-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .5rem .75rem;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-family: var(--mono);
+      font-size: .82rem
+    }
+
+    .serie-row.ok {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0
+    }
+
+    .serie-row.no {
+      background: #f8fafc;
+      color: var(--mid);
+      border: 1px solid var(--border)
+    }
+
+    /* INSTALACION PANEL */
+    .inst-panel {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 14px;
+      padding: 1rem;
+      display: none;
+      animation: fadeUp .2s ease both;
+      margin-top: .6rem
+    }
+
+    .inst-panel.visible {
+      display: block
+    }
+
+    .inst-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: #92400e;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .75rem;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    /* CONFIRM SCREEN */
+    #confirmacion {
+      display: none
+    }
+
+    /* TOGGLE */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: .75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-lo);
+      background: #fafcff
+    }
+
+    .toggle-row-label {
+      font-size: .9rem;
+      color: #334155;
+      font-weight: 500;
+      flex: 1
+    }
+
+    .toggle {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex-shrink: 0
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #e2e8f0;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: .3s
+    }
+
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 4px;
+      top: 4px;
+      background: white;
+      border-radius: 50%;
+      transition: .3s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .2)
+    }
+
+    .toggle input:checked+.toggle-slider {
+      background: var(--indigo)
+    }
+
+    .toggle input:checked+.toggle-slider::after {
+      transform: translateX(22px)
+    }
+
+    .toggle-status {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--muted);
+      min-width: 20px;
+      text-align: right
+    }
+
+    .toggle-status.on {
+      color: var(--indigo)
+    }
+
+    .btn-primary {
+      background: var(--indigo);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: .9rem 1.5rem;
+      font-weight: 700;
+      font-size: .92rem;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, .3)
+    }
+
+    .btn-primary:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--indigo);
+      border: 2px solid #c7d2fe;
+      border-radius: 14px;
+      padding: .8rem 1.5rem;
+      font-weight: 700;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%
+    }
+
+    .btn-secondary:hover {
+      background: var(--indigo-lo)
+    }
+
+    /* Scan modal */
+    #scan-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0, 0, 0, .75);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem
+    }
+
+    #scan-modal.open {
+      display: flex
+    }
+
+    #scan-video {
+      width: 100%;
+      border-radius: 12px;
+      max-height: 55vh;
+      object-fit: cover
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #1e293b;
+      color: white;
+      font-size: .85rem;
+      font-weight: 600;
+      padding: .75rem 1.25rem;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .3s cubic-bezier(.16, 1, .3, 1);
+      white-space: nowrap;
+      max-width: 90vw
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0)
+    }
+
+    .toast.ok {
+      background: #047857
+    }
+
+    .toast.err {
+      background: #dc2626
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .spin {
+      animation: spin .7s linear infinite;
+      display: inline-block
+    }
+
+    /* Fixed submit */
+    .submit-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: .75rem 1rem;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      background: rgba(255, 255, 255, .9);
+      border-top: 1px solid rgba(0, 0, 0, .06);
+      z-index: 99
+    }
+
+    @media(min-width:768px) {
+      .submit-bar {
+        display: none
+      }
+
+      .submit-desktop {
+        display: flex !important
+      }
+    }
+
+    .submit-desktop {
+      display: none
+    }
+  </style>
+</head>
+
+<body class="pb-28 md:pb-0">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nb">
+      <div class="nav-brand">
+        <div class="nav-icon"><i class="fa-solid fa-box-open"></i></div>
+        <div>
+          <div class="nav-t">Recepción e Instalación</div>
+          <div class="nav-s">REFA Control</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span
+          style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:.2rem .6rem;border-radius:999px;background:#f0fdf4;color:#059669;border:1px solid #bbf7d0"
+          id="nav-rol">—</span>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-2xl mx-auto px-4" style="max-width:680px;margin:0 auto;padding:0 1rem">
+
+    <!-- ─── FORM PRINCIPAL ─── -->
+    <div id="form-wrap">
+      <div style="padding:1.25rem 0 .5rem">
+        <h1 style="font-size:1.15rem;font-weight:700;color:var(--text)">Confirmar Recepción</h1>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:3px">Registra lo que recibiste y confirma la
+          instalación del componente.</p>
+      </div>
+
+      <!-- S1: Buscar solicitud -->
+      <div class="mac-card" style="animation-delay:.05s">
+        <div class="section-header"><span class="sdot" style="background:#4f46e5"></span>Localizar Solicitud</div>
+
+        <label class="field-label" for="inp-folio">Folio de la Solicitud</label>
+        <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+          <input id="inp-folio" type="text" class="field-input mono" placeholder="REF-20240101-1234" style="flex:1"
+            oninput="this.value=this.value.toUpperCase()">
+          <button onclick="buscarSolicitud()"
+            style="background:var(--indigo);color:white;border:none;border-radius:12px;padding:.85rem 1.1rem;cursor:pointer;font-size:.85rem;font-weight:700;transition:background .2s;display:flex;align-items:center;gap:6px;white-space:nowrap"
+            onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='var(--indigo)'">
+            <i class="fa-solid fa-search" id="search-sol-icon"></i> Buscar
+          </button>
+        </div>
+        <p class="error-msg" id="err-folio">Folio no encontrado o esta solicitud no está en ruta.</p>
+
+        <!-- DATOS DE LA SOLICITUD ENCONTRADA -->
+        <div id="sol-found" class="sol-found">
+          <div class="sf-title"><i class="fa-solid fa-bus" style="color:var(--indigo)"></i>Solicitud encontrada</div>
+          <div class="sf-chips">
+            <div class="sf-chip"><i class="fa-solid fa-hashtag"></i><span id="sf-eco">—</span></div>
+            <div class="sf-chip"><i class="fa-solid fa-microchip"></i><span id="sf-comp">—</span></div>
+            <div class="sf-chip"><i class="fa-solid fa-user-tie"></i><span id="sf-tec">—</span></div>
+            <div class="sf-chip"><i class="fa-solid fa-location-dot"></i><span id="sf-base">—</span></div>
+          </div>
+          <div style="margin-top:.6rem;display:flex;align-items:center;gap:8px">
+            <span id="sf-badge"></span>
+            <span style="font-size:.75rem;color:var(--muted)">Guía: <span id="sf-guia"
+                style="font-family:var(--mono)">—</span></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- S2: Series recibidas -->
+      <div class="mac-card" id="card-series" style="display:none;animation-delay:.1s">
+        <div class="section-header"><span class="sdot" style="background:#8b5cf6"></span>Series Recibidas</div>
+
+        <p style="font-size:.82rem;color:var(--mid);margin-bottom:.75rem">
+          Escanea o ingresa los números de serie de los componentes que recibiste.
+          <span style="color:var(--muted)">Series enviadas por el gestor se muestran abajo.</span>
+        </p>
+
+        <div class="qr-wrap">
+          <input id="inp-serie-rec" type="text" class="field-input mono"
+            placeholder="Escanea o escribe el número de serie" style="padding-right:2.8rem">
+          <button class="qr-btn" onclick="abrirEscaner('inp-serie-rec')" title="Escanear"><i
+              class="fa-solid fa-barcode"></i></button>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem">
+          <button onclick="agregarSerieRec()"
+            style="background:var(--indigo-lo);color:var(--indigo);border:1px solid #c7d2fe;border-radius:10px;padding:.65rem 1rem;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s"
+            onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='var(--indigo-lo)'">
+            <i class="fa-solid fa-plus"></i> Agregar
+          </button>
+        </div>
+
+        <!-- Comparación enviado vs recibido -->
+        <div id="compare-wrap" class="series-compare" style="margin-top:.85rem">
+          <!-- se puebla dinámicamente -->
+        </div>
+
+        <p class="error-msg" id="err-series">Agrega al menos un número de serie recibido.</p>
+      </div>
+
+      <!-- S3: Instalación -->
+      <div class="mac-card" id="card-instalacion" style="display:none;animation-delay:.15s">
+        <div class="section-header"><span class="sdot" style="background:#f59e0b"></span>Instalación</div>
+
+        <div class="toggle-row" style="margin-bottom:.75rem">
+          <span class="toggle-row-label">El componente ya fue instalado</span>
+          <label class="toggle"><input type="checkbox" id="tog-instalado" onchange="syncToggle(this,'st-inst')"><span
+              class="toggle-slider"></span></label>
+          <span class="toggle-status" id="st-inst">No</span>
+        </div>
+
+        <div class="inst-panel" id="panel-inst">
+          <div class="inst-title"><i class="fa-solid fa-screwdriver-wrench"></i>Detalles de Instalación</div>
+          <div style="margin-bottom:.75rem">
+            <label class="field-label" for="inp-serie-instalado">N° de Serie Instalado</label>
+            <div class="qr-wrap">
+              <input id="inp-serie-instalado" type="text" class="field-input mono"
+                placeholder="Serie del componente que quedó instalado" style="padding-right:2.8rem">
+              <button class="qr-btn" onclick="abrirEscaner('inp-serie-instalado')" title="Escanear"><i
+                  class="fa-solid fa-barcode"></i></button>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="obs-instalacion">Observaciones de la instalación</label>
+            <textarea id="obs-instalacion" class="field-input" rows="2"
+              placeholder="Todo correcto / cambios realizados..."></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Botón desktop -->
+      <div class="submit-desktop justify-end pb-6" id="btn-desktop-wrap" style="display:none">
+        <button class="btn-primary" id="btn-submit-desktop" onclick="enviarRecepcion()" style="max-width:280px">
+          <i class="fa-solid fa-paper-plane"></i> Confirmar Recepción
+        </button>
+      </div>
+    </div><!-- /form-wrap -->
+
+    <!-- ─── PANTALLA CONFIRMACIÓN ─── -->
+    <div id="confirmacion" class="mac-card" style="text-align:center;padding:3rem 1.5rem;margin-top:1.25rem">
+      <div id="conf-icon"
+        style="width:72px;height:72px;border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;font-size:2rem">
+      </div>
+      <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:.4rem" id="conf-titulo">—</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem" id="conf-sub">—</p>
+      <p style="font-size:.75rem;color:#94a3b8;margin-bottom:1.5rem" id="conf-folio"></p>
+      <div
+        style="background:var(--indigo-lo);border-radius:12px;padding:.8rem 1rem;margin-bottom:1.5rem;border:1px solid #c7d2fe;font-size:.82rem;color:var(--mid)"
+        id="conf-detalle"></div>
+      <div style="display:flex;flex-direction:column;gap:.6rem;max-width:280px;margin:0 auto">
+        <button class="btn-primary" onclick="nuevaRecepcion()"><i class="fa-solid fa-plus"></i> Nueva Recepción</button>
+        <a href="solicitud.html" style="text-decoration:none"><button class="btn-secondary" style="width:100%"><i
+              class="fa-solid fa-file-pen"></i> Nueva Solicitud</button></a>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- SUBMIT MOBILE -->
+  <div class="submit-bar md:hidden" id="submit-bar-mobile" style="display:none">
+    <button class="btn-primary" id="btn-submit-mobile" onclick="enviarRecepcion()">
+      <i class="fa-solid fa-paper-plane"></i> Confirmar Recepción
+    </button>
+  </div>
+
+  <!-- SCAN MODAL -->
+  <div id="scan-modal">
+    <div style="background:white;border-radius:20px;padding:1.25rem;width:100%;max-width:360px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <strong style="font-size:.9rem">Escanear código</strong>
+        <button onclick="cerrarEscaner()"
+          style="background:#f1f5f9;border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;color:#64748b;font-size:.8rem;display:flex;align-items:center;justify-content:center"><i
+            class="fa-solid fa-xmark"></i></button>
+      </div>
+      <video id="scan-video" autoplay muted playsinline></video>
+      <p style="font-size:.75rem;color:#94a3b8;text-align:center;margin:.75rem 0 .5rem">Apunta la cámara al código</p>
+      <button onclick="cerrarEscaner()"
+        style="width:100%;padding:.7rem;border-radius:10px;border:2px solid #e2e8f0;background:white;color:#64748b;font-weight:600;font-size:.85rem;cursor:pointer">
+        <i class="fa-solid fa-keyboard" style="margin-right:5px"></i>Ingresar manualmente
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_REFA = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+    let sesion = {}, solActual = null, seriesRecibidas = [];
+    let scanTarget = null, scanStream = null, scanInterval = null;
+
+    // ── SESIÓN ──
+    function initSesion() {
+      const clave = localStorage.getItem('tecnico'), nombre = localStorage.getItem('nombre_tecnico'),
+        base = localStorage.getItem('base'), rol = localStorage.getItem('rol');
+      if (!clave || !['tecnico', 'coordinador', 'gestor'].includes(rol)) {
+        window.location.href = 'login.html'; return false;
+      }
+      sesion = { clave, nombre, base, rol };
+      const etiq = { tecnico: 'Técnico', coordinador: 'Coordinador', gestor: 'Gestor' };
+      document.getElementById('nav-rol').textContent = etiq[rol] || rol;
+      return true;
+    }
+    function cerrarSesion() {
+      ['tecnico', 'nombre_tecnico', 'base', 'rol', 'clave_sesion'].forEach(k => localStorage.removeItem(k));
+      window.location.href = 'login.html';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!initSesion()) return;
+      // Si viene con folio en URL ?folio=REF-...
+      const params = new URLSearchParams(window.location.search);
+      const folioURL = params.get('folio');
+      if (folioURL) { document.getElementById('inp-folio').value = folioURL; buscarSolicitud(); }
+
+      // Enter en folio
+      document.getElementById('inp-folio').addEventListener('keydown', e => { if (e.key === 'Enter') buscarSolicitud(); });
+      // Enter en serie
+      document.getElementById('inp-serie-rec').addEventListener('keydown', e => { if (e.key === 'Enter') agregarSerieRec(); });
+    });
+
+    // ── BUSCAR SOLICITUD ──
+    async function buscarSolicitud() {
+      const folio = document.getElementById('inp-folio').value.trim().toUpperCase();
+      if (!folio) return;
+      const icon = document.getElementById('search-sol-icon');
+      icon.className = 'fa-solid fa-circle-notch spin';
+      document.getElementById('err-folio').classList.remove('show');
+
+      try {
+        let sol = null;
+        if (API_REFA === 'TU_URL_REFA_AQUI') {
+          await new Promise(r => setTimeout(r, 500));
+          // Mock: buscar en datos locales o inventar uno
+          const mock = {
+            'REF-20240528-0104': {
+              folio: 'REF-20240528-0104', estatus: 'En ruta al solicitante',
+              num_eco: 'ECO-009', base_operativa: 'Jilotepec', bus_servicio: 'Autovías',
+              clave_tecnico: 'TEC-004', tecnico: 'Pedro Ruiz',
+              categoria: 'CCTV', componente: 'CAM-002', material_nombre: 'DVR 8 canales H.265',
+              falla: 'Sin grabación.', num_guia: 'GU-FEDX-9987234110',
+              serie_enviado: 'SN-DVR-334411'
+            },
+            'REF-20240530-0187': {
+              folio: 'REF-20240530-0187', estatus: 'En ruta al solicitante',
+              num_eco: 'ECO-005', base_operativa: 'Toluca', bus_servicio: 'Autovías',
+              clave_tecnico: 'TEC-001', tecnico: 'Juan Pérez',
+              categoria: 'TERMINAL BANCARIA', componente: 'TBK-001', material_nombre: 'Pinpad Verifone VX820',
+              falla: 'No procesa pagos.', num_guia: 'GU-DHL-556677123',
+              serie_enviado: 'SN-VX820-774421,SN-VX820-774422'
+            },
+          };
+          sol = mock[folio] || null;
+        } else {
+          const res = await fetch(
+            `${API_REFA}?accion=getSolicitudes&rol=${sesion.rol}&base=${encodeURIComponent(sesion.base)}`,
+            { redirect: 'follow' }
+          );
+          const texto = await res.text();
+          console.log('RESPUESTA RECEPCION:', texto);
+          const todas = JSON.parse(texto);
+          console.log('Total solicitudes:', todas.length);
+          sol = todas.find(s => s.folio === folio);
+        }
+
+        console.log('Solicitud encontrada:', sol);
+        if (!sol || !['En ruta al solicitante', 'Entregado', 'Inconsistencia en recepción'].includes(sol.estatus)) {
+          document.getElementById('err-folio').classList.add('show');
+          document.getElementById('sol-found').style.display = 'none';
+          document.getElementById('card-series').style.display = 'none';
+          document.getElementById('card-instalacion').style.display = 'none';
+          document.getElementById('btn-desktop-wrap').style.display = 'none';
+          document.getElementById('submit-bar-mobile').style.display = 'none';
+          solActual = null; seriesRecibidas = [];
+          icon.className = 'fa-solid fa-search';
+          return;
+        }
+
+        solActual = sol; seriesRecibidas = [];
+        mostrarSolicitud(sol);
+      } catch (e) {
+        showToast('Error al buscar: ' + e.message, 'err');
+      } finally {
+        document.getElementById('search-sol-icon').className = 'fa-solid fa-search';
+      }
+    }
+
+    function badgeRuta(est) {
+      if (est === 'En ruta al solicitante') return `<span class="sbadge s-ruta"><i class="fa-solid fa-truck"></i> En ruta</span>`;
+      if (est === 'Entregado') return `<span class="sbadge s-entregado"><i class="fa-solid fa-circle-check"></i> Entregado</span>`;
+      return `<span class="sbadge" style="background:#f8fafc;color:#64748b;border:1px solid #e2e8f0">${est}</span>`;
+    }
+
+    function mostrarSolicitud(sol) {
+      document.getElementById('sf-eco').textContent = sol.num_eco || '—';
+      document.getElementById('sf-comp').textContent = (sol.componente || '') + (sol.material_nombre ? ' — ' + sol.material_nombre : '');
+      document.getElementById('sf-tec').textContent = sol.tecnico || sol.clave_tecnico || '—';
+      document.getElementById('sf-base').textContent = sol.base_operativa || '—';
+      document.getElementById('sf-guia').textContent = sol.num_guia || '—';
+      document.getElementById('sf-badge').innerHTML = badgeRuta(sol.estatus);
+      document.getElementById('sol-found').style.display = 'block';
+
+      // Mostrar secciones siguientes
+      document.getElementById('card-series').style.display = 'block';
+      document.getElementById('card-instalacion').style.display = 'none';
+      document.getElementById('btn-desktop-wrap').style.display = 'flex';
+      document.getElementById('submit-bar-mobile').style.display = 'block';
+
+      // Renderizar series enviadas para comparar
+      renderCompare();
+    }
+
+    // ── SERIES ──
+    function agregarSerieRec() {
+      const inp = document.getElementById('inp-serie-rec');
+      const val = inp.value.trim();
+      if (!val) return;
+      if (seriesRecibidas.includes(val)) { showToast('Serie ya agregada', 'err'); return; }
+      seriesRecibidas.push(val);
+      inp.value = ''; inp.focus();
+      renderCompare();
+      document.getElementById('err-series').classList.remove('show');
+    }
+
+    function renderCompare() {
+      const wrap = document.getElementById('compare-wrap');
+      const enviadas = solActual?.serie_enviado
+        ? String(solActual.serie_enviado).split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
+      if (!enviadas.length && !seriesRecibidas.length) { wrap.innerHTML = ''; return; }
+
+      let html = '<div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Enviadas por gestor vs. recibidas</div>';
+
+      // Mostrar las enviadas con check si ya fueron recibidas
+      enviadas.forEach(sr => {
+        const recibida = seriesRecibidas.includes(sr);
+        html += `<div class="serie-row ${recibida ? 'ok' : 'no'}">
+      <span>${sr}</span>
+      <span style="font-size:.75rem;display:flex;align-items:center;gap:4px">
+        ${recibida
+            ? `<i class="fa-solid fa-check-circle" style="color:#22c55e"></i> Recibido`
+            : `<i class="fa-regular fa-circle" style="color:#94a3b8"></i> Pendiente`}
+      </span>
+    </div>`;
+      });
+
+      // Series recibidas extra (no estaban en enviadas)
+      seriesRecibidas.filter(s => !enviadas.includes(s)).forEach(sr => {
+        html += `<div class="serie-row" style="background:#fffbeb;border-color:#fde68a;color:#92400e">
+      <span>${sr}</span>
+      <span style="font-size:.72rem;display:flex;align-items:center;gap:4px">
+        <i class="fa-solid fa-triangle-exclamation" style="color:#d97706"></i> Extra
+      </span>
+    </div>`;
+      });
+
+      wrap.innerHTML = html;
+    }
+
+    // ── TOGGLE INSTALACIÓN ──
+    function syncToggle(chk, statusId) {
+      const el = document.getElementById(statusId);
+      el.textContent = chk.checked ? 'Sí' : 'No';
+      el.classList.toggle('on', chk.checked);
+      document.getElementById('panel-inst').classList.toggle('visible', chk.checked);
+    }
+
+    // ── VALIDAR Y ENVIAR ──
+    async function enviarRecepcion() {
+      if (!solActual) { showToast('Busca una solicitud primero', 'err'); return; }
+
+      // Validar series
+      if (seriesRecibidas.length === 0) {
+        document.getElementById('err-series').classList.add('show');
+        document.getElementById('card-series').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      document.getElementById('err-series').classList.remove('show');
+
+      const btnD = document.getElementById('btn-submit-desktop');
+      const btnM = document.getElementById('btn-submit-mobile');
+      const spin = '<span class="spin"><i class="fa-solid fa-circle-notch"></i></span> Enviando...';
+      btnD.disabled = true; btnM.disabled = true;
+      btnD.innerHTML = spin; btnM.innerHTML = spin;
+
+      // Verificar coincidencia
+      const enviadas = solActual.serie_enviado
+        ? String(solActual.serie_enviado).split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+      const todasCoinciden = enviadas.length > 0
+        ? enviadas.every(s => seriesRecibidas.includes(s))
+        : true;
+      const hayExtras = seriesRecibidas.some(s => !enviadas.includes(s));
+      const estatusResultante = (todasCoinciden && !hayExtras) ? 'Entregado' : 'Inconsistencia en recepción';
+
+      const payload = {
+        accion: 'confirmarRecepcion',
+        folio: solActual.folio,
+        serie_recibido: seriesRecibidas.join(', '),
+        clave_tecnico: sesion.clave,
+        base_tecnico: sesion.base,
+      };
+
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          console.log('Enviando payload:', payload);
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(payload)
+          });
+          const txt = await res.text();
+          console.log('RESPUESTA confirmarRecepcion:', txt);
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+        } else {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+
+        mostrarConfirmacion(solActual.folio, estatusResultante);
+      } catch (e) {
+        showToast('Error: ' + e.message, 'err');
+        const ok = '<i class="fa-solid fa-paper-plane"></i> Confirmar Recepción';
+        btnD.disabled = false; btnM.disabled = false;
+        btnD.innerHTML = ok; btnM.innerHTML = ok;
+      }
+    }
+
+    function mostrarConfirmacion(folio, estatus) {
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('submit-bar-mobile').style.display = 'none';
+
+      const entregado = estatus === 'Entregado';
+      const iconEl = document.getElementById('conf-icon');
+      iconEl.style.background = entregado ? '#dcfce7' : '#fef3c7';
+      iconEl.innerHTML = entregado
+        ? '<i class="fa-solid fa-circle-check" style="color:#16a34a"></i>'
+        : '<i class="fa-solid fa-triangle-exclamation" style="color:#d97706"></i>';
+
+      document.getElementById('conf-titulo').textContent = entregado ? '¡Recepción Confirmada!' : 'Recepción con Inconsistencias';
+      document.getElementById('conf-sub').textContent = entregado
+        ? 'El material fue recibido correctamente.'
+        : 'Algunas series no coinciden con el envío. El gestor será notificado.';
+      document.getElementById('conf-folio').textContent = 'Folio: ' + folio;
+      document.getElementById('conf-detalle').innerHTML = '<i class="fa-solid fa-clock" style="color:#d97706;margin-right:6px"></i>El coordinador confirmará la instalación una vez que el componente quede en servicio.';
+      document.getElementById('confirmacion').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nuevaRecepcion() {
+      solActual = null; seriesRecibidas = [];
+      document.getElementById('form-wrap').style.display = 'block';
+      document.getElementById('confirmacion').style.display = 'none';
+      document.getElementById('inp-folio').value = '';
+      document.getElementById('sol-found').style.display = 'none';
+      document.getElementById('card-series').style.display = 'none';
+      document.getElementById('card-instalacion').style.display = 'none';
+      document.getElementById('btn-desktop-wrap').style.display = 'none';
+      document.getElementById('compare-wrap').innerHTML = '';
+      const ok = '<i class="fa-solid fa-paper-plane"></i> Confirmar Recepción';
+      document.getElementById('btn-submit-desktop').innerHTML = ok;
+      document.getElementById('btn-submit-desktop').disabled = false;
+      document.getElementById('btn-submit-mobile').innerHTML = ok;
+      document.getElementById('btn-submit-mobile').disabled = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── ESCANER ──
+    async function abrirEscaner(fieldId) {
+      scanTarget = fieldId;
+      document.getElementById('scan-modal').classList.add('open');
+      if ('BarcodeDetector' in window) {
+        try {
+          scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          document.getElementById('scan-video').srcObject = scanStream;
+          const det = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'data_matrix'] });
+          scanInterval = setInterval(async () => {
+            try {
+              const codes = await det.detect(document.getElementById('scan-video'));
+              if (codes.length) {
+                document.getElementById(scanTarget).value = codes[0].rawValue;
+                cerrarEscaner();
+                // Si era serie recibida, agregarla automáticamente
+                if (scanTarget === 'inp-serie-rec') agregarSerieRec();
+              }
+            } catch { }
+          }, 300);
+        } catch { cerrarEscaner(); }
+      }
+    }
+    function cerrarEscaner() {
+      document.getElementById('scan-modal').classList.remove('open');
+      if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+      if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function showToast(msg, tipo = '') {
+      const t = document.getElementById('toast'); clearTimeout(toastTimer);
+      t.innerHTML = tipo === 'ok' ? `<i class="fa-solid fa-circle-check"></i> ${msg}` : tipo === 'err' ? `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}` : msg;
+      t.className = `toast show ${tipo}`;
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+
+</html>

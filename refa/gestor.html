@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REFA Control — Gestor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #F2F2F7;
+      --surface: #fff;
+      --border: #e2e8f0;
+      --border-lo: #f1f5f9;
+      --indigo: #4f46e5;
+      --indigo-lo: #eef2ff;
+      --indigo-md: #818cf8;
+      --text: #0f172a;
+      --muted: #94a3b8;
+      --mid: #64748b;
+      --sans: 'DM Sans', -apple-system, sans-serif;
+      --mono: 'DM Mono', monospace;
+
+      /* fase colors */
+      --c-auth: #7c3aed;
+      --c-auth-lo: #faf5ff;
+      --c-reserva: #d97706;
+      --c-reserva-lo: #fffbeb;
+      --c-almacen: #0284c7;
+      --c-almacen-lo: #f0f9ff;
+      --c-envio: #059669;
+      --c-envio-lo: #f0fdf4;
+      --c-ruta: #0d9488;
+      --c-ruta-lo: #f0fdfa;
+      --c-pausa: #dc2626;
+      --c-pausa-lo: #fef2f2;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh
+    }
+
+    /* ─ NAVBAR ─ */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, .88);
+      border-bottom: 1px solid var(--border-lo);
+      padding: .7rem 1rem
+    }
+
+    .nb {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .nav-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #059669, #0d9488);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, .3)
+    }
+
+    .nav-t {
+      font-size: .9rem;
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .nav-s {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .nav-r {
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .nav-name {
+      font-size: .8rem;
+      font-weight: 600;
+      line-height: 1
+    }
+
+    .nav-base {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .rol-pill {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      background: #f0fdf4;
+      color: #059669;
+      border: 1px solid #bbf7d0
+    }
+
+    .btn-logout {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s
+    }
+
+    .btn-logout:hover {
+      background: #fee2e2;
+      color: #ef4444
+    }
+
+    /* ─ TABS DE FASE ─ */
+    .fase-tabs {
+      background: white;
+      border-bottom: 1px solid var(--border-lo);
+      overflow-x: auto;
+      white-space: nowrap
+    }
+
+    .fase-tabs-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      gap: 0
+    }
+
+    .fase-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: .75rem 1rem;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all .2s;
+      white-space: nowrap
+    }
+
+    .fase-tab:hover {
+      color: var(--indigo)
+    }
+
+    .fase-tab.active {
+      color: var(--indigo);
+      border-bottom-color: var(--indigo)
+    }
+
+    .fase-cnt {
+      background: var(--indigo);
+      color: white;
+      border-radius: 999px;
+      font-size: .65rem;
+      padding: 1px 6px;
+      font-family: var(--mono);
+      min-width: 18px;
+      text-align: center
+    }
+
+    .fase-cnt.warn {
+      background: #d97706
+    }
+
+    .fase-cnt.zero {
+      background: #e2e8f0;
+      color: #94a3b8
+    }
+
+    /* ─ MAIN ─ */
+    .main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 6rem
+    }
+
+    /* ─ TOOLBAR ─ */
+    .toolbar {
+      display: flex;
+      gap: .6rem;
+      margin-bottom: 1rem;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px
+    }
+
+    .si {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: .8rem;
+      pointer-events: none
+    }
+
+    .search-input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem .9rem .65rem 2.2rem;
+      font-size: .87rem;
+      color: var(--text);
+      outline: none;
+      font-family: var(--sans);
+      transition: all .2s
+    }
+
+    .search-input:focus {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .09)
+    }
+
+    .icon-btn {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem .9rem;
+      cursor: pointer;
+      color: var(--mid);
+      font-size: .85rem;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap
+    }
+
+    .icon-btn:hover {
+      border-color: #a5b4fc;
+      color: var(--indigo)
+    }
+
+    /* ─ CARDS ─ */
+    .cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem
+    }
+
+    .sol-card {
+      background: white;
+      border: 1px solid var(--border-lo);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .2s;
+      animation: fadeUp .3s ease both
+    }
+
+    .sol-card:hover {
+      border-color: #a5b4fc;
+      box-shadow: 0 4px 16px -4px rgba(79, 70, 229, .1);
+      transform: translateY(-1px)
+    }
+
+    .sol-card.selected {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, .12)
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .85rem 1rem .6rem;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .card-folio {
+      font-family: var(--mono);
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--indigo)
+    }
+
+    .card-fecha {
+      font-size: .7rem;
+      color: var(--muted)
+    }
+
+    .card-body {
+      padding: 0 1rem .85rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .4rem .8rem
+    }
+
+    @media(min-width:640px) {
+      .card-body {
+        grid-template-columns: repeat(4, 1fr)
+      }
+    }
+
+    .cb-item-label {
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 1px
+    }
+
+    .cb-item-val {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .cb-item-val.mono {
+      font-family: var(--mono);
+      font-size: .8rem
+    }
+
+    .cb-item-val.muted {
+      color: var(--mid);
+      font-weight: 400
+    }
+
+    .card-fase-bar {
+      height: 3px;
+      background: var(--border-lo)
+    }
+
+    .card-fase-fill {
+      height: 100%;
+      border-radius: 0;
+      transition: width .4s ease
+    }
+
+    /* ─ STATUS BADGE ─ */
+    .sbadge {
+      font-size: .67rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: .22rem .65rem;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0
+    }
+
+    .s-auth {
+      background: #faf5ff;
+      color: #7c3aed;
+      border: 1px solid #ddd6fe
+    }
+
+    .s-espera-res {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fde68a
+    }
+
+    .s-sin-pres {
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #fed7aa
+    }
+
+    .s-rech-pres {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca
+    }
+
+    .s-almacen {
+      background: #f0f9ff;
+      color: #0284c7;
+      border: 1px solid #bae6fd
+    }
+
+    .s-extraccion {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #7dd3fc
+    }
+
+    .s-sin-stock {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa
+    }
+
+    .s-canje {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a
+    }
+
+    .s-preparando {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0
+    }
+
+    .s-ruta {
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #99f6e4
+    }
+
+    .s-entregado {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac
+    }
+
+    .s-inconsistencia {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca
+    }
+
+    .s-def {
+      background: #f8fafc;
+      color: var(--mid);
+      border: 1px solid var(--border)
+    }
+
+    /* ─ DRAWER ─ */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, .45);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      display: none;
+      opacity: 0;
+      transition: opacity .25s
+    }
+
+    .drawer-overlay.open {
+      display: block
+    }
+
+    .drawer-overlay.visible {
+      opacity: 1
+    }
+
+    .drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 201;
+      width: 100%;
+      max-width: 520px;
+      background: white;
+      box-shadow: -20px 0 60px rgba(0, 0, 0, .15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.16, 1, .3, 1);
+      overflow: hidden
+    }
+
+    .drawer.open {
+      transform: translateX(0)
+    }
+
+    .dh {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-lo);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-shrink: 0
+    }
+
+    .dh-left {
+      flex: 1;
+      min-width: 0
+    }
+
+    .dh-folio {
+      font-family: var(--mono);
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--indigo);
+      margin-bottom: 3px
+    }
+
+    .dh-eco {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text)
+    }
+
+    .drawer-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+      color: var(--mid);
+      font-size: .82rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0
+    }
+
+    .drawer-close:hover {
+      background: #e2e8f0
+    }
+
+    .db {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.1rem 1.25rem
+    }
+
+    .df {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-lo);
+      background: #fafbff;
+      flex-shrink: 0
+    }
+
+    /* Secciones del drawer */
+    .ds-title {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 1rem 0 .5rem
+    }
+
+    .ds-title:first-child {
+      margin-top: 0
+    }
+
+    .ds-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0
+    }
+
+    .ig {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .45rem
+    }
+
+    .ic {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: .55rem .75rem;
+      border: 1px solid var(--border-lo)
+    }
+
+    .ic.full {
+      grid-column: 1/-1
+    }
+
+    .ic-l {
+      font-size: .63rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 1px
+    }
+
+    .ic-v {
+      font-size: .83rem;
+      color: var(--text);
+      font-weight: 500;
+      word-break: break-all
+    }
+
+    .ic-v.mono {
+      font-family: var(--mono);
+      font-size: .78rem
+    }
+
+    /* Panel de acción por fase */
+    .fase-panel {
+      border-radius: 14px;
+      padding: 1rem;
+      margin-bottom: .75rem;
+      border: 1px solid
+    }
+
+    .fase-panel-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .75rem;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .fi {
+      font-size: .85rem
+    }
+
+    .field-label {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 4px;
+      display: block
+    }
+
+    .field-input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: .7rem .9rem;
+      font-size: .88rem;
+      color: var(--text);
+      outline: none;
+      font-family: var(--sans);
+      transition: all .2s
+    }
+
+    .field-input:focus {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .08)
+    }
+
+    .field-input.mono {
+      font-family: var(--mono)
+    }
+
+    .qr-wrap {
+      position: relative
+    }
+
+    .qr-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--indigo);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: .8rem;
+      transition: background .2s
+    }
+
+    .qr-btn:hover {
+      background: #4338ca
+    }
+
+    /* Botones de acción */
+    .ab {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: .6rem
+    }
+
+    .btn-accion {
+      padding: .7rem 1rem;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: .82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s;
+      flex: 1;
+      justify-content: center;
+      min-width: 120px
+    }
+
+    .btn-accion:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .btn-primary-g {
+      background: #059669;
+      color: white
+    }
+
+    .btn-primary-g:hover:not(:disabled) {
+      background: #047857
+    }
+
+    .btn-warn {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa
+    }
+
+    .btn-warn:hover:not(:disabled) {
+      background: #ffedd5
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #dc2626
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #fecaca
+    }
+
+    .btn-neutral {
+      background: #f1f5f9;
+      color: var(--mid)
+    }
+
+    .btn-neutral:hover:not(:disabled) {
+      background: #e2e8f0
+    }
+
+    .btn-blue {
+      background: #1d4ed8;
+      color: #eff6ff
+    }
+
+    .btn-blue:hover:not(:disabled) {
+      background: #082f9b
+    }
+
+    /* Series list */
+    .series-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: .5rem
+    }
+
+    .serie-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border-radius: 9px;
+      padding: .4rem .75rem;
+      border: 1px solid var(--border-lo)
+    }
+
+    .serie-code {
+      font-family: var(--mono);
+      font-size: .8rem;
+      color: var(--text)
+    }
+
+    .serie-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .75rem;
+      padding: 2px 4px;
+      border-radius: 5px;
+      transition: all .15s
+    }
+
+    .serie-remove:hover {
+      color: #ef4444;
+      background: #fee2e2
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #1e293b;
+      color: white;
+      font-size: .85rem;
+      font-weight: 600;
+      padding: .75rem 1.25rem;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .3s cubic-bezier(.16, 1, .3, 1);
+      white-space: nowrap;
+      max-width: 90vw
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0)
+    }
+
+    .toast.ok {
+      background: #047857
+    }
+
+    .toast.err {
+      background: #dc2626
+    }
+
+    /* Scan modal */
+    #scan-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0, 0, 0, .75);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem
+    }
+
+    #scan-modal.open {
+      display: flex
+    }
+
+    #scan-video {
+      width: 100%;
+      border-radius: 12px;
+      max-height: 55vh;
+      object-fit: cover
+    }
+
+    /* Empty */
+    .empty {
+      text-align: center;
+      padding: 3.5rem 1rem;
+      color: var(--muted)
+    }
+
+    .empty i {
+      font-size: 2rem;
+      margin-bottom: .6rem;
+      opacity: .3;
+      display: block
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .spin {
+      animation: spin .7s linear infinite;
+      display: inline-block
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nb">
+      <div class="nav-brand">
+        <div class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+        <div>
+          <div class="nav-t">Panel de Gestión</div>
+          <div class="nav-s">REFA Control</div>
+        </div>
+      </div>
+      <div class="nav-r">
+        <div style="text-align:right" class="hidden sm:block">
+          <div class="nav-name" id="nav-nombre">—</div>
+          <div class="nav-base" id="nav-base">—</div>
+        </div>
+        <span class="rol-pill">Gestor</span>
+        <button class="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión"><i
+            class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- TABS DE FASE -->
+  <div class="fase-tabs">
+    <div class="fase-tabs-inner">
+      <button class="fase-tab active" data-fase="todas" onclick="cambiarFase('todas',this)">
+        <i class="fa-solid fa-list-ul"></i> Todas
+        <span class="fase-cnt" id="cnt-todas">0</span>
+      </button>
+      <button class="fase-tab" data-fase="Autorizada" onclick="cambiarFase('Autorizada',this)">
+        <i class="fa-solid fa-stamp"></i> Autorizadas
+        <span class="fase-cnt warn" id="cnt-auth">0</span>
+      </button>
+      <button class="fase-tab" data-fase="reserva" onclick="cambiarFase('reserva',this)">
+        <i class="fa-solid fa-coins"></i> Presupuesto
+        <span class="fase-cnt warn" id="cnt-reserva">0</span>
+      </button>
+      <button class="fase-tab" data-fase="almacen" onclick="cambiarFase('almacen',this)">
+        <i class="fa-solid fa-warehouse"></i> Almacén
+        <span class="fase-cnt" id="cnt-almacen">0</span>
+      </button>
+      <button class="fase-tab" data-fase="envio" onclick="cambiarFase('envio',this)">
+        <i class="fa-solid fa-truck"></i> Envío
+        <span class="fase-cnt" id="cnt-envio">0</span>
+      </button>
+      <button class="fase-tab" data-fase="En ruta al solicitante" onclick="cambiarFase('En ruta al solicitante',this)">
+        <i class="fa-solid fa-location-arrow"></i> En ruta
+        <span class="fase-cnt" id="cnt-ruta">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass si"></i>
+        <input id="search-input" type="text" class="search-input"
+          placeholder="Buscar folio, unidad, componente, técnico...">
+      </div>
+      <button class="icon-btn" onclick="cargarSolicitudes()">
+        <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
+        <span class="hidden sm:inline">Actualizar</span>
+      </button>
+    </div>
+    <div id="lista-container" class="cards-grid"></div>
+  </div>
+
+  <!-- DRAWER -->
+  <div class="drawer-overlay" id="overlay" onclick="cerrarDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="dh">
+      <div class="dh-left">
+        <div class="dh-folio" id="d-folio">—</div>
+        <div class="dh-eco" id="d-eco">—</div>
+        <div style="margin-top:5px" id="d-badge"></div>
+      </div>
+      <button class="drawer-close" onclick="cerrarDrawer()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="db" id="d-body"></div>
+    <div class="df" id="d-footer"></div>
+  </div>
+
+  <!-- MODAL ESCANER -->
+  <div id="scan-modal">
+    <div style="background:white;border-radius:20px;padding:1.25rem;width:100%;max-width:360px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <strong style="font-size:.9rem">Escanear código</strong>
+        <button onclick="cerrarEscaner()"
+          style="background:#f1f5f9;border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;color:#64748b;font-size:.8rem;display:flex;align-items:center;justify-content:center"><i
+            class="fa-solid fa-xmark"></i></button>
+      </div>
+      <video id="scan-video" autoplay muted playsinline></video>
+      <p style="font-size:.75rem;color:#94a3b8;text-align:center;margin:.75rem 0 .5rem">Apunta la cámara al código de
+        barras o QR</p>
+      <button onclick="cerrarEscaner()"
+        style="width:100%;padding:.7rem;border-radius:10px;border:2px solid #e2e8f0;background:white;color:#64748b;font-weight:600;font-size:.85rem;cursor:pointer">
+        <i class="fa-solid fa-keyboard" style="margin-right:5px"></i>Ingresar manualmente
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_REFA = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+    let sesion = {}, todas = [], faseActual = 'todas', busqueda = '', solActual = null;
+    let scanTarget = null, scanStream = null, scanInterval = null;
+
+    // Grupos de fases para los tabs
+    const FASE_GRUPOS = {
+      'reserva': ['En espera de reserva', 'En espera, sin presupuesto', 'Rechazado, sin presupuesto'],
+      'almacen': ['En proceso de almacén', 'En proceso de extracción de almacén', 'En espera, sin stock', 'En pausa, canje inconsistente'],
+      'envio': ['Preparando envío'],
+    };
+
+    // ── SESIÓN ──
+    function initSesion() {
+      const clave = localStorage.getItem('tecnico'), nombre = localStorage.getItem('nombre_tecnico'),
+        base = localStorage.getItem('base'), rol = localStorage.getItem('rol');
+      if (!clave || rol !== 'gestor') { window.location.href = 'login.html'; return false; }
+      sesion = { clave, nombre, base, rol };
+      document.getElementById('nav-nombre').textContent = nombre || clave;
+      document.getElementById('nav-base').textContent = base || '—';
+      return true;
+    }
+    function cerrarSesion() {
+      ['tecnico', 'nombre_tecnico', 'base', 'rol', 'clave_sesion'].forEach(k => localStorage.removeItem(k));
+      window.location.href = 'login.html';
+    }
+
+    // ── INIT ──
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!initSesion()) return;
+      cargarSolicitudes();
+      document.getElementById('search-input').addEventListener('input', e => {
+        busqueda = e.target.value.toLowerCase(); renderLista();
+      });
+    });
+
+    // ── CARGA ──
+    async function cargarSolicitudes() {
+      document.getElementById('refresh-icon').className = 'fa-solid fa-circle-notch spin';
+      try {
+        if (API_REFA === 'TU_URL_REFA_AQUI') {
+          await new Promise(r => setTimeout(r, 600));
+          todas = mockData();
+        } else {
+          const res = await fetch(
+            `${API_REFA}?accion=getSolicitudes&rol=gestor&base=${encodeURIComponent(sesion.base)}`,
+            { redirect: 'follow' }
+          );
+          const texto = await res.text();
+          todas = JSON.parse(texto);
+        }
+        actualizarContadores(); renderLista();
+      } catch (e) { toast('Error al cargar solicitudes', 'err'); }
+      finally { document.getElementById('refresh-icon').className = 'fa-solid fa-rotate-right'; }
+    }
+
+    // ── CONTADORES ──
+    function actualizarContadores() {
+      const c = (filtro) => Array.isArray(filtro)
+        ? todas.filter(s => filtro.includes(s.estatus)).length
+        : todas.filter(s => s.estatus === filtro).length;
+
+      document.getElementById('cnt-todas').textContent = todas.length;
+      document.getElementById('cnt-auth').textContent = c('Autorizada');
+      document.getElementById('cnt-reserva').textContent = c(FASE_GRUPOS.reserva);
+      document.getElementById('cnt-almacen').textContent = c(FASE_GRUPOS.almacen);
+      document.getElementById('cnt-envio').textContent = c('Preparando envío');
+      document.getElementById('cnt-ruta').textContent = c('En ruta al solicitante');
+
+      // Colorear cero
+      ['cnt-auth', 'cnt-reserva', 'cnt-almacen', 'cnt-envio', 'cnt-ruta'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.toggle('zero', el.textContent === '0');
+      });
+    }
+
+    // ── FASE TAB ──
+    function cambiarFase(fase, el) {
+      faseActual = fase;
+      document.querySelectorAll('.fase-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderLista();
+    }
+
+    // ── RENDER ──
+    const BADGE_CFG = {
+      'Autorizada': ['s-auth', 'fa-stamp'],
+      'En espera de reserva': ['s-espera-res', 'fa-hourglass-half'],
+      'En espera, sin presupuesto': ['s-sin-pres', 'fa-triangle-exclamation'],
+      'Rechazado, sin presupuesto': ['s-rech-pres', 'fa-ban'],
+      'En proceso de almacén': ['s-almacen', 'fa-warehouse'],
+      'En proceso de extracción de almacén': ['s-extraccion', 'fa-dolly'],
+      'En espera, sin stock': ['s-sin-stock', 'fa-box-open'],
+      'En pausa, canje inconsistente': ['s-canje', 'fa-triangle-exclamation'],
+      'Preparando envío': ['s-preparando', 'fa-box-archive'],
+      'En ruta al solicitante': ['s-ruta', 'fa-truck'],
+      'Entregado': ['s-entregado', 'fa-circle-check'],
+      'Inconsistencia en recepción': ['s-inconsistencia', 'fa-circle-exclamation'],
+    };
+    function sbadge(est) {
+      const [cls, icon] = BADGE_CFG[est] || ['s-def', 'fa-circle'];
+      return `<span class="sbadge ${cls}"><i class="fa-solid ${icon}"></i> ${est}</span>`;
+    }
+
+    // Progreso visual de la solicitud (0-100)
+    const ORDEN_FASES = ['Autorizada', 'En espera de reserva', 'En espera, sin presupuesto',
+      'En proceso de almacén', 'En proceso de extracción de almacén', 'Preparando envío',
+      'En ruta al solicitante', 'Entregado'];
+    function progreso(est) {
+      const i = ORDEN_FASES.indexOf(est);
+      return i < 0 ? 10 : Math.round(((i + 1) / ORDEN_FASES.length) * 100);
+    }
+    function colorFase(est) {
+      if (['Autorizada'].includes(est)) return '#7c3aed';
+      if (['En espera de reserva', 'En espera, sin presupuesto', 'Rechazado, sin presupuesto'].includes(est)) return '#d97706';
+      if (['En proceso de almacén', 'En proceso de extracción de almacén', 'En espera, sin stock', 'En pausa, canje inconsistente'].includes(est)) return '#0284c7';
+      if (['Preparando envío'].includes(est)) return '#059669';
+      if (['En ruta al solicitante'].includes(est)) return '#0d9488';
+      if (['Entregado'].includes(est)) return '#16a34a';
+      return '#94a3b8';
+    }
+
+    function renderLista() {
+      const c = document.getElementById('lista-container');
+      let lista = todas;
+
+      if (faseActual === 'reserva') lista = lista.filter(s => FASE_GRUPOS.reserva.includes(s.estatus));
+      else if (faseActual === 'almacen') lista = lista.filter(s => FASE_GRUPOS.almacen.includes(s.estatus));
+      else if (faseActual !== 'todas') {
+        const grupo = FASE_GRUPOS[faseActual];
+        lista = grupo ? lista.filter(s => grupo.includes(s.estatus)) : lista.filter(s => s.estatus === faseActual);
+      }
+
+      if (busqueda) lista = lista.filter(s =>
+        [s.folio, s.num_eco, s.componente, s.material, s.material_nombre, s.tecnico, s.bus_sociedad, s.num_reserva]
+          .some(v => String(v || '').toLowerCase().includes(busqueda))
+      );
+
+      // Ordenar por urgencia: autorizadas y sin pres primero
+      const prio = ['Autorizada', 'En espera, sin presupuesto', 'En espera de reserva',
+        'En proceso de extracción de almacén', 'En espera, sin stock', 'En pausa, canje inconsistente',
+        'En proceso de almacén', 'Preparando envío', 'En ruta al solicitante', 'Entregado'];
+      lista = [...lista].sort((a, b) => {
+        const ia = prio.indexOf(a.estatus), ib = prio.indexOf(b.estatus);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      });
+
+      if (!lista.length) {
+        c.innerHTML = `<div class="empty"><i class="fa-solid fa-inbox"></i>${busqueda ? 'Sin resultados para "' + busqueda + '"' : 'No hay solicitudes en esta fase'}</div>`;
+        return;
+      }
+
+      c.innerHTML = '';
+
+      // Botón exportar CSV — solo en tab Autorizadas
+      if (faseActual === 'Autorizada' && lista.length > 0) {
+        const exportBar = document.createElement('div');
+        exportBar.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:.75rem';
+        exportBar.innerHTML = `
+      <button onclick="exportarAutorizadasCSV()" style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:.6rem 1rem;font-size:.82rem;font-weight:700;color:#059669;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s"
+        onmouseover="this.style.background='#f0fdf4';this.style.borderColor='#bbf7d0'"
+        onmouseout="this.style.background='white';this.style.borderColor='#e2e8f0'">
+        <i class="fa-solid fa-file-csv"></i> Exportar CSV
+      </button>`;
+        c.appendChild(exportBar);
+      }
+
+      lista.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.className = 'sol-card' + (solActual?.folio === s.folio ? ' selected' : '');
+        el.style.animationDelay = Math.min(i * .04, .3) + 's';
+        const pct = progreso(s.estatus), col = colorFase(s.estatus);
+        el.innerHTML = `
+      <div class="card-fase-bar"><div class="card-fase-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="card-header">
+        <div>
+          <div class="card-folio">${s.folio}</div>
+          <div class="card-fecha"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${s.fecha_hora || '—'}</div>
+        </div>
+        ${sbadge(s.estatus)}
+      </div>
+      <div class="card-body">
+        <div><div class="cb-item-label">Unidad</div><div class="cb-item-val mono">${s.num_eco || '—'}</div></div>
+        <div><div class="cb-item-label">Componente</div><div class="cb-item-val">${s.componente || '—'}${(s.material || s.material_nombre) ? ' — ' + (s.material || s.material_nombre) : ''}</div></div>
+        <div><div class="cb-item-label">Sociedad</div><div class="cb-item-val muted">${s.bus_sociedad || '—'}</div></div>
+        <div><div class="cb-item-label">Técnico</div><div class="cb-item-val muted">${s.tecnico || s.clave_tecnico || '—'}</div></div>
+        ${s.num_reserva ? `<div class="cb-item-label" style="grid-column:1/-1">Reserva: <span style="font-family:var(--mono);font-size:.8rem;color:var(--indigo)">${s.num_reserva}</span></div>` : ''}
+      </div>`;
+        el.addEventListener('click', () => abrirDrawer(s));
+        c.appendChild(el);
+      });
+    }
+
+    // ── DRAWER ──
+    function abrirDrawer(s) {
+      solActual = s;
+      document.querySelectorAll('.sol-card').forEach(c => c.classList.remove('selected'));
+      event?.currentTarget?.classList.add('selected');
+
+      document.getElementById('d-folio').textContent = s.folio;
+      document.getElementById('d-eco').textContent = s.num_eco || '—';
+      document.getElementById('d-badge').innerHTML = sbadge(s.estatus);
+
+      // Info básica
+      document.getElementById('d-body').innerHTML = `
+    <div class="ds-title"><span class="ds-dot" style="background:#4f46e5"></span>Solicitud</div>
+    <div class="ig">
+      <div class="ic"><div class="ic-l">Base</div><div class="ic-v">${s.base || '—'}</div></div>
+      <div class="ic"><div class="ic-l">Técnico</div><div class="ic-v">${s.tecnico || s.clave_tecnico || '—'}</div></div>
+      <div class="ic"><div class="ic-l">Servicio</div><div class="ic-v">${s.bus_servicio || '—'}</div></div>
+      <div class="ic"><div class="ic-l">Sociedad</div><div class="ic-v">${s.bus_sociedad || '—'}</div></div>
+      <div class="ic"><div class="ic-l">CeCo</div><div class="ic-v mono">${s.bus_ceco || '—'}</div></div>
+      <div class="ic"><div class="ic-l">Falla desde</div><div class="ic-v">${s.fecha_falla || '—'}</div></div>
+    </div>
+    <div class="ds-title"><span class="ds-dot" style="background:#8b5cf6"></span>Componente</div>
+    <div class="ig">
+      <div class="ic"><div class="ic-l">Clave</div><div class="ic-v mono">${s.componente || '—'}</div></div>
+      <div class="ic"><div class="ic-l">Categoría</div><div class="ic-v">${s.categoria || '—'}</div></div>
+      <div class="ic full"><div class="ic-l">Material</div><div class="ic-v">${s.material || s.material_nombre || '—'}</div></div>
+      <div class="ic full"><div class="ic-l">Serie dañado</div><div class="ic-v mono">${s.serie_dañado || 'Sin registro'}</div></div>
+      <div class="ic full"><div class="ic-l">Falla</div><div class="ic-v" style="white-space:pre-wrap;line-height:1.5">${s.falla || '—'}</div></div>
+    </div>
+    ${s.num_reserva ? `
+    <div class="ds-title"><span class="ds-dot" style="background:#d97706"></span>Presupuesto</div>
+    <div class="ig"><div class="ic full"><div class="ic-l">N° de Reserva</div><div class="ic-v mono">${s.num_reserva}</div></div></div>` : ''}
+    ${s.serie_enviado ? `
+    <div class="ds-title"><span class="ds-dot" style="background:#059669"></span>Envío</div>
+    <div class="ig">
+      <div class="ic full"><div class="ic-l">Series enviadas</div><div class="ic-v mono">${s.serie_enviado}</div></div>
+      ${s.num_guia ? `<div class="ic full"><div class="ic-l">N° de Guía</div><div class="ic-v mono">${s.num_guia}</div></div>` : ''}
+    </div>`: ''}
+  `;
+
+      renderFooter(s);
+
+      const ov = document.getElementById('overlay'), dr = document.getElementById('drawer');
+      ov.classList.add('open'); dr.classList.add('open');
+      requestAnimationFrame(() => ov.classList.add('visible'));
+    }
+
+    // ── EXPORTAR CSV AUTORIZADAS ──
+
+    function exportarAutorizadasCSV() {
+      const autorizadas = todas.filter(s => s.estatus === 'Autorizada');
+      if (!autorizadas.length) { toast('No hay solicitudes autorizadas', 'err'); return; }
+
+      const encabezado = ['Sociedad', 'Autobus', 'Material', 'Clave Material'];
+      const filas = autorizadas.map(s => [
+        s.bus_sociedad || '',
+        s.num_eco || '',
+        s.material || s.material_nombre || '',
+        s.componente || '',
+      ]);
+
+      const csv = [encabezado, ...filas]
+        .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const ahora = new Date();
+      const fecha = ahora.toISOString().slice(0, 10);
+      const hora = ahora.toTimeString().slice(0, 8).replace(/:/g, '-');
+      a.download = `Autorizadas_${fecha}_${hora}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('CSV exportado', 'ok');
+    }
+
+    // ── FOOTER POR FASE ──
+    function renderFooter(s) {
+      const f = document.getElementById('d-footer');
+
+      // ── FASE 1: Autorizada → solicitar presupuesto ──
+      if (s.estatus === 'Autorizada') {
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#faf5ff;border-color:#ddd6fe">
+        <div class="fase-panel-title" style="color:#7c3aed"><i class="fa-solid fa-coins fi"></i>Solicitar Reserva de Presupuesto</div>
+        <p style="font-size:.8rem;color:#64748b;margin-bottom:.75rem">Registra que enviaste la solicitud de reserva a presupuestos.</p>
+        <div class="ab">
+          <button class="btn-accion btn-primary-g" onclick="accion('En espera de reserva')">
+            <i class="fa-solid fa-paper-plane"></i> Enviada a Presupuestos
+          </button>
+          <button class="btn-accion btn-danger" onclick="accion('Rechazado, sin presupuesto')">
+            <i class="fa-solid fa-ban"></i> Sin Presupuesto
+          </button>
+        </div>
+      </div>`;
+        return;
+      }
+
+      // ── FASE 2: En espera de reserva → cargar número ──
+      if (s.estatus === 'En espera de reserva') {
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#fffbeb;border-color:#fde68a">
+        <div class="fase-panel-title" style="color:#d97706"><i class="fa-solid fa-hashtag fi"></i>Cargar Número de Reserva</div>
+        <label class="field-label" for="inp-reserva">Número de Reserva (recibido por correo)</label>
+        <input id="inp-reserva" type="text" class="field-input mono" placeholder="RES-2024-XXXX" value="${s.num_reserva || ''}">
+        <div class="ab" style="margin-top:.75rem">
+          <button class="btn-accion btn-primary-g" onclick="cargarReserva()">
+            <i class="fa-solid fa-save"></i> Guardar Reserva
+          </button>
+          <button class="btn-accion btn-warn" onclick="accion('En espera, sin presupuesto')">
+            <i class="fa-solid fa-clock"></i> Sin presupuesto aún
+          </button>
+        </div>
+      </div>`;
+        return;
+      }
+
+      // ── FASE 2b: Sin presupuesto ──
+      if (s.estatus === 'En espera, sin presupuesto') {
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#fff7ed;border-color:#fed7aa">
+        <div class="fase-panel-title" style="color:#c2410c"><i class="fa-solid fa-triangle-exclamation fi"></i>Sin Presupuesto</div>
+        <label class="field-label" for="inp-reserva2">Número de Reserva (cuando llegue)</label>
+        <input id="inp-reserva2" type="text" class="field-input mono" placeholder="RES-2024-XXXX">
+        <div class="ab" style="margin-top:.75rem">
+          <button class="btn-accion btn-primary-g" onclick="cargarReservaId('inp-reserva2')">
+            <i class="fa-solid fa-save"></i> Cargar Reserva
+          </button>
+        </div>
+      </div>`;
+        return;
+      }
+
+      // ── FASE 3: En proceso de almacén → confirmar disponibilidad ──
+      if (s.estatus === 'En proceso de almacén' || s.estatus === 'En pausa, canje inconsistente') {
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#f0f9ff;border-color:#bae6fd">
+        <div class="fase-panel-title" style="color:#0284c7"><i class="fa-solid fa-warehouse fi"></i>Almacén</div>
+        <p style="font-size:.8rem;color:#64748b;margin-bottom:.75rem">N° Reserva: <strong style="font-family:var(--mono)">${s.num_reserva || '—'}</strong></p>
+        <div class="ab">
+          <button class="btn-accion btn-blue" onclick="accion('En proceso de extracción de almacén')">
+            <i class="fa-solid fa-dolly"></i> Confirmaron disponibilidad
+          </button>
+          <button class="btn-accion btn-warn" onclick="accion('En espera, sin stock')">
+            <i class="fa-solid fa-box-open"></i> Sin stock
+          </button>
+          <button class="btn-accion btn-danger full" onclick="accion('En pausa, canje inconsistente')">
+            <i class="fa-solid fa-triangle-exclamation"></i> Canje inconsistente
+          </button>
+        </div>
+      </div>`;
+        return;
+      }
+
+      // ── FASE 4: Extracción → escanear series ──
+      if (['En proceso de extracción de almacén', 'En espera, sin stock'].includes(s.estatus)) {
+        // Series ya capturadas
+        const series = s._series_temp || (s.serie_enviado ? s.serie_enviado.split(',').map(x => x.trim()).filter(Boolean) : []);
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#f0f9ff;border-color:#7dd3fc">
+        <div class="fase-panel-title" style="color:#0369a1"><i class="fa-solid fa-barcode fi"></i>Capturar Series del Material</div>
+        <p style="font-size:.8rem;color:#64748b;margin-bottom:.75rem">Escanea o ingresa el número de serie de cada unidad que recibes del almacén.</p>
+        <div class="qr-wrap">
+          <input id="inp-serie" type="text" class="field-input mono" placeholder="Serie del componente nuevo" style="padding-right:2.8rem">
+          <button class="qr-btn" onclick="abrirEscaner('inp-serie')" title="Escanear"><i class="fa-solid fa-barcode"></i></button>
+        </div>
+        <div class="ab" style="margin-top:.5rem">
+          <button class="btn-accion btn-neutral" onclick="agregarSerie()">
+            <i class="fa-solid fa-plus"></i> Agregar serie
+          </button>
+        </div>
+        <div id="series-list-wrap" class="series-list">${series.map(sr => `<div class="serie-item">
+            <span class="serie-code">${sr}</span>
+            <button class="serie-remove" onclick="quitarSerie('${sr}')"><i class="fa-solid fa-xmark"></i></button>
+          </div>`).join('')
+          }</div>
+        <div class="ab" style="margin-top:.75rem">
+          <button class="btn-accion btn-primary-g" onclick="guardarSeries()" ${series.length === 0 ? 'disabled' : ''} id="btn-guardar-series">
+            <i class="fa-solid fa-box-archive"></i> Marcar como "Preparando envío"
+          </button>
+          <button class="btn-accion btn-warn" onclick="accion('En espera, sin stock')">
+            <i class="fa-solid fa-box-open"></i> Sin stock
+          </button>
+        </div>
+      </div>`;
+        solActual._series_temp = series;
+        return;
+      }
+
+      // ── FASE 5: Preparando envío → capturar guía ──
+      if (s.estatus === 'Preparando envío') {
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#f0fdf4;border-color:#bbf7d0">
+        <div class="fase-panel-title" style="color:#059669"><i class="fa-solid fa-truck fi"></i>Registrar Envío</div>
+        ${s.serie_enviado ? `<p style="font-size:.78rem;color:#64748b;margin-bottom:.6rem">Series: <span style="font-family:var(--mono)">${s.serie_enviado}</span></p>` : ''}
+        <label class="field-label" for="inp-guia">Número de Guía de Envío</label>
+        <div class="qr-wrap">
+          <input id="inp-guia" type="text" class="field-input mono" placeholder="Ej. PAQ00276761" style="padding-right:2.8rem">
+          <button class="qr-btn" onclick="abrirEscaner('inp-guia')" title="Escanear guía"><i class="fa-solid fa-barcode"></i></button>
+        </div>
+        <div class="ab" style="margin-top:.75rem">
+          <button class="btn-accion btn-primary-g" onclick="registrarEnvio()">
+            <i class="fa-solid fa-paper-plane"></i> Confirmar Envío
+          </button>
+        </div>
+      </div>`;
+        return;
+      }
+
+      // ── FASE 6: En ruta ──
+      if (s.estatus === 'En ruta al solicitante') {
+        f.innerHTML = `
+      <div class="fase-panel" style="background:#f0fdfa;border-color:#99f6e4">
+        <div class="fase-panel-title" style="color:#0d9488"><i class="fa-solid fa-location-arrow fi"></i>En Ruta</div>
+        <div class="ig">
+          <div class="ic full"><div class="ic-l">Guía de envío</div><div class="ic-v mono">${s.num_guia || '—'}</div></div>
+          <div class="ic full"><div class="ic-l">Series enviadas</div><div class="ic-v mono">${s.serie_enviado || '—'}</div></div>
+        </div>
+        <p style="font-size:.8rem;color:#94a3b8;margin-top:.75rem;text-align:center"><i class="fa-solid fa-clock" style="margin-right:5px"></i>Esperando confirmación de recepción por parte del técnico.</p>
+      </div>`;
+        return;
+      }
+
+      // ── ENTREGADO / CERRADO ──
+      if (['Entregado', 'Cerrado ✓'].includes(s.estatus)) {
+        f.innerHTML = `
+      <div style="text-align:center;padding:.75rem;font-size:.82rem;color:#94a3b8">
+        <i class="fa-solid fa-circle-check" style="color:#22c55e;font-size:1.2rem;display:block;margin-bottom:.4rem"></i>
+        Esta solicitud ha sido ${s.estatus === 'Cerrado ✓' ? 'cerrada' : 'entregada'}.
+      </div>`;
+        return;
+      }
+
+      f.innerHTML = `<div style="text-align:center;padding:.5rem;font-size:.82rem;color:#94a3b8">Sin acciones disponibles para este estado.</div>`;
+    }
+
+    // ── ACCIONES ──
+    async function accion(nuevoEstatus, extras = {}) {
+      if (!solActual) return;
+      deshabilitarBtns();
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow',
+            body: JSON.stringify({ accion: 'cambiarEstatus', folio: solActual.folio, estatus: nuevoEstatus, clave_actor: sesion.clave, ...extras })
+          });
+          const txt = await res.text();
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+        } else {
+          await new Promise(r => setTimeout(r, 500));
+        }
+        // Update local
+        const idx = todas.findIndex(s => s.folio === solActual.folio);
+        if (idx >= 0) { todas[idx].estatus = nuevoEstatus; Object.assign(todas[idx], extras); solActual = todas[idx]; }
+        toast('Estatus: ' + nuevoEstatus, 'ok');
+        actualizarContadores(); renderLista();
+        renderFooter(solActual);
+        document.getElementById('d-badge').innerHTML = sbadge(nuevoEstatus);
+      } catch (e) { toast('Error: ' + e.message, 'err'); habilitarBtns(); }
+    }
+
+    async function cargarReserva() { cargarReservaId('inp-reserva'); }
+    async function cargarReservaId(inputId) {
+      const num = document.getElementById(inputId)?.value.trim();
+      if (!num) { toast('Ingresa el número de reserva', 'err'); return; }
+      deshabilitarBtns();
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow',
+            body: JSON.stringify({ accion: 'cargarReserva', folio: solActual.folio, num_reserva: num })
+          });
+          const txt = await res.text();
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+        } else { await new Promise(r => setTimeout(r, 500)); }
+        const idx = todas.findIndex(s => s.folio === solActual.folio);
+        if (idx >= 0) { todas[idx].num_reserva = num; todas[idx].estatus = 'En proceso de almacén'; solActual = todas[idx]; }
+        toast('Reserva cargada — En proceso de almacén', 'ok');
+        actualizarContadores(); renderLista();
+        renderFooter(solActual);
+        document.getElementById('d-body').innerHTML += `<div style="margin-top:.5rem;font-size:.78rem;color:#94a3b8">Reserva: <strong style="font-family:var(--mono)">${num}</strong></div>`;
+        document.getElementById('d-badge').innerHTML = sbadge('En proceso de almacén');
+      } catch (e) { toast('Error: ' + e.message, 'err'); habilitarBtns(); }
+    }
+
+    function agregarSerie() {
+      const inp = document.getElementById('inp-serie');
+      const val = inp.value.trim();
+      if (!val) return;
+      if (!solActual._series_temp) solActual._series_temp = [];
+      if (solActual._series_temp.includes(val)) { toast('Serie ya agregada', 'err'); return; }
+      solActual._series_temp.push(val);
+      inp.value = '';
+      inp.focus();
+      // Re-render solo la lista
+      const wrap = document.getElementById('series-list-wrap');
+      wrap.innerHTML = solActual._series_temp.map(sr => `
+    <div class="serie-item">
+      <span class="serie-code">${sr}</span>
+      <button class="serie-remove" onclick="quitarSerie('${sr}')"><i class="fa-solid fa-xmark"></i></button>
+    </div>`).join('');
+      const btn = document.getElementById('btn-guardar-series');
+      if (btn) btn.disabled = solActual._series_temp.length === 0;
+    }
+
+    function quitarSerie(val) {
+      if (!solActual._series_temp) return;
+      solActual._series_temp = solActual._series_temp.filter(s => s !== val);
+      const wrap = document.getElementById('series-list-wrap');
+      wrap.innerHTML = solActual._series_temp.map(sr => `
+    <div class="serie-item">
+      <span class="serie-code">${sr}</span>
+      <button class="serie-remove" onclick="quitarSerie('${sr}')"><i class="fa-solid fa-xmark"></i></button>
+    </div>`).join('');
+      const btn = document.getElementById('btn-guardar-series');
+      if (btn) btn.disabled = solActual._series_temp.length === 0;
+    }
+
+    async function guardarSeries() {
+      const series = solActual._series_temp || [];
+      if (!series.length) { toast('Agrega al menos un número de serie', 'err'); return; }
+      const serieStr = series.join(', ');
+      deshabilitarBtns();
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow',
+            body: JSON.stringify({ accion: 'cambiarEstatus', folio: solActual.folio, estatus: 'Preparando envío', clave_actor: sesion.clave })
+          });
+          const txt = await res.text();
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+        } else { await new Promise(r => setTimeout(r, 500)); }
+        const idx = todas.findIndex(s => s.folio === solActual.folio);
+        if (idx >= 0) { todas[idx].estatus = 'Preparando envío'; todas[idx].serie_enviado = serieStr; solActual = todas[idx]; }
+        toast('Series guardadas — Preparando envío', 'ok');
+        actualizarContadores(); renderLista();
+        renderFooter(solActual);
+        document.getElementById('d-badge').innerHTML = sbadge('Preparando envío');
+      } catch (e) { toast('Error: ' + e.message, 'err'); habilitarBtns(); }
+    }
+
+    async function registrarEnvio() {
+      const guia = document.getElementById('inp-guia')?.value.trim();
+      if (!guia) { toast('Ingresa el número de guía', 'err'); return; }
+      deshabilitarBtns();
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow',
+            body: JSON.stringify({ accion: 'cargarGuia', folio: solActual.folio, num_guia: guia, serie_enviado: solActual.serie_enviado || '' })
+          });
+          const txt = await res.text();
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+        } else { await new Promise(r => setTimeout(r, 500)); }
+        const idx = todas.findIndex(s => s.folio === solActual.folio);
+        if (idx >= 0) { todas[idx].estatus = 'En ruta al solicitante'; todas[idx].num_guia = guia; solActual = todas[idx]; }
+        toast('Envío confirmado — En ruta al solicitante', 'ok');
+        actualizarContadores(); renderLista();
+        renderFooter(solActual);
+        document.getElementById('d-badge').innerHTML = sbadge('En ruta al solicitante');
+      } catch (e) { toast('Error: ' + e.message, 'err'); habilitarBtns(); }
+    }
+
+    function deshabilitarBtns() { document.querySelectorAll('.btn-accion').forEach(b => b.disabled = true); }
+    function habilitarBtns() { document.querySelectorAll('.btn-accion').forEach(b => b.disabled = false); }
+
+    // ── DRAWER CLOSE ──
+    function cerrarDrawer() {
+      document.getElementById('overlay').classList.remove('visible');
+      document.getElementById('drawer').classList.remove('open');
+      setTimeout(() => document.getElementById('overlay').classList.remove('open'), 250);
+      document.querySelectorAll('.sol-card').forEach(c => c.classList.remove('selected'));
+      solActual = null;
+    }
+
+    // ── ESCANER ──
+    async function abrirEscaner(fieldId) {
+      scanTarget = fieldId;
+      document.getElementById('scan-modal').classList.add('open');
+      if ('BarcodeDetector' in window) {
+        try {
+          scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          document.getElementById('scan-video').srcObject = scanStream;
+          const det = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'data_matrix'] });
+          scanInterval = setInterval(async () => {
+            try {
+              const codes = await det.detect(document.getElementById('scan-video'));
+              if (codes.length) { document.getElementById(scanTarget).value = codes[0].rawValue; cerrarEscaner(); }
+            } catch { }
+          }, 300);
+        } catch { cerrarEscaner(); }
+      }
+    }
+    function cerrarEscaner() {
+      document.getElementById('scan-modal').classList.remove('open');
+      if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+      if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function toast(msg, tipo = '') {
+      const t = document.getElementById('toast'); clearTimeout(toastTimer);
+      t.innerHTML = tipo === 'ok' ? `<i class="fa-solid fa-circle-check"></i> ${msg}` : tipo === 'err' ? `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}` : msg;
+      t.className = `toast show ${tipo}`;
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ── MOCK ──
+    function mockData() {
+      return [
+        {
+          folio: 'REF-20240605-0412', fecha_hora: '05/06/2024', estatus: 'Autorizada',
+          num_eco: 'ECO-007', base_operativa: 'Jilotepec', bus_servicio: 'Autovías', bus_sociedad: 'Sociedad Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-004', tecnico: 'Pedro Ruiz', categoria: 'BOLETERA', componente: 'BLT-002', material_nombre: 'Lector de tarjetas CR-20',
+          falla: 'No detecta tarjetas.', fecha_falla: '2024-06-03', num_reserva: '', serie_enviado: '', num_guia: ''
+        },
+        {
+          folio: 'REF-20240603-0380', fecha_hora: '03/06/2024', estatus: 'En espera de reserva',
+          num_eco: 'ECO-002', base_operativa: 'Morelia', bus_servicio: 'Nuevo Horizonte', bus_sociedad: 'Sociedad Beta', bus_ceco: 'CC-202',
+          clave_tecnico: 'TEC-003', tecnico: 'Luis Soto', categoria: 'CONECTIVIDAD', componente: 'CNX-001', material_nombre: 'Router CPE 4G LTE',
+          falla: 'Sin internet.', fecha_falla: '2024-06-01', num_reserva: '', serie_enviado: '', num_guia: ''
+        },
+        {
+          folio: 'REF-20240601-0291', fecha_hora: '01/06/2024', estatus: 'En proceso de almacén',
+          num_eco: 'ECO-003', base_operativa: 'Toluca', bus_servicio: 'Económico', bus_sociedad: 'Sociedad Gamma', bus_ceco: 'CC-303',
+          clave_tecnico: 'TEC-002', tecnico: 'María García', categoria: 'CCTV', componente: 'CAM-001', material_nombre: 'Cámara domo DS-2CD211',
+          falla: 'Imagen con ruido.', fecha_falla: '2024-05-29', num_reserva: 'RES-2024-0145', serie_enviado: '', num_guia: ''
+        },
+        {
+          folio: 'REF-20240530-0187', fecha_hora: '30/05/2024', estatus: 'Preparando envío',
+          num_eco: 'ECO-005', base_operativa: 'Toluca', bus_servicio: 'Autovías', bus_sociedad: 'Sociedad Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-001', tecnico: 'Juan Pérez', categoria: 'TERMINAL BANCARIA', componente: 'TBK-001', material_nombre: 'Pinpad Verifone VX820',
+          falla: 'No procesa pagos.', fecha_falla: '2024-05-27', num_reserva: 'RES-2024-0132', serie_enviado: 'SN-VX820-774421,SN-VX820-774422', num_guia: ''
+        },
+        {
+          folio: 'REF-20240528-0104', fecha_hora: '28/05/2024', estatus: 'En ruta al solicitante',
+          num_eco: 'ECO-009', base_operativa: 'Jilotepec', bus_servicio: 'Autovías', bus_sociedad: 'Sociedad Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-004', tecnico: 'Pedro Ruiz', categoria: 'CCTV', componente: 'CAM-002', material_nombre: 'DVR 8 canales H.265',
+          falla: 'Sin grabación.', fecha_falla: '2024-05-25', num_reserva: 'RES-2024-0119', serie_enviado: 'SN-DVR-334411', num_guia: 'GU-FEDX-9987234110'
+        },
+      ];
+    }
+  </script>
+</body>
+
+</html>

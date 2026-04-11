@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control REFA — Acceso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #171b26;
+      --border: rgba(255, 255, 255, .07);
+      --border-hi: rgba(99, 102, 241, .5);
+      --indigo: #6366f1;
+      --indigo-hi: #818cf8;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --danger: #f87171;
+      --success: #34d399;
+      --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── GRID DE FONDO ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99, 102, 241, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, .04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* ── GLOW ── */
+    .glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, .12) 0%, transparent 70%);
+      pointer-events: none;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: pulse 6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: .6;
+        transform: translateX(-50%) scale(1);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.1);
+      }
+    }
+
+    /* ── CARD ── */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      margin: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .6);
+      animation: slideUp .5s cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── HEADER ── */
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--indigo), #a78bfa);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: white;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, .35);
+      flex-shrink: 0;
+    }
+
+    .logo-text {}
+
+    .logo-title {
+      font-family: var(--mono);
+      font-size: .95rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: .05em;
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 3px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* ── BADGE DE ROL ── */
+    #rol-badge {
+      display: none;
+      font-family: var(--mono);
+      font-size: .7rem;
+      font-weight: 500;
+      padding: .25rem .7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      width: fit-content;
+      transition: all .3s;
+    }
+
+    #rol-badge.visible {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-color: var(--border-hi);
+      color: var(--indigo-hi);
+      background: rgba(99, 102, 241, .08);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: .4rem;
+    }
+
+    .subtitle {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    /* ── FIELDS ── */
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: .68rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: .5rem;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: .85rem;
+      pointer-events: none;
+      transition: color .2s;
+    }
+
+    .field-input {
+      width: 100%;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .85rem 1rem .85rem 2.6rem;
+      font-family: var(--mono);
+      font-size: .9rem;
+      color: var(--text);
+      outline: none;
+      transition: all .2s;
+      -webkit-appearance: none;
+    }
+
+    .field-input::placeholder {
+      color: var(--muted);
+    }
+
+    .field-input:focus {
+      border-color: var(--border-hi);
+      background: rgba(99, 102, 241, .06);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+    }
+
+    .field-input:focus+.input-icon,
+    .input-wrap:focus-within .input-icon {
+      color: var(--indigo-hi);
+    }
+
+    .field-input.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, .12);
+    }
+
+    /* toggle contraseña */
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .85rem;
+      padding: 4px;
+      transition: color .2s;
+    }
+
+    .toggle-pass:hover {
+      color: var(--indigo-hi);
+    }
+
+    #password {
+      padding-right: 2.8rem;
+    }
+
+    /* ── ERROR GLOBAL ── */
+    #error-msg {
+      display: none;
+      background: rgba(248, 113, 113, .1);
+      border: 1px solid rgba(248, 113, 113, .3);
+      border-radius: 10px;
+      padding: .7rem 1rem;
+      font-size: .82rem;
+      color: var(--danger);
+      margin-bottom: 1.25rem;
+      align-items: center;
+      gap: 8px;
+      animation: shake .3s ease both;
+    }
+
+    #error-msg.show {
+      display: flex;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      25% {
+        transform: translateX(-6px)
+      }
+
+      75% {
+        transform: translateX(6px)
+      }
+    }
+
+    /* ── BOTÓN ── */
+    .btn {
+      width: 100%;
+      background: var(--indigo);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: .95rem;
+      font-family: var(--sans);
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      margin-top: .5rem;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(255, 255, 255, .1), transparent);
+      pointer-events: none;
+    }
+
+    .btn:hover {
+      background: var(--indigo-hi);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, .4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spin {
+      animation: spin .7s linear infinite;
+      display: inline-block;
+    }
+
+    /* ── DIVISOR ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 1.5rem 0;
+      color: var(--muted);
+      font-size: .75rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── FOOTER ── */
+    .card-footer {
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-tag {
+      font-family: var(--mono);
+      font-size: .68rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    /* ── PANTALLA BIENVENIDA (post-login) ── */
+    #welcome-screen {
+      display: none;
+      text-align: center;
+      animation: slideUp .4s cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .welcome-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, rgba(52, 211, 153, .2), rgba(99, 102, 241, .2));
+      border: 1px solid rgba(52, 211, 153, .3);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 1.5rem;
+    }
+
+    .welcome-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: .3rem;
+    }
+
+    .welcome-rol {
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--indigo-hi);
+      background: rgba(99, 102, 241, .1);
+      border: 1px solid rgba(99, 102, 241, .2);
+      border-radius: 999px;
+      padding: .25rem .8rem;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
+    .welcome-base {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .redirect-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .redirect-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), #a78bfa);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 2s linear;
+    }
+
+    .redirect-txt {
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    /* DESTINOS según rol */
+    .rol-destinos {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      margin-top: 1.5rem;
+    }
+
+    .destino-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .75rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      font-size: .88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .destino-btn:hover {
+      background: rgba(99, 102, 241, .1);
+      border-color: var(--border-hi);
+      color: var(--indigo-hi);
+    }
+
+    .destino-btn i {
+      color: var(--indigo);
+      font-size: .85rem;
+      width: 16px;
+      text-align: center;
+    }
+
+    .destino-btn .arrow {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: .75rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="glow"></div>
+
+  <div class="card" id="login-card">
+
+    <!-- LOGO -->
+    <div class="logo-wrap">
+      <div class="logo-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div class="logo-text">
+        <div class="logo-title">REFA // CONTROL</div>
+        <div class="logo-sub">Sistema de Refaccionamiento</div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div id="login-form-wrap">
+      <h1>Acceso</h1>
+      <p class="subtitle">Ingresa tu clave y contraseña para continuar.</p>
+
+      <div id="error-msg">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="error-txt">Credenciales incorrectas.</span>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="clave">Clave de acceso</label>
+        <div class="input-wrap">
+          <input id="clave" type="text" class="field-input" placeholder="TEC-001" autocomplete="username"
+            autocapitalize="characters">
+          <i class="fa-solid fa-id-badge input-icon" style="pointer-events:none"></i>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="password">
+          Contraseña
+        </label>
+        <div class="input-wrap">
+          <input id="password" type="password" class="field-input" placeholder="••••••••"
+            autocomplete="current-password">
+          <i class="fa-solid fa-lock input-icon" style="pointer-events:none"></i>
+          <button type="button" class="toggle-pass" onclick="togglePass()" id="toggle-pass-btn"
+            title="Mostrar contraseña">
+            <i class="fa-solid fa-eye" id="eye-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn" id="btn-login" onclick="handleLogin()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        Ingresar
+      </button>
+    </div>
+
+    <!-- BIENVENIDA (aparece tras login) -->
+    <div id="welcome-screen">
+      <div class="welcome-icon">
+        <i class="fa-solid fa-circle-check" style="color: var(--success)"></i>
+      </div>
+      <div class="welcome-name" id="w-nombre">—</div>
+      <div class="welcome-rol" id="w-rol">—</div>
+      <div class="welcome-base" id="w-base"><i class="fa-solid fa-location-dot" style="margin-right:5px"></i><span
+          id="w-base-txt">—</span></div>
+
+      <div class="redirect-bar">
+        <div class="redirect-fill" id="redirect-fill"></div>
+      </div>
+      <p class="redirect-txt">Redirigiendo en 2 segundos...</p>
+
+      <div class="rol-destinos" id="destinos-wrap"></div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card-footer">
+      <span class="footer-tag">
+        <span class="status-dot"></span>
+        Sistema activo
+      </span>
+      <span class="footer-tag" style="font-size:.65rem">v1.0 · 2024</span>
+    </div>
+
+  </div>
+
+  <script>
+    // ── CONFIG ──
+    const API_REFA = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+
+    // Destinos por rol
+    const DESTINOS = {
+      tecnico: [
+        { icon: 'fa-list-check', label: 'Mis Solicitudes', href: 'tecnico.html' },
+        { icon: 'fa-plus-circle', label: 'Nueva Solicitud', href: 'reporte_tecnico.html' },
+      ],
+      coordinador: [
+        { icon: 'fa-clipboard-check', label: 'Revisar Solicitudes', href: 'coordinador.html' },
+        { icon: 'fa-plus-circle', label: 'Nueva Solicitud', href: 'solicitud.html' },
+      ],
+      jefe: [
+        { icon: 'fa-stamp', label: 'Autorizaciones', href: 'autorizaciones.html' },
+        { icon: 'fa-chart-bar', label: 'Vista general', href: 'coordinador.html' },
+      ],
+      gerente: [
+        { icon: 'fa-stamp', label: 'Autorizaciones', href: 'autorizaciones.html' },
+        { icon: 'fa-chart-bar', label: 'Vista general', href: 'coordinador.html' },
+      ],
+      gestor: [
+        { icon: 'fa-boxes-stacked', label: 'Panel de Gestión', href: 'gestor.html' },
+      ],
+    };
+
+    // Destino principal por rol (redirect automático)
+    const REDIRECT_PRINCIPAL = {
+      tecnico: 'tecnico.html',
+      coordinador: 'coordinador.html',
+      jefe: 'autorizaciones.html',
+      gerente: 'autorizaciones.html',
+      gestor: 'gestor.html',
+    };
+
+    // ── LOGIN ──
+    async function handleLogin() {
+      const clave = document.getElementById('clave').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('btn-login');
+      const errBox = document.getElementById('error-msg');
+      const errTxt = document.getElementById('error-txt');
+
+      // Reset
+      errBox.classList.remove('show');
+      document.getElementById('clave').classList.remove('error');
+      document.getElementById('password').classList.remove('error');
+
+      if (!clave || !password) {
+        if (!clave) document.getElementById('clave').classList.add('error');
+        if (!password) document.getElementById('password').classList.add('error');
+        errTxt.textContent = 'Completa todos los campos.';
+        errBox.classList.add('show');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin"><i class="fa-solid fa-circle-notch"></i></span> Verificando...';
+
+      try {
+        let usuario;
+
+        if (API_REFA === 'TU_URL_REFA_AQUI') {
+          // ── MOCK ── (elimina esto cuando conectes el GAS)
+          await new Promise(r => setTimeout(r, 900));
+          const mock = {
+            'TEC-001': { clave: 'TEC-001', nombre: 'Juan Pérez', rol: 'tecnico', base: 'Toluca', password: '1234' },
+            'COO-001': { clave: 'COO-001', nombre: 'Ana Ramírez', rol: 'coordinador', base: 'Morelia', password: '1234' },
+            'JEF-001': { clave: 'JEF-001', nombre: 'Carlos Mendoza', rol: 'jefe', base: 'Nacional', password: '1234' },
+            'GES-001': { clave: 'GES-001', nombre: 'Luis Torres', rol: 'gestor', base: 'Nacional', password: '1234' },
+          };
+          const found = mock[clave.toUpperCase()];
+          if (found && found.password === password) {
+            usuario = { ok: true, clave: found.clave, nombre: found.nombre, rol: found.rol, base: found.base };
+          } else {
+            usuario = { ok: false, error: 'Credenciales incorrectas' };
+          }
+        } else {
+          const res = await fetch(`${API_REFA}?accion=login&clave=${encodeURIComponent(clave)}&password=${encodeURIComponent(password)}`);
+          usuario = await res.json();
+        }
+
+        if (!usuario.ok) {
+          document.getElementById('clave').classList.add('error');
+          document.getElementById('password').classList.add('error');
+          errTxt.textContent = usuario.error || 'Credenciales incorrectas o usuario inactivo.';
+          errBox.classList.add('show');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar';
+          return;
+        }
+
+        // ── GUARDAR SESIÓN ──
+        localStorage.setItem('tecnico', usuario.clave);
+        localStorage.setItem('nombre_tecnico', usuario.nombre);
+        localStorage.setItem('base', usuario.base);
+        localStorage.setItem('rol', usuario.rol);
+        localStorage.setItem('clave_sesion', usuario.clave);
+
+        mostrarBienvenida(usuario);
+
+      } catch (err) {
+        console.error(err);
+        errTxt.textContent = 'Error de conexión. Verifica tu red e intenta de nuevo.';
+        errBox.classList.add('show');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar';
+      }
+    }
+
+    // ── BIENVENIDA + REDIRECT ──
+    function mostrarBienvenida(u) {
+      document.getElementById('login-form-wrap').style.display = 'none';
+      const ws = document.getElementById('welcome-screen');
+      ws.style.display = 'block';
+
+      const etiquetasRol = {
+        tecnico: 'Técnico de Campo', coordinador: 'Coordinador',
+        jefe: 'Jefe', gerente: 'Gerente', gestor: 'Técnico Gestor'
+      };
+      document.getElementById('w-nombre').textContent = u.nombre;
+      document.getElementById('w-rol').textContent = etiquetasRol[u.rol] || u.rol;
+      document.getElementById('w-base-txt').textContent = u.base;
+
+      // Destinos manuales
+      const wrap = document.getElementById('destinos-wrap');
+      const dests = DESTINOS[u.rol] || [];
+      dests.forEach(d => {
+        const a = document.createElement('a');
+        a.href = d.href;
+        a.className = 'destino-btn';
+        a.innerHTML = `<i class="fa-solid ${d.icon}"></i> ${d.label} <i class="fa-solid fa-arrow-right arrow"></i>`;
+        wrap.appendChild(a);
+      });
+
+      // Redirect automático
+      const dest = REDIRECT_PRINCIPAL[u.rol] || 'solicitud.html';
+      setTimeout(() => {
+        document.getElementById('redirect-fill').style.width = '100%';
+      }, 50);
+      setTimeout(() => { window.location.href = dest; }, 2100);
+    }
+
+    // ── TOGGLE CONTRASEÑA ──
+    function togglePass() {
+      const inp = document.getElementById('password');
+      const icon = document.getElementById('eye-icon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    // ── ENTER para submit ──
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    // ── Si ya hay sesión, redirigir ──
+    window.addEventListener('DOMContentLoaded', () => {
+      const rol = localStorage.getItem('rol');
+      if (rol && REDIRECT_PRINCIPAL[rol]) {
+        // Sesión activa — ir directo (comenta esto en dev si quieres probar el login)
+        // window.location.href = REDIRECT_PRINCIPAL[rol];
+      }
+    });
+  </script>
+</body>
+
+</html>

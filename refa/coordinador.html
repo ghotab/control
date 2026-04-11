@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REFA Control — Coordinador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #F2F2F7;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --border-lo: #f1f5f9;
+      --indigo: #4f46e5;
+      --indigo-lo: #eef2ff;
+      --indigo-md: #818cf8;
+      --text: #0f172a;
+      --muted: #94a3b8;
+      --mid: #64748b;
+      --sans: 'DM Sans', -apple-system, sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, .85);
+      border-bottom: 1px solid var(--border-lo);
+      padding: .75rem 1rem;
+    }
+
+    .navbar-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--indigo);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, .25);
+    }
+
+    .nav-title {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .nav-sub {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-user {
+      text-align: right;
+    }
+
+    .nav-user-name {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .nav-user-base {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .rol-pill {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      background: var(--indigo-lo);
+      color: var(--indigo);
+      border: 1px solid #c7d2fe;
+    }
+
+    .btn-logout {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .btn-logout:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 6rem;
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      gap: .6rem;
+      margin-bottom: 1.25rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .stat-chip {
+      flex-shrink: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: .6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    }
+
+    .stat-chip:hover {
+      border-color: #a5b4fc;
+      background: var(--indigo-lo);
+    }
+
+    .stat-chip.active {
+      border-color: var(--indigo);
+      background: var(--indigo-lo);
+    }
+
+    .stat-chip.active .stat-n {
+      color: var(--indigo);
+    }
+
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .stat-n {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      min-width: 20px;
+    }
+
+    .stat-label {
+      font-size: .75rem;
+      color: var(--mid);
+      white-space: nowrap;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex;
+      gap: .6rem;
+      margin-bottom: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: .8rem;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem .9rem .65rem 2.2rem;
+      font-size: .88rem;
+      color: var(--text);
+      outline: none;
+      font-family: var(--sans);
+      transition: all .2s;
+    }
+
+    .search-input:focus {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .1);
+    }
+
+    .refresh-btn {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem .9rem;
+      cursor: pointer;
+      color: var(--mid);
+      font-size: .85rem;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .refresh-btn:hover {
+      border-color: #a5b4fc;
+      color: var(--indigo);
+    }
+
+    /* ── EMPTY / LOADING ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: .75rem;
+      opacity: .4;
+    }
+
+    .empty-msg {
+      font-size: .9rem;
+    }
+
+    .loading-list {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    .skeleton-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1rem;
+      border: 1px solid var(--border-lo);
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    /* ── CARD SOLICITUD ── */
+    .sol-card {
+      background: white;
+      border: 1px solid var(--border-lo);
+      border-radius: 16px;
+      padding: 1rem 1.1rem;
+      margin-bottom: .6rem;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      animation: fadeUp .3s ease both;
+    }
+
+    .sol-card:hover {
+      border-color: #a5b4fc;
+      box-shadow: 0 4px 16px -4px rgba(79, 70, 229, .12);
+      transform: translateY(-1px);
+    }
+
+    .sol-card.selected {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, .15);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .sol-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: .6rem;
+    }
+
+    .sol-folio {
+      font-family: var(--mono);
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--indigo);
+    }
+
+    .sol-fecha {
+      font-size: .72rem;
+      color: var(--muted);
+    }
+
+    .sol-eco {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: .2rem;
+    }
+
+    .sol-comp {
+      font-size: .82rem;
+      color: var(--mid);
+      margin-bottom: .5rem;
+    }
+
+    .sol-falla {
+      font-size: .82rem;
+      color: #475569;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .sol-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: .75rem;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sol-tecnico {
+      font-size: .75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sol-base-chip {
+      font-size: .7rem;
+      font-weight: 600;
+      color: var(--mid);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .15rem .6rem;
+    }
+
+    /* ── STATUS BADGE ── */
+    .status-badge {
+      font-size: .68rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: .25rem .7rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .s-nueva {
+      background: #eff6ff;
+      color: #3b82f6;
+      border: 1px solid #bfdbfe;
+    }
+
+    .s-respaldada {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+
+    .s-stock {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+
+    .s-prestado {
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #99f6e4;
+    }
+
+    .s-denegada {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .s-autorizada {
+      background: #faf5ff;
+      color: #7c3aed;
+      border: 1px solid #ddd6fe;
+    }
+
+    .s-proceso {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .s-default {
+      background: #f8fafc;
+      color: var(--mid);
+      border: 1px solid var(--border);
+    }
+
+    .s-proceso {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .s-ruta {
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #99f6e4;
+    }
+
+    .s-entregado {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    /* ── DRAWER ── */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, .45);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      display: none;
+      opacity: 0;
+      transition: opacity .25s;
+    }
+
+    .drawer-overlay.open {
+      display: block;
+    }
+
+    .drawer-overlay.visible {
+      opacity: 1;
+    }
+
+    .drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 201;
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      box-shadow: -20px 0 60px rgba(0, 0, 0, .15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.16, 1, .3, 1);
+      overflow: hidden;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border-lo);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .drawer-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .drawer-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+      color: var(--mid);
+      font-size: .85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .drawer-close:hover {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+    }
+
+    .drawer-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .drawer-section-title {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: .75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drawer-section-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+    }
+
+    .info-cell {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: .6rem .75rem;
+      border: 1px solid var(--border-lo);
+    }
+
+    .info-cell-label {
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 2px;
+    }
+
+    .info-cell-val {
+      font-size: .85rem;
+      color: var(--text);
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+    .info-cell.full {
+      grid-column: 1 / -1;
+    }
+
+    .info-cell-val.mono {
+      font-family: var(--mono);
+      font-size: .8rem;
+    }
+
+    .pruebas-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .prueba-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .82rem;
+      color: #475569;
+      padding: .35rem .5rem;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .prueba-item i {
+      color: #22c55e;
+      font-size: .75rem;
+    }
+
+    /* ── PANEL DE ACCIÓN ── */
+    .drawer-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-lo);
+      background: #fafbff;
+      flex-shrink: 0;
+    }
+
+    .action-title {
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .75rem;
+    }
+
+    .nota-input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .75rem 1rem;
+      font-size: .88rem;
+      color: var(--text);
+      outline: none;
+      font-family: var(--sans);
+      resize: none;
+      transition: all .2s;
+      margin-bottom: .75rem;
+    }
+
+    .nota-input:focus {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .08);
+    }
+
+    .action-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+    }
+
+    .action-btn {
+      padding: .75rem;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: .82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all .2s;
+    }
+
+    .action-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .btn-respaldar {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .btn-respaldar:hover:not(:disabled) {
+      background: #bbf7d0;
+    }
+
+    .btn-denegar {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .btn-denegar:hover:not(:disabled) {
+      background: #fecaca;
+    }
+
+    .btn-stock {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .btn-stock:hover:not(:disabled) {
+      background: #a7f3d0;
+    }
+
+    .btn-prestado {
+      background: #ccfbf1;
+      color: #0f766e;
+    }
+
+    .btn-prestado:hover:not(:disabled) {
+      background: #99f6e4;
+    }
+
+    .action-btn.full {
+      grid-column: 1/-1;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #1e293b;
+      color: white;
+      font-size: .85rem;
+      font-weight: 600;
+      padding: .75rem 1.25rem;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .3s cubic-bezier(.16, 1, .3, 1);
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.success {
+      background: #15803d;
+    }
+
+    .toast.error {
+      background: #dc2626;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .spin {
+      animation: spin .7s linear infinite;
+      display: inline-block;
+    }
+
+    /* ── BADGE CONTADOR ── */
+    .badge-cnt {
+      background: var(--indigo);
+      color: white;
+      border-radius: 999px;
+      font-size: .65rem;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 4px;
+      font-family: var(--mono);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="nav-brand">
+        <div class="nav-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+        <div>
+          <div class="nav-title">Panel de Coordinación</div>
+          <div class="nav-sub">REFA Control</div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="nav-user hidden sm:block" id="nav-user-info">
+          <div class="nav-user-name" id="nav-nombre">—</div>
+          <div class="nav-user-base" id="nav-base">—</div>
+        </div>
+        <span class="rol-pill" id="nav-rol">—</span>
+        <a href="solicitud.html" style="text-decoration:none">
+          <button
+            style="background:#4f46e5;color:white;border:none;border-radius:9px;padding:.45rem .8rem;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .2s;white-space:nowrap"
+            onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+            <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Nueva Solicitud</span>
+          </button>
+        </a>
+        <button class="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- TABS -->
+  <div style="background:white;border-bottom:1px solid #f1f5f9">
+    <div style="max-width:900px;margin:0 auto;padding:0 1rem;display:flex;gap:0;overflow-x:auto">
+      <button class="coord-tab active" data-tab="coordinacion" onclick="cambiarTabCoord('coordinacion',this)"
+        style="padding:.7rem 1rem;font-size:.82rem;font-weight:600;color:#94a3b8;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap">
+        <i class="fa-solid fa-clipboard-check" style="margin-right:5px"></i>Por revisar
+        <span id="badge-coord"
+          style="background:#4f46e5;color:white;border-radius:999px;font-size:.65rem;padding:1px 6px;margin-left:4px;font-family:'DM Mono',monospace">0</span>
+      </button>
+      <button class="coord-tab" data-tab="historial" onclick="cambiarTabCoord('historial',this)"
+        style="padding:.7rem 1rem;font-size:.82rem;font-weight:600;color:#94a3b8;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap">
+        <i class="fa-solid fa-list-ul" style="margin-right:5px"></i>Todas las solicitudes de mi base
+      </button>
+    </div>
+  </div>
+
+  <style>
+    .coord-tab.active {
+      color: #4f46e5 !important;
+      border-bottom-color: #4f46e5 !important;
+    }
+  </style>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- STATS BAR -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-chip active" data-filter="all" onclick="filtrarPor('all',this)">
+        <span class="stat-dot" style="background:#94a3b8"></span>
+        <span class="stat-n" id="cnt-all">0</span>
+        <span class="stat-label">Todas</span>
+      </div>
+      <div class="stat-chip" data-filter="Nueva Solicitud" onclick="filtrarPor('Nueva Solicitud',this)">
+        <span class="stat-dot" style="background:#3b82f6"></span>
+        <span class="stat-n" id="cnt-nueva">0</span>
+        <span class="stat-label">Nuevas</span>
+      </div>
+      <div class="stat-chip" data-filter="Respaldada" onclick="filtrarPor('Respaldada',this)">
+        <span class="stat-dot" style="background:#16a34a"></span>
+        <span class="stat-n" id="cnt-resp">0</span>
+        <span class="stat-label">Respaldadas</span>
+      </div>
+      <div class="stat-chip" data-filter="Resuelto con Stock Local"
+        onclick="filtrarPor('Resuelto con Stock Local',this)">
+        <span class="stat-dot" style="background:#059669"></span>
+        <span class="stat-n" id="cnt-stock">0</span>
+        <span class="stat-label">Stock local</span>
+      </div>
+      <div class="stat-chip" data-filter="Resuelto con Equipo Prestado"
+        onclick="filtrarPor('Resuelto con Equipo Prestado',this)">
+        <span class="stat-dot" style="background:#0d9488"></span>
+        <span class="stat-n" id="cnt-prest">0</span>
+        <span class="stat-label">Prestado</span>
+      </div>
+      <div class="stat-chip" data-filter="Denegada por coordinador"
+        onclick="filtrarPor('Denegada por coordinador',this)">
+        <span class="stat-dot" style="background:#dc2626"></span>
+        <span class="stat-n" id="cnt-den">0</span>
+        <span class="stat-label">Denegadas</span>
+      </div>
+      <div class="stat-chip hist-chip" data-filter="Autorizada" onclick="filtrarPor('Autorizada',this)"
+        style="display:none">
+        <span class="stat-dot" style="background:#7c3aed"></span>
+        <span class="stat-n" id="cnt-auth">0</span>
+        <span class="stat-label">Autorizadas</span>
+      </div>
+      <div class="stat-chip hist-chip" data-filter="En ruta al solicitante"
+        onclick="filtrarPor('En ruta al solicitante',this)" style="display:none">
+        <span class="stat-dot" style="background:#0d9488"></span>
+        <span class="stat-n" id="cnt-ruta">0</span>
+        <span class="stat-label">En ruta</span>
+      </div>
+      <div class="stat-chip hist-chip" data-filter="Entregado" onclick="filtrarPor('Entregado',this)"
+        style="display:none">
+        <span class="stat-dot" style="background:#16a34a"></span>
+        <span class="stat-n" id="cnt-entregado">0</span>
+        <span class="stat-label">Entregadas</span>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="search-input" class="search-input"
+          placeholder="Buscar por folio, unidad, técnico, componente...">
+      </div>
+      <button class="refresh-btn" onclick="cargarSolicitudes()">
+        <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
+        <span class="hidden sm:inline">Actualizar</span>
+      </button>
+    </div>
+
+    <!-- LISTA -->
+    <div id="lista-container">
+      <!-- se puebla por JS -->
+    </div>
+
+  </div>
+
+  <!-- DRAWER DETALLE -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
+  <div class="drawer" id="drawer">
+
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-title" id="drawer-folio">—</div>
+        <div style="margin-top:3px" id="drawer-status-wrap"></div>
+      </div>
+      <button class="drawer-close" onclick="cerrarDrawer()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="drawer-body" id="drawer-body">
+      <!-- se puebla dinámicamente -->
+    </div>
+
+    <div class="drawer-footer" id="drawer-footer">
+      <div class="action-title"><i class="fa-solid fa-pen-to-square" style="margin-right:4px"></i>Acción del Coordinador
+      </div>
+      <textarea id="nota-coord" class="nota-input" rows="2"
+        placeholder="Nota opcional (motivo de denegación, observaciones...)"></textarea>
+      <div class="action-btns" id="action-btns">
+        <!-- se puebla según el estatus actual -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── CONFIG ──
+    const API_REFA = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+    const API_FLOTA = 'https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec';
+
+    // ── SESIÓN ──
+    let sesion = {};
+
+    function initSesion() {
+      const clave = localStorage.getItem('tecnico');
+      const nombre = localStorage.getItem('nombre_tecnico');
+      const base = localStorage.getItem('base');
+      const rol = localStorage.getItem('rol');
+
+      if (!clave) { window.location.href = 'login.html'; return false; }
+
+      if (!['coordinador', 'jefe', 'gerente'].includes(rol)) {
+        window.location.href = 'login.html';
+        return false;
+      }
+
+      sesion = { clave, nombre, base, rol };
+      const etiq = { coordinador: 'Coordinador', jefe: 'Jefe', gerente: 'Gerente' };
+      document.getElementById('nav-nombre').textContent = nombre || clave;
+      document.getElementById('nav-base').textContent = base || '—';
+      document.getElementById('nav-rol').textContent = etiq[rol] || rol;
+      return true;
+    }
+
+    function cerrarSesion() {
+      ['tecnico', 'nombre_tecnico', 'base', 'rol', 'clave_sesion'].forEach(k => localStorage.removeItem(k));
+      window.location.href = 'login.html';
+    }
+
+    // ── DATOS ──
+    let todasSolicitudes = [], tabCoordActual = 'coordinacion';
+    let filtroActual = 'all';
+    let busqueda = '';
+    let solActual = null;
+
+    // ── INIT ──
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!initSesion()) return;
+      cargarSolicitudes();
+
+      document.getElementById('search-input').addEventListener('input', e => {
+        busqueda = e.target.value.toLowerCase();
+        renderLista();
+      });
+    });
+
+    // ── TABS COORDINADOR ──
+    const ESTATUS_COORD = ['Nueva Solicitud', 'Respaldada', 'Denegada por coordinador',
+      'Resuelto con Stock Local', 'Resuelto con Equipo Prestado'];
+
+    const ESTATUS_HISTORIAL = ['Autorizada', 'En espera de reserva', 'En espera, sin presupuesto',
+      'En proceso de almacén', 'En proceso de extracción de almacén',
+      'En espera, sin stock', 'En pausa, canje inconsistente',
+      'Preparando envío', 'En ruta al solicitante',
+      'Entregado', 'Inconsistencia en recepción', 'Cerrado ✓'];
+
+    function cambiarTabCoord(tab, el) {
+      tabCoordActual = tab;
+      console.log('Tab cambiado a:', tab, '| filtroActual:', filtroActual);
+      document.querySelectorAll('.coord-tab').forEach(t => {
+        t.classList.remove('active');
+        t.style.color = '#94a3b8';
+        t.style.borderBottomColor = 'transparent';
+      });
+      el.classList.add('active');
+      el.style.color = '#4f46e5';
+      el.style.borderBottomColor = '#4f46e5';
+
+      // Mostrar/ocultar chips del historial
+      document.querySelectorAll('.hist-chip').forEach(c =>
+        c.style.display = tab === 'historial' ? 'flex' : 'none'
+      );
+
+      // Reset filtro al cambiar tab
+      filtroActual = 'all';
+      document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active'));
+      const allChip = document.querySelector('[data-filter="all"]');
+      if (allChip) allChip.classList.add('active');
+
+      renderLista();
+    }
+
+    // ── CARGA ──
+    async function cargarSolicitudes() {
+      const icon = document.getElementById('refresh-icon');
+      icon.className = 'fa-solid fa-circle-notch spin';
+
+      try {
+        let data;
+        if (API_REFA === 'TU_URL_REFA_AQUI') {
+          await new Promise(r => setTimeout(r, 700));
+          data = mockSolicitudes();
+        } else {
+          const res = await fetch(
+            `${API_REFA}?accion=getSolicitudes&rol=${sesion.rol}&base=${encodeURIComponent(sesion.base)}`,
+            { redirect: 'follow' }
+          );
+          const texto = await res.text();
+          data = JSON.parse(texto);
+        }
+        todasSolicitudes = data;
+        console.log('Total recibidas:', data.length);
+        console.log('Primera fila completa:', JSON.stringify(data[0]));
+        console.log('Estatuses:', [...new Set(data.map(s => s.estatus))]);
+        actualizarContadores();
+        renderLista();
+      } catch (e) {
+        console.error(e);
+        mostrarToast('Error al cargar solicitudes', 'error');
+      } finally {
+        icon.className = 'fa-solid fa-rotate-right';
+      }
+    }
+
+    // ── CONTADORES ──
+    function actualizarContadores() {
+      const d = todasSolicitudes;
+      // En tab coordinacion: solo contar los estatus de coordinación
+      const coord = d.filter(s => ESTATUS_COORD.includes(s.estatus));
+      const pendCoord = coord.filter(s => s.estatus === 'Nueva Solicitud').length;
+
+      document.getElementById('cnt-all').textContent = tabCoordActual === 'coordinacion' ? coord.length : d.length;
+      document.getElementById('cnt-nueva').textContent = d.filter(s => s.estatus === 'Nueva Solicitud').length;
+      document.getElementById('cnt-resp').textContent = d.filter(s => s.estatus === 'Respaldada').length;
+      document.getElementById('cnt-stock').textContent = d.filter(s => s.estatus === 'Resuelto con Stock Local').length;
+      document.getElementById('cnt-prest').textContent = d.filter(s => s.estatus === 'Resuelto con Equipo Prestado').length;
+      document.getElementById('cnt-den').textContent = d.filter(s => s.estatus === 'Denegada por coordinador').length;
+      // Historial extra
+      const authEl = document.getElementById('cnt-auth');
+      const rutaEl = document.getElementById('cnt-ruta');
+      const entEl = document.getElementById('cnt-entregado');
+      if (authEl) authEl.textContent = d.filter(s => s.estatus === 'Autorizada').length;
+      if (rutaEl) rutaEl.textContent = d.filter(s => s.estatus === 'En ruta al solicitante').length;
+      if (entEl) entEl.textContent = d.filter(s => s.estatus === 'Entregado').length;
+      // Badge tab
+      document.getElementById('badge-coord').textContent = pendCoord;
+    }
+
+    // ── FILTRO ──
+    function filtrarPor(valor, chipEl) {
+      filtroActual = valor;
+      document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active'));
+      chipEl.classList.add('active');
+      renderLista();
+    }
+
+    // ── RENDER LISTA ──
+    function renderLista() {
+      const container = document.getElementById('lista-container');
+
+      let lista = todasSolicitudes;
+      console.log('renderLista — tab:', tabCoordActual, '| filtro:', filtroActual, '| total:', lista.length);
+
+      // En tab coordinacion: solo mostrar estatuses de coordinación
+      // En tab historial: mostrar todo (sin filtro adicional)
+      if (tabCoordActual === 'coordinacion') lista = lista.filter(s => ESTATUS_COORD.includes(s.estatus));
+      // filtroActual solo aplica cuando no es 'all'
+      if (filtroActual !== 'all') lista = lista.filter(s => s.estatus === filtroActual);
+      if (busqueda) lista = lista.filter(s =>
+        [s.folio, s.num_eco, s.tecnico, s.componente, s.categoria, s.falla, s.material_nombre]
+          .some(v => String(v || '').toLowerCase().includes(busqueda))
+      );
+
+      // Ordenar: nuevas primero
+      lista = [...lista].sort((a, b) => {
+        const ord = ['Nueva Solicitud', 'Respaldada', 'Denegada por coordinador',
+          'Resuelto con Stock Local', 'Resuelto con Equipo Prestado'];
+        const ia = ord.indexOf(a.estatus); const ib = ord.indexOf(b.estatus);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+      });
+
+      if (!lista.length) {
+        container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fa-solid fa-inbox"></i></div>
+        <div class="empty-msg">${busqueda ? 'Sin resultados para "' + busqueda + '"' : 'No hay solicitudes en esta categoría'}</div>
+      </div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      lista.forEach((sol, i) => {
+        const el = document.createElement('div');
+        el.className = 'sol-card' + (solActual?.folio === sol.folio ? ' selected' : '');
+        el.style.animationDelay = Math.min(i * .04, .3) + 's';
+        el.innerHTML = `
+      <div class="sol-header">
+        <div>
+          <div class="sol-folio">${sol.folio}</div>
+          <div class="sol-fecha"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${sol.fecha_hora || '—'}</div>
+        </div>
+        ${badgeHTML(sol.estatus)}
+      </div>
+      <div class="sol-eco"><i class="fa-solid fa-bus" style="color:#94a3b8;font-size:.8rem;margin-right:6px"></i>${sol.num_eco || '—'}</div>
+      <div class="sol-comp"><i class="fa-solid fa-microchip" style="color:#94a3b8;font-size:.75rem;margin-right:5px"></i>${sol.componente || '—'}${(sol.material || sol.material_nombre) ? ' — ' + (sol.material || sol.material_nombre) : ''}</div>
+      <div class="sol-falla">${sol.falla || '—'}</div>
+      <div class="sol-footer">
+        <span class="sol-tecnico"><i class="fa-solid fa-user-tie"></i> ${sol.tecnico || sol.clave_tecnico || '—'}</span>
+        <span class="sol-base-chip">${sol.base_operativa || '—'}</span>
+      </div>`;
+        el.addEventListener('click', () => abrirDrawer(sol));
+        container.appendChild(el);
+      });
+    }
+
+    const CLASES_STATUS = {
+      'Nueva Solicitud': 's-nueva',
+      'Respaldada': 's-respaldada',
+      'Resuelto con Stock Local': 's-stock',
+      'Resuelto con Equipo Prestado': 's-prestado',
+      'Denegada por coordinador': 's-denegada',
+      'Autorizada': 's-autorizada',
+      'En espera de reserva': 's-proceso',
+      'En espera, sin presupuesto': 's-proceso',
+      'En proceso de almacén': 's-proceso',
+      'En proceso de extracción de almacén': 's-proceso',
+      'En espera, sin stock': 's-proceso',
+      'En pausa, canje inconsistente': 's-proceso',
+      'Preparando envío': 's-proceso',
+      'En ruta al solicitante': 's-ruta',
+      'Entregado': 's-entregado',
+      'Inconsistencia en recepción': 's-denegada',
+      'Cerrado ✓': 's-entregado',
+    };
+    const ICONOS_STATUS = {
+      'Nueva Solicitud': 'fa-circle-dot',
+      'Respaldada': 'fa-circle-check',
+      'Resuelto con Stock Local': 'fa-box-open',
+      'Resuelto con Equipo Prestado': 'fa-hand-holding-heart',
+      'Denegada por coordinador': 'fa-ban',
+      'Autorizada': 'fa-star',
+      'En espera de reserva': 'fa-hourglass-half',
+      'En espera, sin presupuesto': 'fa-triangle-exclamation',
+      'En proceso de almacén': 'fa-warehouse',
+      'En proceso de extracción de almacén': 'fa-dolly',
+      'En espera, sin stock': 'fa-box-open',
+      'En pausa, canje inconsistente': 'fa-triangle-exclamation',
+      'Preparando envío': 'fa-box-archive',
+      'En ruta al solicitante': 'fa-truck',
+      'Entregado': 'fa-circle-check',
+      'Inconsistencia en recepción': 'fa-circle-exclamation',
+      'Cerrado ✓': 'fa-lock',
+    };
+    function badgeHTML(estatus) {
+      const cls = CLASES_STATUS[estatus] || 's-default';
+      const icon = ICONOS_STATUS[estatus] || 'fa-circle';
+      return `<span class="status-badge ${cls}"><i class="fa-solid ${icon}"></i> ${estatus}</span>`;
+    }
+
+    // ── DRAWER ──
+    function abrirDrawer(sol) {
+      solActual = sol;
+
+      // Marcar card seleccionada
+      document.querySelectorAll('.sol-card').forEach(c => c.classList.remove('selected'));
+      event?.currentTarget?.classList.add('selected');
+
+      document.getElementById('drawer-folio').textContent = sol.folio;
+      document.getElementById('drawer-status-wrap').innerHTML = badgeHTML(sol.estatus);
+
+      // Parsear pruebas
+      let pruebas = [];
+      try {
+        const raw = sol.pruebas_descarte || sol.pruebas || [];
+        pruebas = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch { }
+
+      const etiqPruebas = {
+        voltaje_amperios: 'Verificó voltaje y amperios', otro_cable: 'Probó con otro cable',
+        drivers: 'Actualizó drivers/controladores', desconectar_cable: 'Desconectó y reconectó cable',
+        ajuste_conectores: 'Ajustó conectores', limpieza_otro_equipo: 'Limpieza y pruebas con otro equipo',
+        linea_comandos: 'Recuperación por línea de comandos', coordenadas: 'Pruebas de coordenadas',
+        calibracion_touch: 'Calibró touch / configuración monitor', limpieza_interna: 'Limpieza interna y puertos',
+      };
+      const pruebasHTML = pruebas.length
+        ? pruebas.map(p => `<div class="prueba-item"><i class="fa-solid fa-check-circle"></i>${etiqPruebas[p] || p}</div>`).join('')
+        : '<div style="font-size:.8rem;color:#94a3b8">Ninguna registrada</div>';
+
+      // Canje
+      let canjeHTML = '';
+      if (sol.envia_canje === 'Sí' || sol.envia_canje === true) {
+        let det = {};
+        try { det = typeof sol.canje_detalle === 'string' ? JSON.parse(sol.canje_detalle) : sol.canje_detalle || {}; } catch { }
+        canjeHTML = `
+      <div class="drawer-section">
+        <div class="drawer-section-title"><span class="drawer-section-dot" style="background:#f97316"></span>Canje</div>
+        <div class="info-grid">
+          <div class="info-cell"><div class="info-cell-label">Fecha envío</div><div class="info-cell-val">${det.fecha || det.canje_fecha || '—'}</div></div>
+          <div class="info-cell"><div class="info-cell-label">Hora salida</div><div class="info-cell-val">${det.hora || det.canje_hora || '—'}</div></div>
+          <div class="info-cell full"><div class="info-cell-label">Operador</div><div class="info-cell-val">${det.operador || det.canje_operador || '—'}</div></div>
+        </div>
+      </div>`;
+      }
+
+      document.getElementById('drawer-body').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-section-title"><span class="drawer-section-dot" style="background:#4f46e5"></span>Unidad e identificación</div>
+      <div class="info-grid">
+        <div class="info-cell"><div class="info-cell-label">Número Eco</div><div class="info-cell-val mono">${sol.num_eco || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Base</div><div class="info-cell-val">${sol.base || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Servicio</div><div class="info-cell-val">${sol.bus_servicio || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Sociedad</div><div class="info-cell-val">${sol.bus_sociedad || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">CeCo</div><div class="info-cell-val mono">${sol.bus_ceco || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Técnico</div><div class="info-cell-val">${sol.tecnico || sol.clave_tecnico || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Fecha solicitud</div><div class="info-cell-val">${sol.fecha_hora || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Falla desde</div><div class="info-cell-val">${sol.fecha_falla || '—'}</div></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><span class="drawer-section-dot" style="background:#8b5cf6"></span>Componente</div>
+      <div class="info-grid">
+        <div class="info-cell"><div class="info-cell-label">Categoría</div><div class="info-cell-val">${sol.categoria || '—'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Clave Material</div><div class="info-cell-val mono">${sol.componente || '—'}</div></div>
+        <div class="info-cell full"><div class="info-cell-label">Material</div><div class="info-cell-val">${sol.material || sol.material_nombre || '—'}</div></div>
+        <div class="info-cell full"><div class="info-cell-label">N° Serie dañado</div><div class="info-cell-val mono">${sol.serie_dañado || 'Sin registro'}</div></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><span class="drawer-section-dot" style="background:#f59e0b"></span>Diagnóstico</div>
+      <div class="info-grid">
+        <div class="info-cell full"><div class="info-cell-label">Falla reportada</div><div class="info-cell-val" style="white-space:pre-wrap;line-height:1.5">${sol.falla || '—'}</div></div>
+      </div>
+      <div style="margin-top:.6rem">
+        <div style="font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Pruebas de descarte</div>
+        <div class="pruebas-list">${pruebasHTML}</div>
+        ${sol.otra_prueba ? `<div class="prueba-item" style="margin-top:4px"><i class="fa-solid fa-check-circle"></i>${sol.otra_prueba}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title"><span class="drawer-section-dot" style="background:#10b981"></span>Envío</div>
+      <div class="info-grid">
+        <div class="info-cell"><div class="info-cell-label">A laboratorio</div><div class="info-cell-val">${sol.envia_lab === 'Sí' || sol.envia_lab === true ? '✓ Sí' : 'No'}</div></div>
+        <div class="info-cell"><div class="info-cell-label">Canje</div><div class="info-cell-val">${sol.envia_canje === 'Sí' || sol.envia_canje === true ? '✓ Sí' : 'No'}</div></div>
+      </div>
+    </div>
+
+    ${canjeHTML}
+
+    ${sol.nota_coord ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title"><span class="drawer-section-dot" style="background:#94a3b8"></span>Nota del coordinador</div>
+      <div class="info-cell full" style="width:100%"><div class="info-cell-val" style="white-space:pre-wrap;line-height:1.5">${sol.nota_coord}</div></div>
+    </div>` : ''}
+  `;
+
+      // Botones de acción según estatus
+      renderActionBtns(sol.estatus);
+
+      // Limpiar nota
+      document.getElementById('nota-coord').value = sol.nota_coord || '';
+
+      // Abrir
+      const overlay = document.getElementById('drawer-overlay');
+      const drawer = document.getElementById('drawer');
+      overlay.classList.add('open');
+      drawer.classList.add('open');
+      requestAnimationFrame(() => overlay.classList.add('visible'));
+    }
+
+    function renderActionBtns(estatus) {
+      const wrap = document.getElementById('action-btns');
+
+      // Confirmar instalación — solo cuando está Entregado
+      if (estatus === 'Entregado') {
+        wrap.innerHTML = `
+      <div style="grid-column:1/-1">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:.75rem 1rem;font-size:.82rem;color:#166534;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:8px">
+          <i class="fa-solid fa-box-open" style="flex-shrink:0;margin-top:1px"></i>
+          <span>Material recibido. Confirma que el componente quedó <strong>instalado y en servicio</strong>.</span>
+        </div>
+        <button class="action-btn btn-respaldar full" onclick="confirmarInstalacion()">
+          <i class="fa-solid fa-screwdriver-wrench"></i> Confirmar Instalación
+        </button>
+      </div>`;
+        return;
+      }
+
+      // Solo puede actuar en Nueva Solicitud o Respaldada
+      const puedeActuar = ['Nueva Solicitud', 'Respaldada'].includes(estatus);
+
+      // Todo lo demás: solo lectura
+      const readonly = !puedeActuar;
+
+      // Solicitud Entregada — coordinador puede confirmar instalación
+      if (estatus === 'Entregado') {
+        wrap.innerHTML = `
+      <div style="grid-column:1/-1">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:.75rem 1rem;font-size:.82rem;color:#166534;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:8px">
+          <i class="fa-solid fa-box-open" style="flex-shrink:0;margin-top:1px"></i>
+          <span>El material fue recibido por el técnico. Confirma que el componente ya quedó <strong>instalado y en servicio</strong> en la unidad.</span>
+        </div>
+        <button class="action-btn btn-respaldar full" style="grid-column:1/-1" onclick="confirmarInstalacion()">
+          <i class="fa-solid fa-screwdriver-wrench"></i> Confirmar Instalación
+        </button>
+      </div>`;
+        return;
+      }
+
+      if (readonly) {
+        wrap.innerHTML = `<div style="grid-column:1/-1;text-align:center;font-size:.82rem;color:#94a3b8;padding:.5rem">
+      <i class="fa-solid fa-lock" style="margin-right:5px"></i>Esta solicitud ya fue procesada por coordinación.</div>`;
+        return;
+      }
+
+      wrap.innerHTML = `
+    <button class="action-btn btn-respaldar" onclick="cambiarEstatus('Respaldada')">
+      <i class="fa-solid fa-circle-check"></i> Respaldar
+    </button>
+    <button class="action-btn btn-denegar" onclick="cambiarEstatus('Denegada por coordinador')">
+      <i class="fa-solid fa-ban"></i> Denegar
+    </button>
+    <button class="action-btn btn-stock" onclick="cambiarEstatus('Resuelto con Stock Local')">
+      <i class="fa-solid fa-box-open"></i> Stock Local
+    </button>
+    <button class="action-btn btn-prestado" onclick="cambiarEstatus('Resuelto con Equipo Prestado')">
+      <i class="fa-solid fa-hand-holding-heart"></i> Eq. Prestado
+    </button>`;
+    }
+
+    function cerrarDrawer() {
+      const overlay = document.getElementById('drawer-overlay');
+      const drawer = document.getElementById('drawer');
+      overlay.classList.remove('visible');
+      drawer.classList.remove('open');
+      setTimeout(() => overlay.classList.remove('open'), 250);
+      document.querySelectorAll('.sol-card').forEach(c => c.classList.remove('selected'));
+      solActual = null;
+    }
+
+    // ── CAMBIAR ESTATUS ──
+    async function cambiarEstatus(nuevoEstatus) {
+      if (!solActual) return;
+      const btns = document.querySelectorAll('.action-btn');
+      btns.forEach(b => b.disabled = true);
+      const nota = document.getElementById('nota-coord').value.trim();
+
+      try {
+        if (API_REFA === 'TU_URL_REFA_AQUI') {
+          await new Promise(r => setTimeout(r, 600));
+          // mock local
+          const idx = todasSolicitudes.findIndex(s => s.folio === solActual.folio);
+          if (idx >= 0) {
+            todasSolicitudes[idx].estatus = nuevoEstatus;
+            todasSolicitudes[idx].nota_coord = nota;
+            todasSolicitudes[idx].coordinador = sesion.clave;
+          }
+        } else {
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' },
+            redirect: 'follow',
+            body: JSON.stringify({
+              accion: 'cambiarEstatus',
+              folio: solActual.folio,
+              estatus: nuevoEstatus,
+              nota_coord: nota,
+              clave_actor: sesion.clave,
+            })
+          });
+          const txt = await res.text();
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+          // actualizar localmente
+          const idx = todasSolicitudes.findIndex(s => s.folio === solActual.folio);
+          if (idx >= 0) { todasSolicitudes[idx].estatus = nuevoEstatus; todasSolicitudes[idx].nota_coord = nota; }
+        }
+
+        mostrarToast('Estatus actualizado: ' + nuevoEstatus, 'success');
+        actualizarContadores();
+        renderLista();
+        cerrarDrawer();
+      } catch (err) {
+        console.error(err);
+        mostrarToast('Error al actualizar: ' + err.message, 'error');
+        btns.forEach(b => b.disabled = false);
+      }
+    }
+
+    // Confirmar instalación (estatus "Entregado")
+    async function confirmarInstalacion() {
+      if (!solActual) return;
+      document.querySelectorAll('.action-btn').forEach(b => b.disabled = true);
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          const res = await fetch(API_REFA, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow',
+            body: JSON.stringify({
+              accion: 'confirmarInstalacion',
+              folio: solActual.folio,
+              clave_tecnico: sesion.clave,
+              base_tecnico: sesion.base,
+            })
+          });
+          const txt = await res.text();
+          const data = JSON.parse(txt);
+          if (!data.ok) throw new Error(data.error || 'Error en el servidor');
+          const idx = todasSolicitudes.findIndex(s => s.folio === solActual.folio);
+          if (idx >= 0) todasSolicitudes[idx].estatus = 'Cerrado ✓';
+        }
+        mostrarToast('✓ Instalación confirmada — Cerrado', 'success');
+        actualizarContadores(); renderLista(); cerrarDrawer();
+      } catch (err) {
+        mostrarToast('Error: ' + err.message, 'error');
+        document.querySelectorAll('.action-btn').forEach(b => b.disabled = false);
+      }
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function mostrarToast(msg, tipo = '') {
+      const t = document.getElementById('toast');
+      clearTimeout(toastTimer);
+      t.innerHTML = tipo === 'success'
+        ? `<i class="fa-solid fa-circle-check"></i> ${msg}`
+        : tipo === 'error'
+          ? `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}`
+          : msg;
+      t.className = `toast show ${tipo}`;
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ── MOCK DATA ──
+    function mockSolicitudes() {
+      return [
+        {
+          folio: 'REF-20240610-1021', fecha_hora: '10/06/2024 08:32', estatus: 'Nueva Solicitud',
+          num_eco: 'ECO-001', base_operativa: 'Toluca', bus_servicio: 'Autovías', bus_sociedad: 'Soc. Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-001', tecnico: 'Juan Pérez', categoria: 'BOLETERA', componente: 'BLT-001', material_nombre: 'Impresora térmica TP-80',
+          falla: 'La impresora no imprime los tickets. Se traba el papel constantemente.', fecha_falla: '2024-06-08',
+          pruebas_descarte: '["otro_cable","limpieza_interna"]', otra_prueba: null, envia_lab: false, envia_canje: true,
+          canje_fecha: '2024-06-12', canje_hora: '09:00', canje_operador: 'Carlos López', nota_coord: ''
+        },
+        {
+          folio: 'REF-20240609-0892', fecha_hora: '09/06/2024 14:15', estatus: 'Nueva Solicitud',
+          num_eco: 'ECO-003', base_operativa: 'Toluca', bus_servicio: 'Económico', bus_sociedad: 'Soc. Gamma', bus_ceco: 'CC-303',
+          clave_tecnico: 'TEC-002', tecnico: 'María García', categoria: 'CCTV', componente: 'CAM-001', material_nombre: 'Cámara domo DS-2CD211',
+          falla: 'Imagen con ruido estático. A veces pierde la señal completamente.', fecha_falla: '2024-06-05',
+          pruebas_descarte: '["voltaje_amperios","desconectar_cable","drivers"]', otra_prueba: null, envia_lab: true, envia_canje: false,
+          canje_fecha: '', canje_hora: '', canje_operador: '', nota_coord: ''
+        },
+        {
+          folio: 'REF-20240608-0754', fecha_hora: '08/06/2024 10:00', estatus: 'Respaldada',
+          num_eco: 'ECO-002', base_operativa: 'Morelia', bus_servicio: 'Nuevo Horizonte', bus_sociedad: 'Soc. Beta', bus_ceco: 'CC-202',
+          clave_tecnico: 'TEC-003', tecnico: 'Luis Soto', categoria: 'CONECTIVIDAD', componente: 'CNX-001', material_nombre: 'Router CPE 4G LTE',
+          falla: 'Sin conexión a internet desde hace 3 días.', fecha_falla: '2024-06-05',
+          pruebas_descarte: '["voltaje_amperios","linea_comandos"]', otra_prueba: 'Se revisó configuración APN', envia_lab: true, envia_canje: false,
+          nota_coord: 'Confirmado por visita física. Requiere reemplazo urgente.'
+        },
+        {
+          folio: 'REF-20240607-0643', fecha_hora: '07/06/2024 16:45', estatus: 'Resuelto con Stock Local',
+          num_eco: 'ECO-004', base_operativa: 'Toluca', bus_servicio: 'Autovías', bus_sociedad: 'Soc. Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-001', tecnico: 'Juan Pérez', categoria: 'TERMINAL BANCARIA', componente: 'TBK-001', material_nombre: 'Pinpad Verifone VX820',
+          falla: 'Terminal no lee tarjetas chip.', fecha_falla: '2024-06-06',
+          pruebas_descarte: '["limpieza_interna","otro_cable"]', envia_lab: false, envia_canje: false,
+          nota_coord: 'Se resolvió con unidad de stock disponible en base.'
+        },
+        {
+          folio: 'REF-20240606-0521', fecha_hora: '06/06/2024 09:20', estatus: 'Denegada por coordinador',
+          num_eco: 'ECO-005', base_operativa: 'Toluca', bus_servicio: 'Autovías', bus_sociedad: 'Soc. Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-002', tecnico: 'María García', categoria: 'CCTV', componente: 'CAM-001', material_nombre: 'Cámara domo DS-2CD211',
+          falla: 'Imagen borrosa.', fecha_falla: '2024-06-01',
+          pruebas_descarte: '["limpieza_interna"]', envia_lab: false, envia_canje: false,
+          nota_coord: 'La cámara fue revisada por mantenimiento preventivo hace 2 semanas. Se requiere mayor diagnóstico.'
+        },
+        {
+          folio: 'REF-20240605-0412', fecha_hora: '05/06/2024 09:10', estatus: 'Autorizada',
+          num_eco: 'ECO-007', base_operativa: 'Toluca', bus_servicio: 'Autovías', bus_sociedad: 'Soc. Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-001', tecnico: 'Juan Pérez', categoria: 'BOLETERA', componente: 'BLT-002', material_nombre: 'Lector de tarjetas CR-20',
+          falla: 'Lector no detecta tarjetas.', fecha_falla: '2024-06-03',
+          pruebas_descarte: '["limpieza_interna","otro_cable"]',
+          nota_coord: 'Confirmado.'
+        },
+        {
+          folio: 'REF-20240528-0104', fecha_hora: '28/05/2024 11:00', estatus: 'En ruta al solicitante',
+          num_eco: 'ECO-009', base_operativa: 'Toluca', bus_servicio: 'Autovías', bus_sociedad: 'Soc. Alfa', bus_ceco: 'CC-55',
+          clave_tecnico: 'TEC-001', tecnico: 'Juan Pérez', categoria: 'CCTV', componente: 'CAM-002', material_nombre: 'DVR 8 canales H.265',
+          falla: 'Sin grabación.', fecha_falla: '2024-05-25', num_guia: 'GU-FEDX-9987234110',
+          nota_coord: 'Revisado in situ.'
+        },
+      ];
+    }
+  </script>
+</body>
+
+</html>

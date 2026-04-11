@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitud de Refaccionamiento</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: #F2F2F7;
+      min-height: 100vh;
+    }
+
+    .mac-card {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .1);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: blur(15px);
+      background: rgba(255, 255, 255, .8);
+      border-bottom: 1px solid rgba(0, 0, 0, .06);
+    }
+
+    .field-input {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1rem;
+      width: 100%;
+      outline: none;
+      transition: all .2s;
+      font-size: 0.95rem;
+      color: #0f172a;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .field-input:focus {
+      box-shadow: 0 0 0 2px #818cf8;
+      border-color: transparent;
+    }
+
+    .field-input.readonly {
+      background: #f1f5f9;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+
+    .field-input.error {
+      box-shadow: 0 0 0 2px #f87171;
+      border-color: transparent;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .section-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* ── TOGGLE ── */
+    .toggle {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #e2e8f0;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: .3s;
+    }
+
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 4px;
+      top: 4px;
+      background: white;
+      border-radius: 50%;
+      transition: .3s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
+    }
+
+    .toggle input:checked+.toggle-slider {
+      background: #4f46e5;
+    }
+
+    .toggle input:checked+.toggle-slider::after {
+      transform: translateX(22px);
+    }
+
+    /* ── PRUEBA ROW ── */
+    .prueba-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: .7rem 1rem;
+      border-bottom: 1px solid #f8fafc;
+    }
+
+    .prueba-row:last-child {
+      border-bottom: none;
+    }
+
+    .prueba-row:hover {
+      background: #fafbff;
+    }
+
+    .prueba-text {
+      font-size: .85rem;
+      color: #334155;
+      flex: 1;
+      line-height: 1.35;
+    }
+
+    /* ── AUTOCOMPLETE ── */
+    .autocomplete-wrap {
+      position: relative;
+      z-index: 200;
+      width: 100%;
+      /* base */
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      max-height: 230px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      display: none;
+      box-shadow: 0 12px 30px -6px rgba(0, 0, 0, .12);
+      z-index: 9999999;
+      /* agresivo, sin pena */
+      top: calc(100% + 6px);
+      /* pequeño espacio, evita que se encime */
+    }
+
+    .autocomplete-list.open {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: .75rem 1rem;
+      cursor: pointer;
+      font-size: .9rem;
+      color: #1e293b;
+      border-bottom: 1px solid #f8fafc;
+      transition: background .1s;
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+
+    .autocomplete-item small {
+      color: #94a3b8;
+      font-size: .75rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── BUS INFO CHIP ── */
+    #bus-info-card {
+      display: none;
+      margin-top: .6rem;
+      background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
+      border: 1px solid #c7d2fe;
+      border-radius: 14px;
+      padding: .9rem 1rem;
+      animation: fadeUp .2s ease both;
+    }
+
+    .bus-chip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+    }
+
+    .bus-chip-item {
+      background: white;
+      border-radius: 999px;
+      padding: .3rem .85rem;
+      font-size: .78rem;
+      font-weight: 600;
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .bus-chip-item span {
+      color: #64748b;
+      font-weight: 400;
+    }
+
+    /* ── QR ── */
+    .qr-wrap {
+      position: relative;
+    }
+
+    .qr-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: .9rem;
+      transition: background .2s;
+    }
+
+    .qr-btn:hover {
+      background: #4338ca;
+    }
+
+    /* ── CANJE EXPAND ── */
+    #canje-detail {
+      display: none;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 14px;
+      padding: 1rem;
+      margin-top: .6rem;
+      animation: fadeUp .2s ease both;
+    }
+
+    /* ── CANVAS ── */
+    #canvas-firma {
+      border: 2px dashed #e2e8f0;
+      border-radius: 14px;
+      width: 100%;
+      touch-action: none;
+      cursor: crosshair;
+      background: #fafafa;
+    }
+
+    #canvas-firma.has-sig {
+      border-color: #a5b4fc;
+      border-style: solid;
+    }
+
+    /* ── SUBMIT BAR ── */
+    .submit-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: .75rem 1rem;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      background: rgba(255, 255, 255, .9);
+      border-top: 1px solid rgba(0, 0, 0, .06);
+      z-index: 99;
+    }
+
+    @media (min-width: 768px) {
+      .submit-bar {
+        display: none;
+      }
+
+      .submit-desktop {
+        display: flex !important;
+      }
+    }
+
+    .submit-desktop {
+      display: none;
+    }
+
+    .btn-primary {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 1rem 1.5rem;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, .3);
+    }
+
+    .btn-primary:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #4f46e5;
+      border: 2px solid #c7d2fe;
+      border-radius: 16px;
+      padding: .75rem 1.5rem;
+      font-weight: 700;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: #eef2ff;
+    }
+
+    .error-msg {
+      font-size: .75rem;
+      color: #ef4444;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    #confirmacion {
+      display: none;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '\f078';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: .7rem;
+      pointer-events: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner {
+      animation: spin .7s linear infinite;
+      display: inline-block;
+    }
+
+    #scan-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, .75);
+      align-items: center;
+      justify-content: center;
+    }
+
+    #scan-modal.open {
+      display: flex;
+    }
+
+    #scan-video {
+      width: 100%;
+      border-radius: 12px;
+      max-height: 60vh;
+      object-fit: cover;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .mac-card {
+      animation: fadeUp .35s ease both;
+    }
+
+    .mac-card:nth-child(1) {
+      animation-delay: .05s
+    }
+
+    .mac-card:nth-child(2) {
+      animation-delay: .1s
+    }
+
+    .mac-card:nth-child(3) {
+      animation-delay: .15s
+    }
+
+    .mac-card:nth-child(4) {
+      animation-delay: .2s
+    }
+
+    .mac-card:nth-child(5) {
+      animation-delay: .25s
+    }
+
+    .mac-card,
+    .grid,
+    .max-w-2xl,
+    body {
+      overflow: visible !important;
+    }
+
+    /* ── MIS SOLICITUDES DRAWER ── */
+    .mis-sol-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 17, 23, .45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      opacity: 0;
+      transition: opacity .25s;
+    }
+
+    .mis-sol-overlay.open {
+      display: block;
+    }
+
+    .mis-sol-overlay.visible {
+      opacity: 1;
+    }
+
+    .mis-sol-drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 201;
+      width: 100%;
+      max-width: 440px;
+      background: white;
+      box-shadow: -16px 0 50px rgba(0, 0, 0, .15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .mis-sol-drawer.open {
+      transform: translateX(0);
+    }
+
+    .msd-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .msd-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .msd-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+      color: #64748b;
+      font-size: .82rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .msd-close:hover {
+      background: #e2e8f0;
+    }
+
+    .msd-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .msd-loading {
+      text-align: center;
+      padding: 2rem;
+      color: #94a3b8;
+      font-size: .85rem;
+    }
+
+    .msol-card {
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      border-radius: 14px;
+      padding: .85rem 1rem;
+      margin-bottom: .5rem;
+      cursor: default;
+      transition: border-color .15s;
+    }
+
+    .msol-card:hover {
+      border-color: #c7d2fe;
+    }
+
+    .msol-folio {
+      font-family: 'DM Mono', monospace;
+      font-size: .73rem;
+      font-weight: 500;
+      color: #4f46e5;
+      margin-bottom: .3rem;
+    }
+
+    .msol-eco {
+      font-size: .88rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .msol-comp {
+      font-size: .78rem;
+      color: #64748b;
+      margin-bottom: .5rem;
+    }
+
+    .msol-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .msol-fecha {
+      font-size: .7rem;
+      color: #94a3b8;
+    }
+
+    /* status mini badges */
+    .sm-badge {
+      font-size: .64rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: .2rem .6rem;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .smb-nueva {
+      background: #eff6ff;
+      color: #3b82f6;
+      border: 1px solid #bfdbfe;
+    }
+
+    .smb-resp {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+
+    .smb-auth {
+      background: #faf5ff;
+      color: #7c3aed;
+      border: 1px solid #ddd6fe;
+    }
+
+    .smb-ruta {
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #99f6e4;
+    }
+
+    .smb-entregado {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .smb-stock {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .smb-den {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .smb-proc {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .smb-def {
+      background: #f8fafc;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .mis-btn {
+      position: relative;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: .45rem .7rem;
+      cursor: pointer;
+      color: #4f46e5;
+      font-size: .78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all .2s;
+    }
+
+    .mis-btn:hover {
+      background: #eef2ff;
+      border-color: #a5b4fc;
+    }
+
+    .mis-btn-cnt {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #4f46e5;
+      color: white;
+      border-radius: 999px;
+      font-size: .6rem;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* inline toggle row helper */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: .8rem 1rem;
+      border-radius: 14px;
+      border: 1px solid #f1f5f9;
+      background: #fafcff;
+    }
+
+    .toggle-row-label {
+      font-size: .9rem;
+      color: #334155;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .toggle-status {
+      font-size: .75rem;
+      font-weight: 600;
+      color: #94a3b8;
+      min-width: 20px;
+      text-align: right;
+    }
+
+    .toggle-status.on {
+      color: #4f46e5;
+    }
+
+    /* ── MODAL DUPLICADO ── */
+    #modal-duplicado {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(15, 17, 23, .7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    #modal-duplicado.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 20px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 30px 60px -10px rgba(0, 0, 0, .3);
+      animation: fadeUp .25s cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .modal-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: #fef3c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: .4rem;
+    }
+
+    .modal-body {
+      font-size: .88rem;
+      color: #64748b;
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-meta {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: .85rem 1rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #e2e8f0;
+    }
+
+    .modal-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .35rem;
+    }
+
+    .modal-meta-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .modal-meta-key {
+      font-size: .72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .modal-meta-val {
+      font-size: .85rem;
+      font-weight: 600;
+      color: #334155;
+      font-family: monospace;
+    }
+
+    .modal-meta-val.status {
+      color: #f59e0b;
+      font-family: inherit;
+      font-size: .8rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: .75rem;
+    }
+
+    .modal-btn-cancel {
+      flex: 1;
+      padding: .8rem;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      color: #64748b;
+      font-weight: 600;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .modal-btn-cancel:hover {
+      background: #f1f5f9;
+    }
+
+    .modal-btn-proceed {
+      flex: 1;
+      padding: .8rem;
+      border-radius: 12px;
+      border: none;
+      background: #ef4444;
+      color: white;
+      font-weight: 700;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .modal-btn-proceed:hover {
+      background: #dc2626;
+    }
+
+    /* ── NAVBAR SESIÓN ── */
+    #nav-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #nav-rol-badge {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+  </style>
+</head>
+
+<body class="pb-32 md:pb-0">
+
+  <!-- NAVBAR -->
+  <nav class="navbar px-4 py-3">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200">
+          <i class="fa-solid fa-screwdriver-wrench text-white text-sm"></i>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-slate-800 leading-none">Solicitud de Refaccionamiento</p>
+          <p class="text-xs text-slate-400 mt-0.5">Reporte técnico de campo</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="irAlPanel()" title="Volver a mi panel"
+          style="width:32px;height:32px;border-radius:10px;background:#f1f5f9;border:none;cursor:pointer;color:#4f46e5;font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:all .2s"
+          onmouseover="this.style.background='#eef2ff'" onmouseout="this.style.background='#f1f5f9'">
+          <i class="fa-solid fa-house"></i>
+        </button>
+
+        <button onclick="cerrarSesion()" title="Cerrar sesión"
+          style="width:32px;height:32px;border-radius:10px;background:#f1f5f9;border:none;cursor:pointer;color:#94a3b8;font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:all .2s"
+          onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'"
+          onmouseout="this.style.background='#f1f5f9';this.style.color='#94a3b8'">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MODAL DUPLICADO -->
+  <div id="modal-duplicado"
+    style="display:none;position:fixed;inset:0;z-index:300;background:rgba(15,17,23,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem">
+    <div class="modal-box">
+      <div class="modal-icon-wrap">⚠️</div>
+      <div class="modal-title">Solicitud duplicada detectada</div>
+      <div class="modal-body">
+        Ya existe una solicitud activa para esta unidad y componente. Enviar otra generaría un registro duplicado.
+      </div>
+      <div class="modal-meta">
+        <div class="modal-meta-row">
+          <span class="modal-meta-key">Folio existente</span>
+          <span class="modal-meta-val" id="dup-folio">—</span>
+        </div>
+        <div class="modal-meta-row">
+          <span class="modal-meta-key">Solicitado por</span>
+          <span class="modal-meta-val" id="dup-tecnico">—</span>
+        </div>
+        <div class="modal-meta-row">
+          <span class="modal-meta-key">Fecha</span>
+          <span class="modal-meta-val" id="dup-fecha">—</span>
+        </div>
+        <div class="modal-meta-row">
+          <span class="modal-meta-key">Estatus actual</span>
+          <span class="modal-meta-val status" id="dup-estatus">—</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" onclick="cerrarModalDuplicado()">
+          <i class="fa-solid fa-arrow-left" style="margin-right:5px"></i> Cancelar
+        </button>
+        <button class="modal-btn-proceed" onclick="forzarEnvio()">
+          Enviar de todas formas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-2xl mx-auto px-4 pt-4 pb-1">
+    <span id="folio-badge"
+      class="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100"></span>
+  </div>
+
+  <div class="max-w-2xl mx-auto px-4 pt-2">
+    <form id="form-reporte" novalidate>
+
+      <!-- ═══════════════════════════════════════
+     S1 — IDENTIFICACIÓN  (indigo)
+══════════════════════════════════════════ -->
+      <div class="mac-card">
+        <div class="section-header">
+          <span class="section-dot bg-indigo-500"></span>Identificación
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div>
+            <label class="field-label">Folio del Reporte</label>
+            <input id="folio" name="folio" type="text" class="field-input readonly" readonly>
+          </div>
+          <div>
+            <label class="field-label">Fecha y Hora de Solicitud</label>
+            <input id="fecha_hora" name="fecha_hora" type="text" class="field-input readonly" readonly>
+          </div>
+
+          <!-- Base: readonly si en localStorage, select si no -->
+          <div id="base-text-wrap" class="hidden">
+            <label class="field-label">Base Operativa</label>
+            <input id="base_operativa_txt" type="text" class="field-input readonly" readonly>
+          </div>
+          <div id="base-select-wrap" class="hidden">
+            <label class="field-label">Base Operativa</label>
+            <div class="select-wrap">
+              <select id="base_operativa_sel" name="base_operativa" class="field-input">
+                <option value="">— Selecciona base —</option>
+                <option value="Morelia">Morelia</option>
+                <option value="Toluca">Toluca</option>
+                <option value="Jilotepec">Jilotepec</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Clave del Técnico -->
+          <div>
+            <label class="field-label" for="clave_tecnico">Clave del Técnico *</label>
+            <input id="clave_tecnico" name="clave_tecnico" type="text" class="field-input readonly" readonly
+              placeholder="Cargando...">
+            <p class="error-msg" id="err-clave_tecnico">La clave del técnico es requerida.</p>
+          </div>
+
+          <!-- Nombre del Técnico (readonly desde localStorage) -->
+          <div>
+            <label class="field-label">Nombre del Técnico</label>
+            <input id="tecnico" name="tecnico" type="text" class="field-input readonly" readonly placeholder="—">
+          </div>
+
+          <!-- Número Económico con autocomplete -->
+          <div class="md:col-span-2">
+            <label class="field-label" for="num_eco">Número Económico (Unidad) *</label>
+            <div class="autocomplete-wrap">
+              <input id="num_eco" name="num_eco" type="text" class="field-input"
+                placeholder="Escribe el número económico para buscar..." autocomplete="off" required>
+              <div id="eco-dropdown" class="autocomplete-list"></div>
+            </div>
+            <p class="error-msg" id="err-num_eco">Selecciona una unidad válida del listado.</p>
+            <!-- Chip datos del bus -->
+            <div id="bus-info-card">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-bus text-indigo-400"></i> Datos de la Unidad
+              </p>
+              <div class="bus-chip">
+                <div class="bus-chip-item"><i class="fa-solid fa-location-dot"></i><span id="bus-base">—</span></div>
+                <div class="bus-chip-item"><i class="fa-solid fa-route"></i><span id="bus-servicio">—</span></div>
+                <div class="bus-chip-item"><i class="fa-solid fa-building"></i><span id="bus-sociedad">—</span></div>
+                <div class="bus-chip-item"><i class="fa-solid fa-hashtag"></i><span id="bus-ceco">—</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+     S2 — COMPONENTE  (violet)
+══════════════════════════════════════════ -->
+      <div class="mac-card">
+        <div class="section-header">
+          <span class="section-dot bg-violet-500"></span>Componente a Refaccionar
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible">
+
+          <div>
+            <label class="field-label" for="categoria">Categoría *</label>
+            <div class="select-wrap">
+              <select id="categoria" name="categoria" class="field-input" required>
+                <option value="">— Cargando categorías... —</option>
+              </select>
+            </div>
+            <p class="error-msg" id="err-categoria">Selecciona una categoría.</p>
+          </div>
+
+          <div>
+            <label class="field-label" for="componente">Componente (Clave Material) *</label>
+            <div class="select-wrap">
+              <select id="componente" name="componente" class="field-input" disabled required>
+                <option value="">— Primero elige categoría —</option>
+              </select>
+            </div>
+            <p class="error-msg" id="err-componente">Selecciona un componente.</p>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="field-label" for="serie_dañado">N° de Serie — Componente Dañado</label>
+            <p class="text-xs text-slate-400 mb-2">Opcional — escanea o ingresa manualmente si está disponible</p>
+            <div class="qr-wrap">
+              <input id="serie_dañado" name="serie_dañado" type="text" class="field-input pr-14"
+                placeholder="Escanea o escribe el número de serie">
+              <button type="button" class="qr-btn" onclick="abrirEscaner('serie_dañado')" title="Escanear código">
+                <i class="fa-solid fa-qrcode"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+     S3 — DIAGNÓSTICO TÉCNICO  (amber)
+══════════════════════════════════════════ -->
+      <div class="mac-card">
+        <div class="section-header">
+          <span class="section-dot bg-amber-400"></span>Diagnóstico Técnico
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+
+          <div>
+            <label class="field-label" for="falla">Falla Reportada *</label>
+            <textarea id="falla" name="falla" rows="3" class="field-input"
+              placeholder="Describe la falla observada por el técnico o reportada por el conductor..."
+              required></textarea>
+            <p class="error-msg" id="err-falla">Este campo es requerido.</p>
+          </div>
+
+          <div>
+            <label class="field-label" for="fecha_falla">Fecha de Inicio de Fallas *</label>
+            <input id="fecha_falla" name="fecha_falla" type="date" class="field-input" required>
+            <p class="error-msg" id="err-fecha_falla">Indica cuándo comenzaron las fallas.</p>
+          </div>
+
+          <!-- PRUEBAS DE DESCARTE — switches -->
+          <div>
+            <label class="field-label">Pruebas de Descarte Realizadas</label>
+            <p class="text-xs text-slate-400 mb-2">Activa cada prueba que hayas ejecutado</p>
+            <div class="border border-slate-100 rounded-2xl overflow-hidden">
+
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se verificó voltaje y amperios con multímetro?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="voltaje_amperios"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se probó con otro cable?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="otro_cable"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se actualizaron los drivers / controladores?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="drivers"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se intentó desconectar y reconectar el cable?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="desconectar_cable"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se ajustaron los conectores?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="ajuste_conectores"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se realizó limpieza y pruebas en / con otro equipo?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="limpieza_otro_equipo"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se intentó recuperar mediante línea de comandos?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="linea_comandos"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se hicieron pruebas para obtener coordenadas?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="coordenadas"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se calibró el touch o se ajustó la configuración del monitor?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="calibracion_touch"><span
+                    class="toggle-slider"></span></label>
+              </div>
+              <div class="prueba-row">
+                <span class="prueba-text">¿Se realizó limpieza interna de componente y de puertos físicos?</span>
+                <label class="toggle"><input type="checkbox" name="pruebas" value="limpieza_interna"><span
+                    class="toggle-slider"></span></label>
+              </div>
+
+              <!-- Otro libre -->
+              <div class="prueba-row flex-col items-start gap-2" style="align-items:flex-start">
+                <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+                  <span class="prueba-text font-semibold text-slate-600">Otro:</span>
+                  <label class="toggle"><input type="checkbox" id="prueba-otro-chk"
+                      onchange="toggleOtraPrueba(this)"><span class="toggle-slider"></span></label>
+                </div>
+                <div id="otra-prueba-wrap" class="hidden" style="width:100%">
+                  <input id="otra_prueba_texto" name="otra_prueba_texto" type="text" class="field-input"
+                    placeholder="Describe la prueba realizada...">
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+     S4 — ENVÍO Y SEGUIMIENTO  (emerald)
+══════════════════════════════════════════ -->
+      <div class="mac-card">
+        <div class="section-header">
+          <span class="section-dot bg-emerald-400"></span>Envío y Seguimiento
+        </div>
+        <div class="flex flex-col gap-3">
+
+          <!-- Toggle: Laboratorio/Garantía -->
+          <div class="toggle-row">
+            <span class="toggle-row-label">Se enviará el equipo a Laboratorio / Garantía</span>
+            <label class="toggle"><input type="checkbox" id="tog_lab" name="requiere_laboratorio"
+                onchange="syncToggleStatus(this,'st_lab')"><span class="toggle-slider"></span></label>
+            <span class="toggle-status" id="st_lab">No</span>
+          </div>
+
+          <!-- Toggle: Canje -->
+          <div class="toggle-row">
+            <span class="toggle-row-label">Se envía canje para recibir equipo nuevo</span>
+            <label class="toggle"><input type="checkbox" id="tog_canje" name="envia_canje"
+                onchange="toggleCanje(this)"><span class="toggle-slider"></span></label>
+            <span class="toggle-status" id="st_canje">No</span>
+          </div>
+
+          <!-- Detalle canje (expandible) -->
+          <div id="canje-detail">
+            <p class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <i class="fa-solid fa-boxes-packing"></i> Detalle del Canje
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+              <div>
+                <label class="field-label" for="canje_fecha">Fecha de Envío</label>
+                <input id="canje_fecha" name="canje_fecha" type="date" class="field-input">
+              </div>
+              <div>
+                <label class="field-label" for="canje_hora">Hora de Salida del Bus</label>
+                <input id="canje_hora" name="canje_hora" type="time" class="field-input">
+              </div>
+
+              <!-- Via de envío -->
+              <div class="md:col-span-2">
+                <label class="field-label">Vía de Envío</label>
+                <div class="flex flex-col gap-2 mt-1">
+                  <div class="toggle-row">
+                    <span class="toggle-row-label">Paquetería Interna</span>
+                    <label class="toggle"><input type="checkbox" id="tog_paq_int" name="paqueteria_interna"
+                        onchange="syncToggleStatus(this,'st_paq_int')"><span class="toggle-slider"></span></label>
+                    <span class="toggle-status" id="st_paq_int">No</span>
+                  </div>
+                  <div class="toggle-row">
+                    <span class="toggle-row-label">Paquetería Externa</span>
+                    <label class="toggle"><input type="checkbox" id="tog_paq_ext" name="paqueteria_externa"
+                        onchange="syncToggleStatus(this,'st_paq_ext')"><span class="toggle-slider"></span></label>
+                    <span class="toggle-status" id="st_paq_ext">No</span>
+                  </div>
+                  <div class="toggle-row">
+                    <span class="toggle-row-label">Con el Operador del Autobús</span>
+                    <label class="toggle"><input type="checkbox" id="tog_operador" name="con_operador"
+                        onchange="syncToggleStatus(this,'st_operador')"><span class="toggle-slider"></span></label>
+                    <span class="toggle-status" id="st_operador">No</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="md:col-span-2" id="wrap-canje-operador" style="display:none">
+                <label class="field-label" for="canje_operador">Nombre del Operador del Autobús</label>
+                <input id="canje_operador" name="canje_operador" type="text" class="field-input"
+                  placeholder="Nombre completo del operador">
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- BOTÓN ENVIAR DESKTOP -->
+      <div class="submit-desktop justify-end pb-6">
+        <button type="submit" id="btn-submit-desktop" class="btn-primary" style="max-width:280px">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
+        </button>
+      </div>
+
+    </form>
+
+    <!-- CONFIRMACIÓN -->
+    <div id="confirmacion" class="mac-card text-center py-10">
+      <div class="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+        <i class="fa-solid fa-circle-check text-4xl text-emerald-500"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800 mb-2">¡Solicitud Enviada!</h2>
+      <p class="text-slate-500 text-sm mb-1">Tu solicitud de refaccionamiento fue registrada exitosamente.</p>
+      <p class="text-slate-400 text-xs mb-6">Guarda este folio como referencia</p>
+      <div class="bg-indigo-50 rounded-2xl px-6 py-4 inline-block mb-6 border border-indigo-100">
+        <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Folio</p>
+        <p id="folio-confirmado" class="text-2xl font-mono font-bold text-indigo-600"></p>
+      </div>
+      <div class="flex flex-col gap-3 max-w-xs mx-auto">
+        <button onclick="nuevoReporte()" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Nueva Solicitud
+        </button>
+        <button onclick="irAlPanel()" class="btn-secondary">
+          <i class="fa-solid fa-house"></i> Volver a mi panel
+        </button>
+        <button onclick="window.print()" class="btn-secondary" style="font-size:.82rem;padding:.6rem">
+          <i class="fa-solid fa-print"></i> Imprimir
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /max-w -->
+
+  <!-- BOTÓN MOBILE FIXED -->
+  <div class="submit-bar md:hidden">
+    <button type="button" id="btn-submit-mobile" class="btn-primary"
+      onclick="document.getElementById('form-reporte').requestSubmit()">
+      <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
+    </button>
+  </div>
+
+  <!-- MODAL ESCANER -->
+  <div id="scan-modal">
+    <div class="bg-white rounded-3xl p-5 mx-4 w-full max-w-sm">
+      <div class="flex items-center justify-between mb-4">
+        <p class="font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-qrcode text-indigo-500"></i> Escanear Código
+        </p>
+        <button onclick="cerrarEscaner()"
+          class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <video id="scan-video" autoplay muted playsinline></video>
+      <p class="text-xs text-slate-400 text-center mt-3 mb-3">Apunta la cámara al código de barras o QR</p>
+      <button type="button" onclick="cerrarEscaner()" class="btn-secondary w-full text-sm">
+        <i class="fa-solid fa-keyboard"></i> Ingresar manualmente
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+     JS
+══════════════════════════════════════════════ -->
+  <script>
+    // ── CONFIG ──
+    const API_FLOTA = 'https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec';
+    const API_REFA = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec'; // ← tu Google Apps Script de REFA Control
+
+    // Índices dentro del array de fila devuelto por getFlota
+    // (getRange(2,1,lastRow-1,41) → col A=0, col B=1, ...)
+    const IDX_ECO = 2;
+    const IDX_BASE = 9;
+    const IDX_SERVICIO = 38;
+    const IDX_SOCIEDAD = 37;
+    const IDX_CECO = 36;
+
+    // ── ESTADO ──
+    let flotaData = [];
+    let compsData = [];
+    let busSeleccionado = null;
+    let ecoValido = false;
+
+    // ── INIT ──
+    window.addEventListener('DOMContentLoaded', () => {
+      generarFolioUI();
+      refrescarFechaHora();
+      cargarSesion();
+      cargarFlota();
+      cargarComponentes();
+      initAutocomplete();
+
+    });
+
+    // Reposicionar si el usuario hace scroll con el dropdown abierto
+    window.addEventListener('scroll', () => {
+      const dd = document.getElementById('eco-dropdown');
+      if (!dd || !dd.classList.contains('open')) return;
+      const r = document.getElementById('num_eco').getBoundingClientRect();
+      dd.style.top = (r.bottom + 6) + 'px';
+      dd.style.left = r.left + 'px';
+      dd.style.width = r.width + 'px';
+    }, { passive: true });
+
+
+
+    function generarFolioUI() {
+      const folio = generarFolio();
+      document.getElementById('folio').value = folio;
+      document.getElementById('folio-badge').textContent = folio;
+    }
+
+    function generarFolio() {
+      const h = new Date();
+      const ymd = h.getFullYear() + String(h.getMonth() + 1).padStart(2, '0') + String(h.getDate()).padStart(2, '0');
+      return `REF-${ymd}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    }
+
+    function refrescarFechaHora() {
+      document.getElementById('fecha_hora').value = new Date().toLocaleDateString('es-MX', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function cargarSesion() {
+      // Mismas keys que usa tu otra página: 'tecnico' y 'base'
+      const claveGuardada = localStorage.getItem('tecnico');
+      const baseGuardada = localStorage.getItem('base');
+
+      if (claveGuardada) {
+        const inpClave = document.getElementById('clave_tecnico');
+        inpClave.value = claveGuardada;
+        // Si quieres mostrar nombre diferente a la clave, guarda también 'nombre_tecnico'
+        const nombreGuardado = localStorage.getItem('nombre_tecnico');
+        document.getElementById('tecnico').value = nombreGuardado || claveGuardada;
+      } else {
+        // No hay sesión: permitir ingreso manual
+        const inp = document.getElementById('clave_tecnico');
+        inp.readOnly = false;
+        inp.classList.remove('readonly');
+        inp.placeholder = 'Ingresa tu clave de técnico';
+      }
+
+      if (baseGuardada) {
+        document.getElementById('base-text-wrap').classList.remove('hidden');
+        document.getElementById('base_operativa_txt').value = baseGuardada;
+      } else {
+        document.getElementById('base-select-wrap').classList.remove('hidden');
+      }
+    }
+
+    // ── VOLVER AL PANEL ──
+    function irAlPanel() {
+      const rol = localStorage.getItem('rol') || 'tecnico';
+      const destinos = {
+        tecnico: 'tecnico.html',
+        coordinador: 'coordinador.html',
+        jefe: 'autorizaciones.html',
+        gerente: 'autorizaciones.html',
+        gestor: 'gestor.html',
+      };
+      window.location.href = destinos[rol] || 'tecnico.html';
+    }
+
+
+    // ── CERRAR SESIÓN ──
+    function cerrarSesion() {
+      ['tecnico', 'nombre_tecnico', 'base', 'rol', 'clave_sesion'].forEach(k => localStorage.removeItem(k));
+      window.location.href = 'login.html';
+    }
+
+    // ── SESIÓN OBJECT (para mis solicitudes) ──
+    const sesion = {
+      get clave() { return localStorage.getItem('tecnico') || ''; },
+      get nombre() { return localStorage.getItem('nombre_tecnico') || ''; },
+      get base() { return localStorage.getItem('base') || ''; },
+      get rol() { return localStorage.getItem('rol') || 'tecnico'; },
+    };
+
+    // ── FLOTA LOADING STATE ──
+    let flotaLista = false; // true cuando flotaData ya está cargado
+
+    // ── MIS SOLICITUDES ──
+    const SM_BADGE = {
+      'Nueva Solicitud': ['smb-nueva', 'fa-circle-dot'],
+      'Respaldada': ['smb-resp', 'fa-circle-check'],
+      'Autorizada': ['smb-auth', 'fa-stamp'],
+      'En espera de reserva': ['smb-proc', 'fa-hourglass-half'],
+      'En espera, sin presupuesto': ['smb-proc', 'fa-triangle-exclamation'],
+      'En proceso de almacén': ['smb-proc', 'fa-warehouse'],
+      'En proceso de extracción de almacén': ['smb-proc', 'fa-dolly'],
+      'Preparando envío': ['smb-resp', 'fa-box-archive'],
+      'En ruta al solicitante': ['smb-ruta', 'fa-truck'],
+      'Entregado': ['smb-entregado', 'fa-circle-check'],
+      'Resuelto con Stock Local': ['smb-stock', 'fa-box-open'],
+      'Resuelto con Equipo Prestado': ['smb-stock', 'fa-hand-holding-heart'],
+      'Denegada por coordinador': ['smb-den', 'fa-ban'],
+      'Rechazada': ['smb-den', 'fa-ban'],
+    };
+    function smBadge(est) {
+      const [cls, icon] = SM_BADGE[est] || ['smb-def', 'fa-circle'];
+      return `<span class="sm-badge ${cls}"><i class="fa-solid ${icon}"></i> ${est}</span>`;
+    }
+
+    async function abrirMisSolicitudes() {
+      const ov = document.getElementById('mis-overlay');
+      const dr = document.getElementById('mis-drawer');
+      ov.classList.add('open'); dr.classList.add('open');
+      requestAnimationFrame(() => ov.classList.add('visible'));
+
+      document.getElementById('mis-body').innerHTML =
+        '<div class="msd-loading"><i class="fa-solid fa-circle-notch" style="animation:spin .7s linear infinite;display:inline-block;margin-right:6px"></i>Cargando...</div>';
+
+      try {
+        let lista = [];
+        const clave = sesion.clave;
+
+        if (API_REFA === 'TU_URL_REFA_AQUI') {
+          await new Promise(r => setTimeout(r, 500));
+          lista = mockMisSolicitudes(clave);
+        } else {
+          const res = await fetch(`${API_REFA}?accion=getSolicitudes&rol=tecnico&clave_tecnico=${encodeURIComponent(clave)}&base=${encodeURIComponent(sesion.base)}`);
+          const todas = await res.json();
+          lista = todas.filter(s => s.clave_tecnico === clave);
+        }
+
+        // Actualizar badge contador
+        const activas = lista.filter(s => !['Entregado', 'Cerrado ✓', 'Resuelto con Stock Local',
+          'Resuelto con Equipo Prestado', 'Denegada por coordinador', 'Rechazada'].includes(s.estatus)).length;
+        const cntEl = document.getElementById('mis-cnt');
+        if (cntEl) { cntEl.textContent = activas; cntEl.style.display = activas > 0 ? 'flex' : 'none'; }
+
+        renderMisSolicitudes(lista);
+      } catch (e) {
+        document.getElementById('mis-body').innerHTML =
+          '<div class="msd-loading" style="color:#ef4444"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>Error al cargar</div>';
+      }
+    }
+
+    function renderMisSolicitudes(lista) {
+      const body = document.getElementById('mis-body');
+      if (!lista.length) {
+        body.innerHTML = '<div class="msd-loading"><i class="fa-solid fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.3"></i>Aún no tienes solicitudes registradas</div>';
+        return;
+      }
+      const PRIO = ['Nueva Solicitud', 'En ruta al solicitante', 'Preparando envío',
+        'En proceso de extracción de almacén', 'En proceso de almacén', 'En espera de reserva',
+        'Respaldada', 'Autorizada', 'Resuelto con Stock Local', 'Resuelto con Equipo Prestado',
+        'Entregado', 'Denegada por coordinador', 'Rechazada'];
+      lista = [...lista].sort((a, b) => {
+        const ia = PRIO.indexOf(a.estatus), ib = PRIO.indexOf(b.estatus);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      });
+      body.innerHTML = lista.map(s => `
+    <div class="msol-card">
+      <div class="msol-folio">${s.folio}</div>
+      <div class="msol-eco"><i class="fa-solid fa-bus" style="color:#94a3b8;font-size:.75rem;margin-right:5px"></i>${s.num_eco || '—'}</div>
+      <div class="msol-comp">${s.componente || '—'}${s.material_nombre ? ' — ' + s.material_nombre : ''}</div>
+      <div class="msol-footer">
+        <span class="msol-fecha"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${s.fecha_hora || '—'}</span>
+        ${smBadge(s.estatus)}
+      </div>
+    </div>`).join('');
+    }
+
+    function cerrarMisSolicitudes() {
+      document.getElementById('mis-overlay').classList.remove('visible');
+      document.getElementById('mis-drawer').classList.remove('open');
+      setTimeout(() => document.getElementById('mis-overlay').classList.remove('open'), 250);
+    }
+
+    function mockMisSolicitudes(clave) {
+      return [
+        {
+          folio: 'REF-20240610-1021', fecha_hora: '10/06/2024 08:32', estatus: 'Nueva Solicitud',
+          num_eco: 'ECO-001', clave_tecnico: clave, componente: 'BLT-001', material_nombre: 'Impresora térmica TP-80'
+        },
+        {
+          folio: 'REF-20240528-0104', fecha_hora: '28/05/2024 11:00', estatus: 'En ruta al solicitante',
+          num_eco: 'ECO-009', clave_tecnico: clave, componente: 'CAM-002', material_nombre: 'DVR 8 canales H.265'
+        },
+        {
+          folio: 'REF-20240607-0643', fecha_hora: '07/06/2024 16:45', estatus: 'Resuelto con Stock Local',
+          num_eco: 'ECO-004', clave_tecnico: clave, componente: 'TBK-001', material_nombre: 'Pinpad Verifone VX820'
+        },
+        {
+          folio: 'REF-20240515-0301', fecha_hora: '15/05/2024 09:10', estatus: 'Entregado',
+          num_eco: 'ECO-002', clave_tecnico: clave, componente: 'CNX-001', material_nombre: 'Router CPE 4G LTE'
+        },
+      ];
+    }
+
+    // ── FLOTA ──
+    async function cargarFlota() {
+      // Mostrar indicador de carga en el campo
+      const inp = document.getElementById('num_eco');
+      if (inp) {
+        inp.placeholder = 'Cargando unidades...';
+        inp.disabled = true;
+      }
+
+      try {
+        // Google Apps Script requiere seguir el redirect manualmente
+        const res = await fetch(
+          `${API_FLOTA}?accion=getFlota`,
+          { redirect: 'follow' }
+        );
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+
+        // GAS devuelve el array directamente. Cada fila es un array.
+        // Filtrar filas vacías (donde IDX_ECO esté vacío)
+        flotaData = Array.isArray(raw)
+          ? raw.filter(row => Array.isArray(row) && String(row[IDX_ECO] ?? '').trim() !== '')
+          : [];
+
+        console.log(`Flota cargada: ${flotaData.length} unidades`);
+      } catch (e) {
+        console.warn('API flota no disponible, usando mock:', e.message);
+        // Mock con estructura real (41 columnas, índices según GAS)
+        flotaData = [
+          Array(41).fill('').map((_, i) => {
+            if (i === IDX_ECO) return 'ECO-001';
+            if (i === IDX_SOCIEDAD) return 'Sociedad Alfa';
+            if (i === IDX_SERVICIO) return 'Autovías';
+            if (i === IDX_CECO) return 'CC-55';
+            if (i === IDX_BASE) return 'Toluca';
+            return '';
+          }),
+          Array(41).fill('').map((_, i) => {
+            if (i === IDX_ECO) return 'ECO-002';
+            if (i === IDX_SOCIEDAD) return 'Sociedad Beta';
+            if (i === IDX_SERVICIO) return 'Nuevo Horizonte';
+            if (i === IDX_CECO) return 'CC-202';
+            if (i === IDX_BASE) return 'Morelia';
+            return '';
+          }),
+          Array(41).fill('').map((_, i) => {
+            if (i === IDX_ECO) return 'ECO-003';
+            if (i === IDX_SOCIEDAD) return 'Sociedad Gamma';
+            if (i === IDX_SERVICIO) return 'Económico';
+            if (i === IDX_CECO) return 'CC-303';
+            if (i === IDX_BASE) return 'Jilotepec';
+            return '';
+          }),
+          Array(41).fill('').map((_, i) => {
+            if (i === IDX_ECO) return 'ECO-1024';
+            if (i === IDX_SOCIEDAD) return 'Sociedad Alfa';
+            if (i === IDX_SERVICIO) return 'Autovías';
+            if (i === IDX_CECO) return 'CeCo-55';
+            if (i === IDX_BASE) return 'Toluca';
+            return '';
+          }),
+          Array(41).fill('').map((_, i) => {
+            if (i === IDX_ECO) return 'ECO-2048';
+            if (i === IDX_SOCIEDAD) return 'Sociedad Beta';
+            if (i === IDX_SERVICIO) return 'Nuevo Horizonte';
+            if (i === IDX_CECO) return 'CeCo-12';
+            if (i === IDX_BASE) return 'Morelia';
+            return '';
+          }),
+        ];
+      } finally {
+        flotaLista = true;
+        // Habilitar el campo ahora que hay datos
+        if (inp) {
+          inp.disabled = false;
+          inp.placeholder = 'Escribe el número económico para buscar...';
+        }
+      }
+    }
+
+    // ── AUTOCOMPLETE NÚMERO ECONÓMICO ──
+    function initAutocomplete() {
+      const input = document.getElementById('num_eco');
+      const dropdown = document.getElementById('eco-dropdown');
+
+      // SACAR DROPDOWN DEL FLUJO (modo: dejo de sufrir)
+      document.body.appendChild(dropdown);
+
+      let activeIdx = -1;
+
+      if (!input || !dropdown) {
+        console.error('Autocomplete no inicializado: elementos no encontrados');
+        return;
+      }
+
+      input.addEventListener('input', () => {
+        console.log('INPUT DETECTADO:', input.value);
+        console.log('FLOTA:', flotaData.length);
+        const q = input.value.trim().toUpperCase();
+        ecoValido = false;
+        busSeleccionado = null;
+        ocultarInfoBus();
+
+        if (!q) { cerrarDropdown(); return; }
+
+        // Si la flota aún no cargó, mostrar aviso
+        if (!flotaLista || !flotaData.length) {
+          dropdown.innerHTML = '<div class="autocomplete-item" style="color:#94a3b8;cursor:default"><i class="fa-solid fa-circle-notch" style="animation:spin .7s linear infinite;display:inline-block;margin-right:6px"></i>Cargando unidades...</div>';
+          dropdown.classList.add('open');
+          return;
+        }
+
+        const matches = flotaData.filter(row =>
+          String(row[IDX_ECO] ?? '').toUpperCase().includes(q)
+        ).slice(0, 12);
+
+        if (!matches.length) {
+          const rect = input.getBoundingClientRect();
+
+          dropdown.style.position = 'fixed';
+          dropdown.style.top = (rect.bottom + 6) + 'px';
+          dropdown.style.left = rect.left + 'px';
+          dropdown.style.width = rect.width + 'px';
+          dropdown.style.zIndex = 9999;
+
+          dropdown.innerHTML = '<div class="autocomplete-item" style="color:#94a3b8;cursor:default"><i class="fa-solid fa-search" style="margin-right:6px"></i>Sin resultados</div>';
+          dropdown.classList.add('open');
+          return;
+        }
+
+        const rect = input.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+        dropdown.style.zIndex = '9999999';
+
+        dropdown.innerHTML = '';
+        matches.forEach((row) => {
+          const eco = String(row[IDX_ECO] ?? '');
+          const serv = String(row[IDX_SERVICIO] ?? '');
+          const base = String(row[IDX_BASE] ?? '');
+          const it = document.createElement('div');
+          it.className = 'autocomplete-item';
+          it.innerHTML = `<strong>${eco}</strong><small>${serv}${base ? ' · ' + base : ''}</small>`;
+
+          const elegir = (ev) => { ev.preventDefault(); seleccionarUnidad(row, eco); };
+          it.addEventListener('mousedown', elegir);
+          it.addEventListener('touchstart', elegir, { passive: false });
+          dropdown.appendChild(it);
+        });
+        dropdown.classList.add('open');
+        activeIdx = -1;
+      });
+
+      // Teclado
+      input.addEventListener('keydown', e => {
+        const items = [...dropdown.querySelectorAll('.autocomplete-item')];
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') { activeIdx = Math.min(activeIdx + 1, items.length - 1); resaltarItem(items, activeIdx); e.preventDefault(); }
+        if (e.key === 'ArrowUp') { activeIdx = Math.max(activeIdx - 1, 0); resaltarItem(items, activeIdx); e.preventDefault(); }
+        if (e.key === 'Enter' && activeIdx >= 0) { items[activeIdx].dispatchEvent(new Event('mousedown')); e.preventDefault(); }
+        if (e.key === 'Escape') cerrarDropdown();
+      });
+
+      // Cerrar al hacer click fuera (pero NO si el click fue dentro del dropdown)
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.autocomplete-wrap')) cerrarDropdown();
+      });
+    }
+
+    function resaltarItem(items, idx) {
+      items.forEach((it, i) => it.classList.toggle('active', i === idx));
+      if (items[idx]) items[idx].scrollIntoView({ block: 'nearest' });
+    }
+
+    function seleccionarUnidad(row, eco) {
+      document.getElementById('num_eco').value = eco;
+      cerrarDropdown();
+      ecoValido = true;
+      busSeleccionado = row;
+      mostrarInfoBus(row);
+      document.getElementById('num_eco').classList.remove('error');
+      document.getElementById('err-num_eco').classList.remove('show');
+    }
+
+    function cerrarDropdown() {
+      document.getElementById('eco-dropdown').classList.remove('open');
+    }
+
+    function mostrarInfoBus(row) {
+      document.getElementById('bus-base').textContent = row[IDX_BASE] || '—';
+      document.getElementById('bus-servicio').textContent = row[IDX_SERVICIO] || '—';
+      document.getElementById('bus-sociedad').textContent = row[IDX_SOCIEDAD] || '—';
+      document.getElementById('bus-ceco').textContent = row[IDX_CECO] || '—';
+      document.getElementById('bus-info-card').style.display = 'block';
+    }
+
+    function ocultarInfoBus() {
+      document.getElementById('bus-info-card').style.display = 'none';
+    }
+
+    // ── COMPONENTES desde REFA Control ──
+    async function cargarComponentes() {
+      const selCat = document.getElementById('categoria');
+      const selComp = document.getElementById('componente');
+
+      try {
+        if (API_REFA === 'TU_URL_REFA_AQUI') throw new Error('mock');
+        const res = await fetch(`${API_REFA}?accion=getComps`);
+        compsData = await res.json(); // [ {ClaveMaterial, Material, Categoria} ]
+      } catch {
+        // Mock mientras se crea el GAS
+        compsData = [
+          { ClaveMaterial: 'BLT-001', Material: 'Impresora térmica TP-80', Categoria: 'BOLETERA' },
+          { ClaveMaterial: 'BLT-002', Material: 'Lector de tarjetas CR-20', Categoria: 'BOLETERA' },
+          { ClaveMaterial: 'BLT-003', Material: 'Teclado numérico NK-4', Categoria: 'BOLETERA' },
+          { ClaveMaterial: 'CAM-001', Material: 'Cámara domo DS-2CD211', Categoria: 'CCTV' },
+          { ClaveMaterial: 'CAM-002', Material: 'DVR 8 canales H.265', Categoria: 'CCTV' },
+          { ClaveMaterial: 'CAM-003', Material: 'Switch PoE 8 puertos', Categoria: 'CCTV' },
+          { ClaveMaterial: 'TBK-001', Material: 'Pinpad Verifone VX820', Categoria: 'TERMINAL BANCARIA' },
+          { ClaveMaterial: 'TBK-002', Material: 'Impresora recibos Epson TM', Categoria: 'TERMINAL BANCARIA' },
+          { ClaveMaterial: 'CNX-001', Material: 'Router CPE 4G LTE', Categoria: 'CONECTIVIDAD' },
+          { ClaveMaterial: 'CNX-002', Material: 'Antena MIMO externa', Categoria: 'CONECTIVIDAD' },
+          { ClaveMaterial: 'CAI-001', Material: 'Cámara LPR Genetec', Categoria: 'CÁMARA INTELIGENTE' },
+          { ClaveMaterial: 'CAI-002', Material: 'Edge Server Axis S3008', Categoria: 'CÁMARA INTELIGENTE' },
+        ];
+      }
+
+      // Categorías únicas
+      const cats = [...new Set(compsData.map(c => c.Categoria.toUpperCase()))].sort();
+      selCat.innerHTML = '<option value="">— Selecciona categoría —</option>';
+      cats.forEach(cat => {
+        const o = document.createElement('option');
+        o.value = cat; o.textContent = cat;
+        selCat.appendChild(o);
+      });
+
+      selCat.addEventListener('change', () => {
+        const cat = selCat.value;
+        selComp.innerHTML = '<option value="">— Selecciona componente —</option>';
+        selComp.disabled = !cat;
+        if (!cat) return;
+        compsData.filter(c => c.Categoria.toUpperCase() === cat).forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.ClaveMaterial;
+          o.textContent = `${c.ClaveMaterial}  —  ${c.Material}`;
+          selComp.appendChild(o);
+        });
+        selCat.classList.remove('error');
+        document.getElementById('err-categoria').classList.remove('show');
+      });
+    }
+
+    // ── TOGGLE STATUS SYNC ──
+    function syncToggleStatus(chk, statusId) {
+      const el = document.getElementById(statusId);
+      el.textContent = chk.checked ? 'Sí' : 'No';
+      el.classList.toggle('on', chk.checked);
+    }
+
+    function toggleCanje(chk) {
+      syncToggleStatus(chk, 'st_canje');
+      document.getElementById('canje-detail').style.display = chk.checked ? 'block' : 'none';
+    }
+
+    function toggleOtraPrueba(chk) {
+      const wrap = document.getElementById('otra-prueba-wrap');
+      wrap.classList.toggle('hidden', !chk.checked);
+      if (chk.checked) document.getElementById('otra_prueba_texto').focus();
+    }
+
+    // ── ESCANER ──
+    let scanTargetField = null, scanStream = null, scanInterval = null;
+
+    async function abrirEscaner(fieldId) {
+      scanTargetField = fieldId;
+      document.getElementById('scan-modal').classList.add('open');
+
+      if ('BarcodeDetector' in window) {
+        try {
+          scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          document.getElementById('scan-video').srcObject = scanStream;
+          const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'upc_a', 'data_matrix'] });
+          scanInterval = setInterval(async () => {
+            try {
+              const codes = await detector.detect(document.getElementById('scan-video'));
+              if (codes.length) { document.getElementById(scanTargetField).value = codes[0].rawValue; cerrarEscaner(); }
+            } catch { }
+          }, 300);
+        } catch { cerrarEscaner(); }
+      }
+      // Si no hay BarcodeDetector, el modal igual se abre con botón "Ingresar manualmente"
+    }
+
+    function cerrarEscaner() {
+      document.getElementById('scan-modal').classList.remove('open');
+      if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+      if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+    }
+
+    // ── VALIDACIÓN ──
+    function vCampo(id, errId) {
+      const el = document.getElementById(id);
+      const er = document.getElementById(errId);
+      const ok = el.value.trim() !== '';
+      el.classList.toggle('error', !ok);
+      er.classList.toggle('show', !ok);
+      return ok;
+    }
+
+    function validarFormulario() {
+      let ok = true;
+
+      // Clave técnico (puede ser readonly o editable)
+      const clave = document.getElementById('clave_tecnico');
+      if (!clave.value.trim()) {
+        clave.classList.add('error');
+        document.getElementById('err-clave_tecnico').classList.add('show');
+        ok = false;
+      } else {
+        clave.classList.remove('error');
+        document.getElementById('err-clave_tecnico').classList.remove('show');
+      }
+
+      // Unidad
+      if (!ecoValido) {
+        document.getElementById('num_eco').classList.add('error');
+        document.getElementById('err-num_eco').classList.add('show');
+        ok = false;
+      }
+
+      if (!vCampo('categoria', 'err-categoria')) ok = false;
+
+      const comp = document.getElementById('componente');
+      if (!comp.value) {
+        comp.classList.add('error');
+        document.getElementById('err-componente').classList.add('show');
+        ok = false;
+      }
+
+      if (!vCampo('falla', 'err-falla')) ok = false;
+      if (!vCampo('fecha_falla', 'err-fecha_falla')) ok = false;
+
+      if (!ok) {
+        const el = document.querySelector('.field-input.error, .error-msg.show');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return ok;
+    }
+
+    // ── SUBMIT ──
+    document.getElementById('form-reporte').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!validarFormulario()) return;
+
+      const btnD = document.getElementById('btn-submit-desktop');
+      const btnM = document.getElementById('btn-submit-mobile');
+      const spin = '<span class="spinner"><i class="fa-solid fa-circle-notch"></i></span> Enviando...';
+      btnD.disabled = true; btnM.disabled = true;
+      btnD.innerHTML = spin; btnM.innerHTML = spin;
+
+      const pruebas = [...document.querySelectorAll('input[name="pruebas"]:checked')].map(c => c.value);
+      const otraPrueba = document.getElementById('prueba-otro-chk').checked
+        ? document.getElementById('otra_prueba_texto').value.trim() : null;
+
+      const baseVal = document.getElementById('base_operativa_txt').value
+        || document.getElementById('base_operativa_sel')?.value || '';
+
+      const payload = {
+        folio: document.getElementById('folio').value,
+        fecha_hora: document.getElementById('fecha_hora').value,
+        base_operativa: baseVal,
+        clave_tecnico: document.getElementById('clave_tecnico').value,
+        tecnico: document.getElementById('tecnico').value,
+        num_eco: document.getElementById('num_eco').value,
+        bus_base: busSeleccionado?.[IDX_BASE] ?? '',
+        bus_servicio: busSeleccionado?.[IDX_SERVICIO] ?? '',
+        bus_sociedad: busSeleccionado?.[IDX_SOCIEDAD] ?? '',
+        bus_ceco: busSeleccionado?.[IDX_CECO] ?? '',
+        categoria: document.getElementById('categoria').value,
+        componente: document.getElementById('componente').value,
+        material_nombre: document.getElementById('componente').selectedOptions[0]?.text.split('—').slice(1).join('—').trim() || '',
+        serie_dañado: document.getElementById('serie_dañado').value,
+        falla: document.getElementById('falla').value,
+        fecha_falla: document.getElementById('fecha_falla').value,
+        pruebas_descarte: pruebas,
+        otra_prueba: otraPrueba,
+        envia_lab: document.getElementById('tog_lab').checked,
+        envia_canje: document.getElementById('tog_canje').checked,
+        canje_detalle: {
+          fecha: document.getElementById('canje_fecha').value,
+          hora: document.getElementById('canje_hora').value,
+          paq_interna: document.getElementById('tog_paq_int').checked,
+          paq_externa: document.getElementById('tog_paq_ext').checked,
+          con_operador: document.getElementById('tog_operador').checked,
+          operador: document.getElementById('canje_operador').value,
+        },
+
+        accion: 'nuevaSolicitud',   // ← AGREGAR ESTA LÍNEA
+      };
+
+      try {
+        if (API_REFA !== 'TU_URL_REFA_AQUI') {
+          const res = await fetch(API_REFA, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload),
+            redirect: 'follow',
+          });
+          const data = await res.json();
+          if (data.folio) payload.folio = data.folio;
+        } else {
+          await new Promise(r => setTimeout(r, 1500));
+        }
+        mostrarConfirmacion(payload.folio);
+      } catch (err) {
+        console.error(err);
+        alert('Error al enviar. Verifica tu conexión e intenta de nuevo.');
+        const ok = '<i class="fa-solid fa-paper-plane"></i> Enviar Solicitud';
+        btnD.disabled = false; btnM.disabled = false;
+        btnD.innerHTML = ok; btnM.innerHTML = ok;
+      }
+    });
+
+    // ── CONFIRMACIÓN ──
+    function mostrarConfirmacion(folio) {
+      document.getElementById('form-reporte').style.display = 'none';
+      document.getElementById('confirmacion').style.display = 'block';
+      document.getElementById('folio-confirmado').textContent = folio;
+      document.getElementById('folio-badge').textContent = folio;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nuevoReporte() {
+      document.getElementById('form-reporte').reset();
+      ecoValido = false; busSeleccionado = null;
+      ocultarInfoBus();
+      document.getElementById('canje-detail').style.display = 'none';
+      document.getElementById('otra-prueba-wrap').classList.add('hidden');
+      document.getElementById('confirmacion').style.display = 'none';
+      document.getElementById('form-reporte').style.display = 'block';
+      generarFolioUI();
+      refrescarFechaHora();
+      // Reset selects
+      document.getElementById('componente').innerHTML = '<option value="">— Primero elige categoría —</option>';
+      document.getElementById('componente').disabled = true;
+      // Reset toggle labels
+      ['st_lab', 'st_canje', 'st_paq_int', 'st_paq_ext', 'st_operador'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = 'No'; el.classList.remove('on'); }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Quitar error al editar
+    document.addEventListener('input', e => {
+      if (e.target.classList.contains('field-input')) {
+        e.target.classList.remove('error');
+        const err = document.getElementById('err-' + e.target.id);
+        if (err) err.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+
+</html>
