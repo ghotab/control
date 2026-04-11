@@ -554,8 +554,8 @@
     <div class="logo-wrap">
       <div class="logo-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
       <div class="logo-text">
-        <div class="logo-title">REFA // CONTROL</div>
-        <div class="logo-sub">Sistema de Refaccionamiento</div>
+        <div class="logo-title">CONTROL REFA</div>
+        <div class="logo-sub">Grupo Herradura Occidente</div>
       </div>
     </div>
 
@@ -572,7 +572,7 @@
       <div class="field">
         <label class="field-label" for="clave">Clave de acceso</label>
         <div class="input-wrap">
-          <input id="clave" type="text" class="field-input" placeholder="TEC-001" autocomplete="username"
+          <input id="clave" type="text" class="field-input" placeholder="Ej. 1004386" autocomplete="username"
             autocapitalize="characters">
           <i class="fa-solid fa-id-badge input-icon" style="pointer-events:none"></i>
         </div>
@@ -623,7 +623,7 @@
         <span class="status-dot"></span>
         Sistema activo
       </span>
-      <span class="footer-tag" style="font-size:.65rem">v1.0 · 2024</span>
+      <span class="footer-tag" style="font-size:.65rem">v1.0 · 2026</span>
     </div>
 
   </div>
@@ -793,9 +793,9 @@
     // ── Si ya hay sesión, redirigir ──
     window.addEventListener('DOMContentLoaded', () => {
       const rol = localStorage.getItem('rol');
-      if (rol && REDIRECT_PRINCIPAL[rol]) {
-        // Sesión activa — ir directo (comenta esto en dev si quieres probar el login)
-        // window.location.href = REDIRECT_PRINCIPAL[rol];
+      const clave = localStorage.getItem('tecnico');
+      if (rol && clave && REDIRECT_PRINCIPAL[rol]) {
+        window.location.href = REDIRECT_PRINCIPAL[rol];
       }
     });
   </script>
