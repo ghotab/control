@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carátula de Gastos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #2d5a7b;
+            --primary-light: #3d7a9f;
+            --accent: #f59e0b;
+            --accent-light: #fbbf24;
+            --success: #10b981;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--gray-800);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: var(--gray-600);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 24px;
+            color: white;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .card-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-content {
+            padding: 28px;
+        }
+
+        .dropzone {
+            border: 3px dashed var(--gray-300);
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--gray-50);
+        }
+
+        .dropzone:hover {
+            border-color: var(--primary);
+            background: #e8f2ff;
+        }
+
+        .dropzone.active {
+            border-color: var(--accent);
+            background: #fffbf0;
+            box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.1);
+        }
+
+        .dropzone-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .dropzone-text {
+            color: var(--gray-800);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .dropzone-hint {
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead tr {
+            background: linear-gradient(to right, var(--gray-50), var(--gray-100));
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        th {
+            padding: 16px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 90, 123, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(45, 90, 123, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f0f4f8, #e0ecf8);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-500);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-hint {
+            font-size: 14px;
+            color: var(--gray-400);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-error {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--gray-700);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .card-content {
+                padding: 16px;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .dropzone {
+                padding: 40px 15px;
+            }
+
+            .table-wrapper {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📊 Carátula de Gastos</h1>
+        <p>Carga facturas y genera tu carátula para gastos</p>
+    </div>
+
+    <!-- CARGA DE ARCHIVOS -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📁 Cargar facturas</h2>
+        </div>
+        <div class="card-content">
+            <div class="dropzone" id="dropzone">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text">Arrastra los archivos XML aquí</div>
+                <div class="dropzone-hint">Puedes cargar múltiples facturas de una vez</div>
+            </div>
+            <input type="file" id="fileInput" class="file-input" multiple accept=".xml">
+        </div>
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+    <div id="statsContainer" style="display: none;">
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Facturas cargadas</div>
+                <div class="stat-value" id="statCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Importe total</div>
+                <div class="stat-value" id="statTotal">$0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE EDICIÓN -->
+    <div id="tableContainer" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Carátula de gastos</h2>
+            </div>
+            <div class="card-content">
+                <!-- CENTRO DE COSTOS GLOBAL -->
+                <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid var(--gray-200);">
+                    <label class="form-label">Centro de Costos (Aplicar a todos)</label>
+                    <div style="display: flex; gap: 12px;">
+                        <input type="text" id="globalCentroCostos" placeholder="Ej: CC-001" style="flex: 1;">
+                        <button class="btn btn-primary" id="applyCCBtn" style="flex: 0 0 auto;">
+                            ✓ Aplicar
+                        </button>
+                    </div>
+                    <p style="font-size: 12px; color: var(--gray-500); margin-top: 8px;">O presiona Enter para aplicar</p>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 140px;">Centro Costos</th>
+                                <th style="width: 140px;">Fecha Factura</th>
+                                <th style="width: 150px;">Serie-Folio</th>
+                                <th style="width: 120px;">Importe</th>
+                                <th style="width: 250px;">Descripción</th>
+                                <th style="width: 80px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-success" id="exportBtn">
+                        📥 Exportar a Excel
+                    </button>
+                    <button class="btn btn-primary" id="clearBtn">
+                        🗑️ Limpiar todo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ESTADO VACÍO -->
+    <div id="emptyState">
+        <div class="card">
+            <div class="card-content">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-text">No hay facturas cargadas</div>
+                    <div class="empty-state-hint">Arrastra archivos XML o haz clic para seleccionar</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const tableContainer = document.getElementById('tableContainer');
+    const emptyState = document.getElementById('emptyState');
+    const statsContainer = document.getElementById('statsContainer');
+    const tableBody = document.getElementById('tableBody');
+    const exportBtn = document.getElementById('exportBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const globalCentroCostos = document.getElementById('globalCentroCostos');
+    const applyCCBtn = document.getElementById('applyCCBtn');
+
+    let facturas = [];
+    let editingIndex = -1;
+
+    // APLICAR CENTRO DE COSTOS GLOBAL
+    function applyGlobalCC() {
+        const cc = globalCentroCostos.value.trim();
+        if (cc) {
+            facturas.forEach(f => f.centroCostos = cc);
+            renderTable();
+            showToast('Centro de costos aplicado a todas las facturas', 'success');
+        } else {
+            showToast('Ingresa un centro de costos', 'warning');
+        }
+    }
+
+    applyCCBtn.addEventListener('click', applyGlobalCC);
+
+    globalCentroCostos.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            applyGlobalCC();
+        }
+    });
+
+    // DRAG AND DROP
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('active');
+    });
+
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('active'));
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('active');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (file.name.endsWith('.xml')) {
+                const reader = new FileReader();
+                reader.onload = (e) => parseXML(e.target.result);
+                reader.readAsText(file);
+            }
+        });
+    }
+
+    function parseXML(xmlText) {
+        try {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(xmlText, 'text/xml');
+
+            const cfdi = xml.getElementsByTagName('cfdi:Comprobante')[0];
+            if (!cfdi) throw new Error('No es un CFDI válido');
+
+            const fecha = cfdi.getAttribute('Fecha')?.split('T')[0] || '';
+            const serie = cfdi.getAttribute('Serie') || '';
+            const folio = cfdi.getAttribute('Folio') || '';
+            const total = parseFloat(cfdi.getAttribute('Total') || 0);
+
+            // Evitar duplicados
+            const isDuplicate = facturas.some(f => f.serie === serie && f.folio === folio);
+            if (isDuplicate) {
+                showToast('Esta factura ya está cargada', 'warning');
+                return;
+            }
+
+            const factura = {
+                id: Date.now(),
+                fecha,
+                serie,
+                folio,
+                centroCostos: '',
+                descripcion: `${serie}-${folio}`,
+                importe: total
+            };
+
+            facturas.push(factura);
+            updateUI();
+            showToast(`Factura ${serie}-${folio} cargada correctamente`, 'success');
+        } catch (error) {
+            showToast('Error al procesar el archivo: ' + error.message, 'error');
+        }
+    }
+
+    function updateUI() {
+        if (facturas.length === 0) {
+            tableContainer.style.display = 'none';
+            statsContainer.style.display = 'none';
+            emptyState.style.display = 'block';
+        } else {
+            tableContainer.style.display = 'block';
+            statsContainer.style.display = 'block';
+            emptyState.style.display = 'none';
+            renderTable();
+            updateStats();
+        }
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+
+        facturas.forEach((factura, index) => {
+            const row = document.createElement('tr');
+            const serieFolder = `${factura.serie}-${factura.folio}`;
+            
+            const centroCostosDisplay = factura.centroCostos && factura.centroCostos.trim() !== '' ? factura.centroCostos : '-';
+            row.innerHTML = `
+                <td><span style="color: var(--gray-600); font-weight: 500;">${centroCostosDisplay}</span></td>
+                <td>${factura.fecha}</td>
+                <td style="font-weight: 600; color: var(--primary);">${serieFolder}</td>
+                <td style="text-align: right; font-weight: 600;">$${factura.importe.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                <td>
+                    <input type="text" value="${factura.descripcion}" class="desc-input" data-index="${index}" style="width: 100%;">
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <button class="btn btn-danger btn-sm" onclick="deleteRow(${index})">🗑️</button>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+
+            // Listener para cambios en descripción
+            row.querySelector(`.desc-input`).addEventListener('change', (e) => {
+                facturas[index].descripcion = e.target.value;
+            });
+        });
+    }
+
+    function updateDescription(index) {
+        const input = document.querySelector(`.desc-input[data-index="${index}"]`);
+        if (input && !input.value) {
+            facturas[index].descripcion = `${facturas[index].serie}-${facturas[index].folio}`;
+            input.value = facturas[index].descripcion;
+        }
+    }
+
+    function updateStats() {
+        document.getElementById('statCount').textContent = facturas.length;
+        const total = facturas.reduce((sum, f) => sum + f.importe, 0);
+        document.getElementById('statTotal').textContent = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
+    }
+
+    function deleteRow(index) {
+        if (confirm('¿Eliminar esta factura?')) {
+            facturas.splice(index, 1);
+            updateUI();
+            showToast('Factura eliminada', 'success');
+        }
+    }
+
+    exportBtn.addEventListener('click', () => {
+        try {
+            if (!window.XLSX) {
+                showToast('La librería de Excel aún está cargando, intenta de nuevo', 'warning');
+                return;
+            }
+
+            const ws_data = [['Centro de Costos', 'Fecha Factura', 'Factura', 'Importe', 'Descripción']];
+
+            facturas.forEach(f => {
+                ws_data.push([
+                    f.centroCostos === '' ? '' : f.centroCostos,
+                    f.fecha,
+                    `${f.serie}-${f.folio}`,
+                    f.importe,
+                    f.descripcion
+                ]);
+            });
+
+            // Agregar total
+            const total = facturas.reduce((sum, f) => sum + f.importe, 0);
+            ws_data.push(['', '', '', total, 'TOTAL']);
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            // Estilos básicos
+            ws['!cols'] = [
+                { wch: 18 },
+                { wch: 14 },
+                { wch: 16 },
+                { wch: 14 },
+                { wch: 30 }
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Gastos');
+
+            const filename = `Caratula_Gastos_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showToast('✓ Excel exportado correctamente', 'success');
+        } catch (error) {
+            console.error('Error en exportación:', error);
+            showToast('Error al exportar: ' + error.message, 'error');
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        if (confirm('¿Limpiar todas las facturas?')) {
+            facturas = [];
+            fileInput.value = '';
+            updateUI();
+            showToast('Datos eliminados', 'success');
+        }
+    });
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+
+        if (type === 'error') {
+            toast.style.background = '#ef4444';
+        } else if (type === 'warning') {
+            toast.style.background = '#f59e0b';
+        }
+
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Inicializar
+    updateUI();
+</script>
+
+</body>
+</html>
