@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,44 +10,109 @@
         :root {
             --mac-bg: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000');
             --glass: rgba(255, 255, 255, 0.2);
-            --ios-blue: #007aff; /* Agregamos esta línea para que funcione el hover */
-        }
-        body, html {
-            margin: 0; height: 100%; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--mac-bg) no-repeat center center fixed;
-            background-size: cover; display: flex; flex-direction: column;
-        }
-        .top-bar {
-            height: 30px; background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px); display: flex; align-items: center;
-            padding: 0 20px; color: white; font-size: 13px; justify-content: space-between;
-        }
-        .launchpad {
-            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            padding: 60px 100px; gap: 40px; justify-items: center;
-        }
-        .app-link {
-            text-decoration: none; color: white; display: flex; flex-direction: column;
-            align-items: center; transition: transform 0.2s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .app-link:hover { transform: scale(1.1); }
-        .app-icon {
-            width: 90px; height: 90px; border-radius: 20px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 45px; margin-bottom: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            --ios-blue: #007aff;
+            /* Agregamos esta línea para que funcione el hover */
         }
 
-        .icon-flota { background: linear-gradient(145deg, #007aff, #00c6ff); }
-        .icon-admin { background: linear-gradient(145deg, #08aa23, #09cf80); }
-        .icon-sim { background: linear-gradient(145deg, #f42a5f, #ad1a55); }
-        .dock-container { width: 100%; display: flex; justify-content: center; padding-bottom: 20px; }
-        .dock {
-            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(20px);
-            padding: 10px 20px; border-radius: 25px; display: flex; gap: 15px;
-            border: 0.5px solid rgba(255,255,255,0.2);
+        body,
+        html {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--mac-bg) no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
         }
-        .dock-item { width: 50px; height: 50px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+        .top-bar {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 13px;
+            justify-content: space-between;
+        }
+
+        .launchpad {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            padding: 60px 100px;
+            gap: 40px;
+            justify-items: center;
+        }
+
+        .app-link {
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .app-link:hover {
+            transform: scale(1.1);
+        }
+
+        .app-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-flota {
+            background: linear-gradient(145deg, #007aff, #00c6ff);
+        }
+
+        .icon-admin {
+            background: linear-gradient(145deg, #08aa23, #09cf80);
+        }
+
+        .icon-sim {
+            background: linear-gradient(145deg, #f42a5f, #ad1a55);
+        }
+
+        .dock-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+        }
+
+        .dock {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: flex;
+            gap: 15px;
+            border: 0.5px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dock-item {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
         .menu-container {
             position: relative;
             display: flex;
@@ -57,13 +123,15 @@
         }
 
         .menu-container .app-link span {
-            margin-top: 2px; /* Alineación fina para que coincida con los otros iconos */
+            margin-top: 2px;
+            /* Alineación fina para que coincida con los otros iconos */
             text-align: center;
         }
 
         /* Estilo del Botón Principal (App Icon) */
         .app-icon.icon-bandejas {
-            background: linear-gradient(145deg, #5e5ce6, #7d7aff); /* Color morado macOS */
+            background: linear-gradient(145deg, #5e5ce6, #7d7aff);
+            /* Color morado macOS */
             cursor: pointer;
         }
 
@@ -79,8 +147,8 @@
             backdrop-filter: blur(20px);
             border-radius: 12px;
             margin-top: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: 0.5px solid rgba(255,255,255,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 0.5px solid rgba(255, 255, 255, 0.3);
             z-index: 1000;
             padding: 5px;
         }
@@ -91,8 +159,15 @@
         }
 
         @keyframes menuAppear {
-            from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         /* Opciones del Menú */
@@ -121,19 +196,72 @@
         /* Divisor estilo macOS */
         .menu-divider {
             height: 0.5px;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
             margin: 5px 10px;
         }
 
+        /* --- AJUSTES PARA MÓVIL --- */
+        @media (max-width: 600px) {
+
+            body,
+            html {
+                /* Permitimos el scroll vertical en móviles */
+                overflow-y: auto;
+                height: auto;
+                min-height: 100%;
+            }
+
+            .launchpad {
+                /* Reducimos el padding exagerado de los lados */
+                padding: 40px 20px;
+                /* Ajustamos el tamaño de la rejilla para que quepan de a dos o según quepan */
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 20px;
+            }
+
+            .app-icon {
+                width: 70px;
+                /* Iconos un poco más pequeños para móvil */
+                height: 70px;
+                font-size: 35px;
+            }
+
+            .dropdown-menu {
+                /* Evitamos que el menú se salga de la pantalla */
+                width: 180px;
+                position: fixed;
+                /* Cambiamos a fixed para que flote sobre todo en móvil */
+                top: 20% !important;
+                left: 50% !important;
+                transform: translate(-50%, 0);
+            }
+
+            .top-bar {
+                font-size: 11px;
+                /* Texto de la barra superior más pequeño */
+                padding: 0 10px;
+            }
+
+            .dock-container {
+                /* Fijamos el dock abajo para que siempre sea accesible */
+                position: sticky;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                padding-top: 10px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="top-bar">
-        <div><i class="fab fa-apple"></i> <span style="font-weight:700; margin-left:10px;">GHO TAB - Administración</span></div>
+        <div><i class="fab fa-apple"></i> <span style="font-weight:700; margin-left:10px;">GHO TAB -
+                Administración</span></div>
         <div id="reloj">12:00 PM</div>
     </div>
 
-    
+
 
     <div class="launchpad">
 
@@ -149,7 +277,7 @@
                 <a href="distro.html" class="menu-item"><i class="fa-solid fa-tag"></i> Explorar por Autobus</a>
                 <a href="xrol.html" class="menu-item"><i class="fa-solid fa-users-cog"></i> Explorar por Roles</a>
                 <a href="xbase.html" class="menu-item"><i class="fa-solid fa-industry"></i> Explorar por Base</a>
-                
+
             </div>
         </div>
 
@@ -162,16 +290,21 @@
             </div>
 
             <div id="menuBandejas" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/cctv/bandejas/registrarcambio.html" class="menu-item"><i class="fas fa-plus-circle"></i> Registrar Cambio</a>
+                <a href="https://ghotab.github.io/control/cctv/bandejas/registrarcambio.html" class="menu-item"><i
+                        class="fas fa-plus-circle"></i> Registrar Cambio</a>
                 <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/cctv/bandejas/owalert.html" class="menu-item"><i class="fas fa-circle-radiation"></i> Riesgos Sobreescritura</a>
+                <a href="https://ghotab.github.io/control/cctv/bandejas/owalert.html" class="menu-item"><i
+                        class="fas fa-circle-radiation"></i> Riesgos Sobreescritura</a>
                 <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/cctv/bandejas/historial.html" class="menu-item"><i class="fas fa-history"></i> Historial de Cambios</a>
-                <a href="https://ghotab.github.io/control/cctv/bandejas/movimientos.html" class="menu-item"><i class="fas fa-exchange-alt"></i> Movimientos Recientes</a>
-                
+                <a href="https://ghotab.github.io/control/cctv/bandejas/historial.html" class="menu-item"><i
+                        class="fas fa-history"></i> Historial de Cambios</a>
+                <a href="https://ghotab.github.io/control/cctv/bandejas/movimientos.html" class="menu-item"><i
+                        class="fas fa-exchange-alt"></i> Movimientos Recientes</a>
+
                 <div class="menu-divider"></div>
-                
-                <a href="https://ghotab.github.io/control/cctv/bandejas/inventario.html" class="menu-item"><i class="fas fa-boxes"></i> Inventario de Sitio</a>
+
+                <a href="https://ghotab.github.io/control/cctv/bandejas/inventario.html" class="menu-item"><i
+                        class="fas fa-boxes"></i> Inventario de Sitio</a>
             </div>
         </div>
 
@@ -183,11 +316,15 @@
                 <span>Mantenimientos Correctivos</span>
             </div>
             <div id="menuCorrectivo" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/failreporting/createReport.html" class="menu-item"><i class="fa-solid fa-marker"></i> Registrar Falla (Como Administrador)</a>
-                <a href="https://ghotab.github.io/control/failreporting/conductor.html" class="menu-item"><i class="fa-solid fa-bus"></i> Registrar Falla (Como Conductor)</a>
-                <a href="https://ghotab.github.io/control/failreporting/pendientes.html" class="menu-item"><i class="fas fa-exclamation-triangle"></i> Dashboard de Reportes</a>
+                <a href="https://ghotab.github.io/control/failreporting/createReport.html" class="menu-item"><i
+                        class="fa-solid fa-marker"></i> Registrar Falla (Como Administrador)</a>
+                <a href="https://ghotab.github.io/control/failreporting/conductor.html" class="menu-item"><i
+                        class="fa-solid fa-bus"></i> Registrar Falla (Como Conductor)</a>
+                <a href="https://ghotab.github.io/control/failreporting/pendientes.html" class="menu-item"><i
+                        class="fas fa-exclamation-triangle"></i> Dashboard de Reportes</a>
                 <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/failreporting/historial.html" class="menu-item"><i class="fas fa-clipboard-check"></i> Historial de Reportes</a>
+                <a href="https://ghotab.github.io/control/failreporting/historial.html" class="menu-item"><i
+                        class="fas fa-clipboard-check"></i> Historial de Reportes</a>
             </div>
         </div>
 
@@ -199,15 +336,19 @@
                 <span>Control de SIMs</span>
             </div>
             <div id="menuSIMS" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/sims/recordsim.html" class="menu-item"><i class="fa-solid fa-marker"></i> Recepción de SIMs</a>
-                <a href="https://ghotab.github.io/control/sims/simsassign.html" class="menu-item"><i class="fa-solid fa-hand-pointer"></i> Asignación de SIMs</a>
-                <a href="https://ghotab.github.io/control/sims/dashboard.html" class="menu-item"><i class="fa-solid fa-chalkboard-user"></i> Dashboard de Instalaciones</a>
+                <a href="https://ghotab.github.io/control/sims/recordsim.html" class="menu-item"><i
+                        class="fa-solid fa-marker"></i> Recepción de SIMs</a>
+                <a href="https://ghotab.github.io/control/sims/simsassign.html" class="menu-item"><i
+                        class="fa-solid fa-hand-pointer"></i> Asignación de SIMs</a>
+                <a href="https://ghotab.github.io/control/sims/dashboard.html" class="menu-item"><i
+                        class="fa-solid fa-chalkboard-user"></i> Dashboard de SIMs</a>
                 <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/sims/install.html" class="menu-item"><i class="fas fa-window-restore"></i> Instalación de SIM</a>
+                <a href="https://ghotab.github.io/control/sims/install.html" class="menu-item"><i
+                        class="fas fa-window-restore"></i> Instalación de SIM</a>
             </div>
         </div>
 
-        
+
 
         <div class="menu-container">
             <div class="app-link" onclick="toggleMenu(event, 'menuAdmin')">
@@ -218,7 +359,12 @@
             </div>
 
             <div id="menuAdmin" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/admin/visor_cfdi.html" class="menu-item"><i class="fa-solid fa-file-contract"></i> Visor CFDI</a>
+                <a href="https://ghotab.github.io/control/admin/caratula_gastos.html" class="menu-item"><i
+                        class="fa-solid fa-file-excel"></i> Carátula de Gastos</a>
+                <div class="menu-divider"></div>
+                <a href="https://ghotab.github.io/control/admin/visor_cfdi.html" class="menu-item"><i
+                        class="fa-solid fa-file-contract"></i> Visor CFDI</a>
+
             </div>
         </div>
 
@@ -233,10 +379,10 @@
 
     <script>
         setInterval(() => {
-            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
 
-        function toggleMenu(event,idMenu) {
+        function toggleMenu(event, idMenu) {
             event.stopPropagation();
 
             // Primero cerramos cualquier otro menú que esté abierto para que no se encimen
@@ -247,13 +393,13 @@
                 }
             });
 
-           // Ahora abrimos o cerramos el menú que nos interesa
+            // Ahora abrimos o cerramos el menú que nos interesa
             const menuSeleccionado = document.getElementById(idMenu);
             menuSeleccionado.classList.toggle("show");
         }
 
         // Cerrar el menú si haces clic fuera de él
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (!event.target.matches('.app-icon') && !event.target.matches('.fa-tray')) {
                 var dropdowns = document.getElementsByClassName("dropdown-menu");
                 for (var i = 0; i < dropdowns.length; i++) {
@@ -267,4 +413,5 @@
 
     </script>
 </body>
+
 </html>
