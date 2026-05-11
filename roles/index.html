@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Turnos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- PAGE LOADER -->
+<div class="page-loader" id="page-loader">
+  <div class="loader-ring"></div>
+  <p class="loader-text">Cargando sistema...</p>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="modal-overlay" onclick="if(event.target===this)UI.closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Modal</h3>
+      <button class="modal-close" onclick="UI.closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel-btn" onclick="UI.closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modal-confirm-btn" onclick="UI.confirmModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="icon">📅</div>
+      <div>
+        <h2>Gestión de Turnos</h2>
+        <p>SISTEMA OPERATIVO</p>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-info">
+        <div class="name" id="user-name">Cargando...</div>
+        <div class="role" id="user-role">—</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <!-- Injected by dashboard.js -->
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-item" id="logout-btn">
+        <span class="nav-icon">🚪</span>Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content" id="main-content-wrap">
+
+    <!-- HEADER -->
+    <header class="top-header">
+      <button class="header-toggle" id="menu-toggle" title="Menú">☰</button>
+
+      <div class="week-nav">
+        <button class="week-btn" id="week-prev" title="Semana anterior">‹</button>
+        <div class="week-label">
+          <div class="week-num" id="week-num">Semana —</div>
+          <div class="week-dates" id="week-dates">—</div>
+        </div>
+        <button class="week-btn" id="week-next" title="Semana siguiente">›</button>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn" title="Notificaciones">
+          🔔
+          <span class="notif-badge"></span>
+        </button>
+        <button class="icon-btn" title="Perfil">👤</button>
+      </div>
+    </header>
+
+    <!-- DYNAMIC CONTENT -->
+    <div id="main-content">
+      <div class="page-content">
+        <div class="empty-state">
+          <div class="loader-ring"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content-wrap -->
+</div><!-- /app-layout -->
+
+<!-- SCRIPTS — load order matters -->
+<script src="auth.js"></script>
+<script src="ui.js"></script>
+<script src="api.js"></script>
+<script src="calendar.js"></script>
+<script src="dashboard.js"></script>
+
+<script>
+  // Bootstrap
+  document.addEventListener('DOMContentLoaded', () => {
+    Dashboard.init();
+  });
+</script>
+</body>
+</html>

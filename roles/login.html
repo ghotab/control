@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Turnos – Acceso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;--accent:#3b82f6;--accent2:#6366f1;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--mono:'Space Mono',monospace;--body:'DM Sans',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.04)1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04)1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+.orb1{position:fixed;top:-20%;left:-15%;width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,.12)0%,transparent 70%);pointer-events:none;animation:pulse1 8s ease-in-out infinite}
+.orb2{position:fixed;bottom:-15%;right:-10%;width:450px;height:450px;background:radial-gradient(circle,rgba(59,130,246,.1)0%,transparent 70%);pointer-events:none;animation:pulse1 10s ease-in-out infinite reverse}
+@keyframes pulse1{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.1);opacity:1}}
+.wrap{position:relative;z-index:10;width:100%;max-width:420px;padding:16px}
+.brand{text-align:center;margin-bottom:36px}
+.brand-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 0 30px rgba(99,102,241,.3)}
+.brand h1{font-family:var(--mono);font-size:17px;letter-spacing:.06em}
+.brand p{font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;box-shadow:0 25px 50px rgba(0,0,0,.4)}
+.card h2{font-size:21px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:26px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:7px;font-family:var(--mono)}
+.fw{position:relative}
+.fw svg.ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text3);fill:none;stroke-width:2}
+.fw input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 13px 12px 40px;font-size:14px;color:var(--text);font-family:var(--body);transition:border-color .2s,box-shadow .2s;outline:none}
+.fw input::placeholder{color:var(--text3)}
+.fw input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.tog{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color .2s}
+.tog:hover{color:var(--text2)}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;font-family:var(--body);cursor:pointer;margin-top:6px;transition:opacity .2s,transform .1s,box-shadow .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(99,102,241,.3)}
+.btn:hover{opacity:.9;box-shadow:0 6px 20px rgba(99,102,241,.4)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:9px 13px;font-size:13px;margin-top:10px;text-align:center}
+.roles{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.rtag{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.04em}
+.rdot{width:6px;height:6px;border-radius:50%}
+.rdot.b{background:var(--accent)}.rdot.a{background:var(--amber)}.rdot.p{background:#a855f7}
+.foot{text-align:center;margin-top:18px;font-size:11px;color:var(--text3);font-family:var(--mono)}
+@media(max-width:480px){.card{padding:24px 18px}}
+</style>
+</head>
+<body>
+<div class="orb1"></div><div class="orb2"></div>
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    </div>
+    <h1>GESTIÓN DE TURNOS</h1>
+    <p>Sistema Operativo v2.0</p>
+  </div>
+  <div class="card">
+    <h2>Iniciar sesión</h2>
+    <p class="subtitle">Ingresa tus credenciales de acceso</p>
+    <div class="field">
+      <label>Clave de acceso</label>
+      <div class="fw">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <input type="text" id="clave" placeholder="Ej: TEC001" autocomplete="username">
+      </div>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <div class="fw">
+        <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <button class="tog" id="togPass" type="button">
+          <svg id="eyeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn" id="btnLogin">
+      <span class="spin" id="spin"></span>
+      <span id="btnTxt">Ingresar al sistema</span>
+    </button>
+    <div class="err" id="errMsg"></div>
+    <div class="roles">
+      <span class="rtag"><span class="rdot b"></span>Técnico</span>
+      <span class="rtag"><span class="rdot a"></span>Coordinador</span>
+      <span class="rtag"><span class="rdot p"></span>Jefe</span>
+    </div>
+  </div>
+  <div class="foot">© 2024 Sistema Operativo · Todos los derechos reservados</div>
+</div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+const DEMO={
+  'TEC001':{nombre:'Juan Pérez',rol:'tecnico',base:'Centro Técnico Norte',pw:'1234'},
+  'COO001':{nombre:'María Gómez',rol:'coordinador',base:'Centro Técnico Norte',pw:'1234'},
+  'JEFE001':{nombre:'Carlos Ramírez',rol:'jefe',base:'todas',pw:'1234'}
+};
+const claveI=document.getElementById('clave'),passI=document.getElementById('password');
+const btnL=document.getElementById('btnLogin'),spinE=document.getElementById('spin'),btnTxt=document.getElementById('btnTxt'),errMsg=document.getElementById('errMsg');
+
+document.getElementById('togPass').onclick=()=>{
+  const v=passI.type==='password';passI.type=v?'text':'password';
+  document.getElementById('eyeIco').innerHTML=v?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+};
+[claveI,passI].forEach(e=>e.addEventListener('keydown',k=>{if(k.key==='Enter')login()}));
+btnL.addEventListener('click',login);
+
+async function login(){
+  const cl=claveI.value.trim(),pw=passI.value;
+  if(!cl||!pw){showErr('Completa todos los campos.');return;}
+  setLoad(true);hideErr();
+  try{
+    const r=await fetch(`${API}?accion=login&clave=${encodeURIComponent(cl)}&password=${encodeURIComponent(pw)}`);
+    const d=await r.json();
+    if(d.success||d.status==='ok'||d.rol){
+      save({clave:d.clave||cl,nombre:d.nombre||'Usuario',rol:d.rol,base:d.base||''});
+      location.href='index.html';
+    }else showErr(d.mensaje||d.message||'Credenciales incorrectas.');
+  }catch(e){
+    const u=DEMO[cl.toUpperCase()];
+    if(u&&u.pw===pw){save({clave:cl,nombre:u.nombre,rol:u.rol,base:u.base});location.href='index.html';}
+    else showErr('Credenciales incorrectas. Demo: TEC001/1234 · COO001/1234 · JEFE001/1234');
+  }finally{setLoad(false);}
+}
+function save(s){localStorage.setItem('gt_session',JSON.stringify(s));}
+function setLoad(on){btnL.disabled=on;spinE.style.display=on?'block':'none';btnTxt.textContent=on?'Verificando...':'Ingresar al sistema';}
+function showErr(m){errMsg.textContent=m;errMsg.style.display='block';}
+function hideErr(){errMsg.style.display='none';}
+try{const s=JSON.parse(localStorage.getItem('gt_session')||'{}');if(s.rol)location.href='index.html';}catch(e){}
+</script>
+</body>
+</html>
