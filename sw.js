@@ -72,7 +72,7 @@ self.addEventListener('push', event => {
     } catch {
         data = {
             title: 'Nueva Falla',
-            body: 'Existe una nueva incidencia pendiente.'
+            body: 'Un conductor ha registrado una nueva incidencia. Revisa pronto'
         };
     }
 
