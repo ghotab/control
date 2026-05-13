@@ -518,6 +518,7 @@
         let currentView = 'atencion';
         let rawData = [];
         let activeId = null;
+        let knownIds = [];
 
         // Inicialización
         window.onload = () => {
@@ -534,6 +535,23 @@
             try {
                 const res = await fetch(`${API}?accion=leerPendientes`);
                 rawData = await res.json();
+                const nuevos = rawData.filter(t => !knownIds.includes(t[0]));
+                if (knownIds.length > 0 && nuevos.length > 0) {
+
+                    const reg = await navigator.serviceWorker.ready;
+
+                    nuevos.forEach(falla => {
+
+                        reg.showNotification('Nueva Falla', {
+                            body: `Unidad ${falla[3]} • ${falla[2]}`,
+                            icon: './icon-192.png'
+                        });
+
+                    });
+
+                }
+
+                knownIds = rawData.map(t => t[0]);
                 renderList();
                 document.getElementById('sync-indicator').style.opacity = 1;
                 setTimeout(() => document.getElementById('sync-indicator').style.opacity = 0.3, 1000);
