@@ -1,18 +1,19 @@
 {
   "name": "Control TAB",
   "short_name": "ControlTAB",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f2f2f7",
   "theme_color": "#007aff",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "icono.png",
-      "sizes": "512x512",
+      "src": "icon-192.png",
+      "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icono.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

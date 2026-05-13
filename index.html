@@ -197,7 +197,7 @@
                 <div class="icon-box bg-green">
                     <i class="fa-solid fa-bus"></i>
                 </div>
-                <div class="row-text">Autobuses</div>
+                <div class="row-text">Consultar Distribución</div>
                 <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
             </a>
 
@@ -237,9 +237,25 @@
     </div>
 
     <script>
+
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => { });
+
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+
+                    console.log('SW registrado');
+
+                    Notification.requestPermission()
+                        .then(permission => {
+
+                            console.log('Permiso:', permission);
+
+                        });
+
+                });
+
         }
+
     </script>
 
 </body>
