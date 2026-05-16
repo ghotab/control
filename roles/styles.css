@@ -132,6 +132,7 @@ body {
 }
 
 .avatar-tecnico { background: rgba(255,255,255,0.2); color: #ffffff; }
+.avatar-auxiliar { background: rgba(255,255,255,0.2); color: #ffffff; }
 .avatar-coordinador { background: rgba(255,255,255,0.2); color: #ffffff; }
 .avatar-jefe { background: rgba(255,255,255,0.2); color: #ffffff; }
 
@@ -545,6 +546,10 @@ body {
 .shift-T { background: var(--shift-afternoon-bg); color: var(--shift-afternoon-text); }
 .shift-N { background: var(--shift-night-bg); color: var(--shift-night-text); }
 .shift-R { background: var(--shift-rest-bg); color: var(--muted); }
+.shift-V { background: rgba(236, 72, 153, 0.16); color: #be185d; }
+.shift-E,
+.shift-C,
+.shift-A { background: rgba(100, 116, 139, 0.14); color: #475569; }
 .shift-custom { background: rgba(253, 230, 138, 0.7); color: #b45309; }
 .shift-empty { color: var(--muted); font-size: 14px; }
 
@@ -576,6 +581,10 @@ body {
 .legend-dot.D { background: var(--shift-rest); }
 .legend-dot.N { background: var(--shift-night); }
 .legend-dot.R { background: var(--shift-rest); }
+.legend-dot.V { background: #ec4899; }
+.legend-dot.E,
+.legend-dot.C,
+.legend-dot.A { background: #64748b; }
 
 /* =====================
    TOTAL HOURS COL
@@ -816,6 +825,7 @@ body {
 }
 
 .role-tecnico { background: var(--blue); color: #ffffff; }
+.role-auxiliar { background: var(--blue-dim); color: var(--blue); }
 .role-coordinador { background: var(--amber); color: #ffffff; }
 .role-jefe { background: var(--purple); color: #ffffff; }
 
@@ -1197,3 +1207,20 @@ body {
 }
 
 .shift-option:hover { transform: scale(1.15); }
+
+.base-move-select {
+  min-width: 150px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.base-move-select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-dim);
+}

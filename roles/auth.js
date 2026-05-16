@@ -41,7 +41,7 @@ const Auth = (() => {
 
   function isJefe() { return hasRole('jefe'); }
   function isCoordinador() { return hasRole('coordinador', 'jefe'); }
-  function isTecnico() { return hasRole('tecnico'); }
+  function isTecnico() { return hasRole('tecnico', 'auxiliar'); }
 
   function parseBases(value) {
     if (!value) return [];
@@ -55,7 +55,8 @@ const Auth = (() => {
     if (!s) return false;
     if (s.rol === 'jefe') return true;
     const bases = parseBases(s.base);
-    return bases.includes(base);
+    const targetBases = parseBases(base);
+    return targetBases.some(b => bases.includes(b));
   }
 
   // Enforce base restriction: returns filtered list
@@ -64,14 +65,14 @@ const Auth = (() => {
     if (!s || s.rol === 'jefe') return items;
     const bases = parseBases(s.base);
     if (!bases.length) return [];
-    return items.filter(i => bases.includes(i[baseKey]));
+    return items.filter(i => parseBases(i[baseKey]).some(b => bases.includes(b)));
   }
 
   return {
     getSession, setSession, clearSession,
     logout, requireAuth,
     hasRole, isJefe, isCoordinador, isTecnico,
-    canViewBase, filterByBase
+    canViewBase, filterByBase, parseBases
   };
 })();
 

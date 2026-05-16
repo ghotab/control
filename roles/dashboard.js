@@ -40,7 +40,7 @@ const Dashboard = (() => {
   function buildNav() {
     const isJefe = session.rol === 'jefe';
     const isCoord = session.rol === 'coordinador';
-    const isTech = session.rol === 'tecnico';
+    const isTech = Auth.isTecnico();
 
     let html = '';
 
@@ -65,10 +65,12 @@ const Dashboard = (() => {
 
     if (isJefe) {
       html += `<div class="nav-section-label" style="margin-top:8px">Gestión</div>`;
+      html += navItem('conciliacion', '📸', 'Conciliación');
       html += navItem('usuarios', '👤', 'Usuarios y roles');
       html += navItem('centros', '🏢', 'Centros de trabajo');
       html += navItem('planeacion', '📅', 'Planeación de turnos');
       html += navItem('calendario-global', '🌐', 'Calendario global');
+      html += navItem('solicitudes', '📩', 'Solicitudes');
       html += `<div class="nav-section-label" style="margin-top:8px">Análisis</div>`;
       html += navItem('reportes', '📈', 'Reportes y métricas');
       html += navItem('config', '⚙️', 'Configuración');
@@ -112,6 +114,7 @@ const Dashboard = (() => {
       case 'usuarios': renderUsuarios(); break;
       case 'centros': renderCentros(); break;
       case 'reportes': renderReportes(); break;
+      case 'conciliacion': renderConciliacion(); break;
       default: renderDashboard();
     }
 
@@ -158,9 +161,15 @@ const Dashboard = (() => {
     const pc = document.getElementById('page-content');
     if (!pc) return;
 
+    const canRegisterAttendance = ['tecnico', 'auxiliar', 'coordinador'].includes(session.rol);
     pc.innerHTML = `
-      <h1 class="page-title">Hola, ${session.nombre.split(' ')[0]}</h1>
-      <p class="page-sub">${capitalize(session.rol)}${session.base ? ' · ' + session.base : ''}</p>
+      <div class="flex items-center gap-12 mb-16">
+        <div>
+          <h1 class="page-title">Hola, ${session.nombre.split(' ')[0]}</h1>
+          <p class="page-sub">${capitalize(session.rol)}${session.base ? ' · ' + session.base : ''}</p>
+        </div>
+        ${canRegisterAttendance ? `<button class="btn btn-primary" style="margin-left:auto" onclick="Dashboard.openAsistenciaModal()">📸 Registrar Asistencia</button>` : ''}
+      </div>
       <div id="kpi-container"><div class="kpi-grid">${[1,2,3,4].map(() => skeletonKpi()).join('')}</div></div>
       <div id="dash-lower"></div>
     `;
@@ -232,9 +241,9 @@ const Dashboard = (() => {
         <div class="section-card-title">📅 Mi horario semanal</div>
         <div id="personal-cal"></div>
         <div class="shift-legend">
-          <div class="legend-item"><div class="legend-dot M"></div>Mañana (06:00–14:00)</div>
-          <div class="legend-item"><div class="legend-dot T"></div>Tarde (14:00–22:00)</div>
-          <div class="legend-item"><div class="legend-dot I"></div>Intermedio (09:00–18:00)</div>
+          <div class="legend-item"><div class="legend-dot M"></div>Mañana</div>
+          <div class="legend-item"><div class="legend-dot T"></div>Tarde</div>
+          <div class="legend-item"><div class="legend-dot I"></div>Intermedio</div>
           <div class="legend-item"><div class="legend-dot D"></div>Descanso</div>
         </div>
       </div>
@@ -261,13 +270,12 @@ const Dashboard = (() => {
         API.getTurnos(session.base, Calendar.getWeekKey(currentDates)),
         API.getBases()
       ]);
-      if (uRes.success) users = uRes.usuarios.filter(u => u.rol === 'tecnico' && u.activo !== '0' && Auth.canViewBase(u.base));
+      if (uRes.success) users = uRes.usuarios.filter(u => ['tecnico', 'auxiliar'].includes(u.rol) && u.activo !== '0' && Auth.canViewBase(u.base));
       if (tRes.success && tRes.turnos) tRes.turnos.forEach(t => {
         turnos[`${String(t.tecnico || '').trim()}_${String(t.fecha || '').trim()}`] = String(t.turno || '').trim().toUpperCase();
       });
       if (bRes.success && bRes.bases) {
-        const baseInfo = bRes.bases.find(b => b.nombre === session.base) || {};
-        Calendar.setAvailableShifts(parseShiftDefinitions(baseInfo.horarios));
+        applyCalendarShiftDefinitions(bRes.bases, hasMultipleSessionBases() ? null : session.base);
       }
     } catch {}
 
@@ -377,7 +385,7 @@ const Dashboard = (() => {
         API.getTurnos(null, Calendar.getWeekKey(currentDates))
       ]);
       let users = [], turnos = {};
-      if (uRes.success) users = uRes.usuarios.filter(u => u.rol === 'tecnico' && u.activo !== '0').slice(0, 8);
+      if (uRes.success) users = uRes.usuarios.filter(u => ['tecnico', 'auxiliar'].includes(u.rol) && u.activo !== '0').slice(0, 8);
       if (tRes.success && tRes.turnos) tRes.turnos.forEach(t => {
         turnos[`${String(t.tecnico || '').trim()}_${String(t.fecha || '').trim()}`] = String(t.turno || '').trim().toUpperCase();
       });
@@ -428,7 +436,7 @@ const Dashboard = (() => {
       if (uRes.success) {
         users = uRes.usuarios.filter(u => {
           const isSelf = String(u.clave || '').trim() === String(session.clave || '').trim();
-          const includeUser = u.rol === 'tecnico' || u.rol === 'coordinador' || isSelf;
+          const includeUser = u.rol === 'tecnico' || u.rol === 'auxiliar' || u.rol === 'coordinador' || isSelf;
           return includeUser &&
             u.activo !== '0' &&
             (isSelf || session.rol === 'jefe' || Auth.canViewBase(u.base));
@@ -442,10 +450,7 @@ const Dashboard = (() => {
         });
       }
       if (bRes.success && bRes.bases) {
-        const baseInfo = isJefe 
-          ? (bRes.bases[0] || {})
-          : (bRes.bases.find(b => b.nombre === session.base) || {});
-        Calendar.setAvailableShifts(parseShiftDefinitions(baseInfo.horarios));
+        applyCalendarShiftDefinitions(bRes.bases, isJefe || hasMultipleSessionBases() ? null : session.base);
       }
       Calendar.renderGrid('planeacion-cal', users, turnos, currentDates, true);
     } catch (e) {
@@ -470,15 +475,16 @@ const Dashboard = (() => {
       </div>`;
 
     try {
-      const [uRes, tRes] = await Promise.all([
+      const [uRes, tRes, bRes] = await Promise.all([
         API.getUsuarios(),
-        API.getTurnos(isJefe ? null : session.base, Calendar.getWeekKey(currentDates))
+        API.getTurnos(isJefe ? null : session.base, Calendar.getWeekKey(currentDates)),
+        API.getBases()
       ]);
       let users = [], turnos = {};
       if (uRes.success) {
         users = uRes.usuarios.filter(u => {
           const isSelf = String(u.clave || '').trim() === String(session.clave || '').trim();
-          const includeUser = u.rol === 'tecnico' || u.rol === 'coordinador' || isSelf;
+          const includeUser = u.rol === 'tecnico' || u.rol === 'auxiliar' || u.rol === 'coordinador' || isSelf;
           return includeUser &&
             u.activo !== '0' &&
             (isSelf || session.rol === 'jefe' || Auth.canViewBase(u.base));
@@ -490,6 +496,9 @@ const Dashboard = (() => {
         tRes.turnos.forEach(t => {
           turnos[`${String(t.tecnico || '').trim()}_${String(t.fecha || '').trim()}`] = String(t.turno || '').trim().toUpperCase();
         });
+      }
+      if (bRes.success && bRes.bases) {
+        applyCalendarShiftDefinitions(bRes.bases, isJefe || hasMultipleSessionBases() ? null : session.base);
       }
       Calendar.renderGrid('readonly-cal', users, turnos, currentDates, false);
     } catch {}
@@ -545,9 +554,9 @@ const Dashboard = (() => {
       <div class="section-card">
         <div id="mi-horario-grid"><div class="empty-state"><div class="loader-ring"></div></div></div>
         <div class="shift-legend">
-          <div class="legend-item"><div class="legend-dot M"></div>Mañana (06:00–14:00)</div>
-          <div class="legend-item"><div class="legend-dot T"></div>Tarde (14:00–22:00)</div>
-          <div class="legend-item"><div class="legend-dot I"></div>Intermedio (09:00–18:00)</div>
+          <div class="legend-item"><div class="legend-dot M"></div>Mañana</div>
+          <div class="legend-item"><div class="legend-dot T"></div>Tarde</div>
+          <div class="legend-item"><div class="legend-dot I"></div>Intermedio</div>
           <div class="legend-item"><div class="legend-dot D"></div>Descanso</div>
         </div>
       </div>`;
@@ -592,41 +601,69 @@ const Dashboard = (() => {
       M: { code: 'M', label: 'M', title: 'Mañana', hours: '06:00–14:00', cls: 'shift-M' },
       T: { code: 'T', label: 'T', title: 'Tarde', hours: '14:00–22:00', cls: 'shift-T' },
       I: { code: 'I', label: 'I', title: 'Intermedio', hours: '09:00–18:00', cls: 'shift-N' },
-      N: { code: 'I', label: 'I', title: 'Intermedio', hours: '09:00–18:00', cls: 'shift-N' },
       D: { code: 'D', label: 'D', title: 'Descanso', hours: '', cls: 'shift-R' },
-      R: { code: 'D', label: 'D', title: 'Descanso', hours: '', cls: 'shift-R' }
+      V: { code: 'V', label: 'V', title: 'Vacaciones', hours: '', cls: 'shift-V' },
+      E: { code: 'E', label: 'E', title: 'Día Económico', hours: '', cls: 'shift-E' },
+      C: { code: 'C', label: 'C', title: 'Cumpleaños', hours: '', cls: 'shift-C' },
+      A: { code: 'A', label: 'A', title: 'Aniversario', hours: '', cls: 'shift-A' }
     };
 
     return raw.split(/[,;]+/)
       .map(item => item.trim())
       .filter(Boolean)
       .map(item => {
-        const [codePart, detailPart] = item.split(':').map(part => part.trim());
+        const separator = item.indexOf(':');
+        const codePart = separator >= 0 ? item.slice(0, separator).trim() : item.trim();
+        const detailPart = separator >= 0 ? item.slice(separator + 1).trim() : '';
         const code = String(codePart || '').toUpperCase();
         if (!code) return null;
 
-        if (known[code]) {
+        if (known[code] && !detailPart) {
           return known[code];
         }
 
-        let title = code;
-        let hours = '';
+        let title = known[code]?.title || code;
+        let hours = known[code]?.hours || '';
+        let cls = known[code]?.cls || 'shift-custom';
         if (detailPart) {
           if (/\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}/.test(detailPart)) {
             hours = detailPart.replace(/\s+/g, '');
-            title = code;
           } else {
             title = detailPart;
+            hours = '';
           }
         }
 
-        return { code, title, hours, cls: 'shift-custom' };
+        return { code: known[code]?.code || code, title, hours, cls };
       })
       .filter(Boolean);
   }
 
   function getShiftCount(horarios) {
     return parseShiftDefinitions(horarios).length;
+  }
+
+  function getSessionBases() {
+    if (!session?.base) return [];
+    return String(session.base).split(/[,;|]+/).map(v => v.trim()).filter(Boolean);
+  }
+
+  function hasMultipleSessionBases() {
+    return getSessionBases().length > 1;
+  }
+
+  function applyCalendarShiftDefinitions(bases = [], baseName = null) {
+    if (!baseName) {
+      const defsByBase = {};
+      bases.forEach(b => {
+        if (b.nombre) defsByBase[b.nombre] = parseShiftDefinitions(b.horarios);
+      });
+      Calendar.setAvailableShiftsByBase(defsByBase);
+      return;
+    }
+
+    const baseInfo = bases.find(b => b.nombre === baseName) || {};
+    Calendar.setAvailableShifts(parseShiftDefinitions(baseInfo.horarios));
   }
 
   function formatSolicitudRange(s) {
@@ -643,8 +680,8 @@ const Dashboard = (() => {
 
   function getSolicitudStatusClass(status) {
     const map = {
-      'Aprobado': 'status-approved',
-      'Rechazado': 'status-rejected',
+      'Aprobada': 'status-approved',
+      'Rechazada': 'status-rejected',
       'Pendiente': 'status-pending'
     };
     return map[status] || `status-${String(status || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
@@ -713,7 +750,7 @@ const Dashboard = (() => {
     const pc = document.getElementById('page-content');
     if (!pc) return;
 
-    const isTech = session.rol === 'tecnico';
+    const isTech = Auth.isTecnico();
     const isCoord = session.rol === 'coordinador';
     const isJefe = session.rol === 'jefe';
     const canCreate = isTech || isCoord;
@@ -721,7 +758,7 @@ const Dashboard = (() => {
     pc.innerHTML = `
       <div class="flex items-center gap-12 mb-16">
         <div>
-          <h1 class="page-title">Solicitudes${isTech ? ' personales' : isCoord ? ' de mi base' : ''}</h1>
+          <h1 class="page-title">Solicitudes${isTech ? ' personales' : isCoord ? ' de mi base' : isJefe ? ' globales' : ''}</h1>
           <p class="page-sub">Gestión de permisos y ausencias</p>
         </div>
         ${canCreate ? `<button class="btn btn-primary" style="margin-left:auto" onclick="Dashboard.openSolicitudModal()">+ Nueva solicitud</button>` : ''}
@@ -735,9 +772,9 @@ const Dashboard = (() => {
           <table class="data-table">
             <thead>
               <tr>
-                ${!isTech ? '<th>Técnico</th><th>Base</th>' : ''}
+                ${!isTech ? '<th>Solicitante</th><th>Base</th>' : ''}
                 <th>Tipo</th><th>Fecha</th><th>Comentario</th><th>Estado</th>
-                ${(isCoord || isJefe) ? '<th>Acciones</th>' : ''}
+                ${isJefe ? '<th>Acciones</th>' : ''}
               </tr>
             </thead>
             <tbody id="solicitudes-body"><tr><td colspan="8" style="text-align:center;padding:32px"><div class="spinner-sm"></div></td></tr></tbody>
@@ -753,11 +790,11 @@ const Dashboard = (() => {
       let solicitudes = (res.success && res.solicitudes) ? res.solicitudes : [];
 
       if (isTech) {
-        solicitudes = solicitudes.filter(s => s.clave === session.clave);
+        solicitudes = solicitudes.filter(s => String(s.clave || '').trim() === String(session.clave || '').trim());
       } else if (isCoord) {
         const users = await API.getUsuarios();
         const tecnicoClaves = users.success && users.usuarios
-          ? users.usuarios.filter(u => u.rol === 'tecnico' && u.base === session.base).map(u => u.clave)
+          ? users.usuarios.filter(u => ['tecnico', 'auxiliar', 'coordinador'].includes(u.rol) && Auth.canViewBase(u.base)).map(u => u.clave)
           : [];
         solicitudes = solicitudes.filter(s => tecnicoClaves.includes(s.clave));
       }
@@ -774,11 +811,11 @@ const Dashboard = (() => {
           <td style="font-family:'Space Mono',monospace;font-size:12px">${formatSolicitudRange(s)}</td>
           <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.comentario || '—'}</td>
           <td><span class="status-badge ${getSolicitudStatusClass(s.estatus)}">${s.estatus}</span></td>
-          ${(isCoord || isJefe) && s.estatus === 'Pendiente' ? `
+          ${isJefe && s.estatus === 'Pendiente' ? `
             <td class="table-actions">
               <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.3)" onclick="Dashboard.resolverSolicitud('${s.id}','Aprobado')">✓ Aprobar</button>
               <button class="btn btn-sm btn-danger" onclick="Dashboard.resolverSolicitud('${s.id}','Rechazado')">✗ Rechazar</button>
-            </td>` : `<td></td>`}
+            </td>` : isJefe ? `<td></td>` : ''}
         </tr>`).join('');
     } catch (e) {
       document.getElementById('solicitudes-body').innerHTML = `<tr><td colspan="8"><div class="empty-state"><p>Error: ${e.message}</p></div></td></tr>`;
@@ -790,7 +827,9 @@ const Dashboard = (() => {
     const pc = document.getElementById('page-content');
     if (!pc) return;
 
-    if (session.rol === 'tecnico') { pc.innerHTML = forbidden(); return; }
+    if (Auth.isTecnico()) { pc.innerHTML = forbidden(); return; }
+    const coordBases = getSessionBases();
+    const canMoveBase = session.rol === 'coordinador' && coordBases.length > 1;
 
     pc.innerHTML = `
       <h1 class="page-title">Técnicos a mi cargo</h1>
@@ -802,8 +841,8 @@ const Dashboard = (() => {
         </div>
         <div style="overflow-x:auto">
           <table class="data-table">
-            <thead><tr><th>Nombre</th><th>Clave</th><th>Base</th><th>Estado</th></tr></thead>
-            <tbody id="tecnicos-body"><tr><td colspan="4" style="text-align:center;padding:32px"><div class="spinner-sm"></div></td></tr></tbody>
+            <thead><tr><th>Nombre</th><th>Clave</th><th>Base</th><th>Estado</th>${canMoveBase ? '<th>Mover</th>' : ''}</tr></thead>
+            <tbody id="tecnicos-body"><tr><td colspan="${canMoveBase ? 5 : 4}" style="text-align:center;padding:32px"><div class="spinner-sm"></div></td></tr></tbody>
           </table>
         </div>
       </div>`;
@@ -814,10 +853,10 @@ const Dashboard = (() => {
       if (!tbody) return;
 
       let users = (res.success && res.usuarios) ? res.usuarios : [];
-      users = Auth.filterByBase(users.filter(u => u.rol === 'tecnico'));
+      users = Auth.filterByBase(users.filter(u => ['tecnico', 'auxiliar'].includes(u.rol)));
 
       if (!users.length) {
-        tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="icon">👥</div><p>No hay técnicos</p></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${canMoveBase ? 5 : 4}"><div class="empty-state"><div class="icon">👥</div><p>No hay técnicos</p></div></td></tr>`;
         return;
       }
 
@@ -827,6 +866,11 @@ const Dashboard = (() => {
           <td style="font-family:'Space Mono',monospace;font-size:12px">${u.clave}</td>
           <td>${u.base}</td>
           <td><span class="status-badge ${u.activo === '0' ? 'status-inactive' : 'status-active'}">${u.activo === '0' ? 'Inactivo' : 'Activo'}</span></td>
+          ${canMoveBase ? `<td>
+            <select class="base-move-select" onchange='Dashboard.moveTecnicoBase(${JSON.stringify(u.clave)}, this.value)' ${u.activo === '0' ? 'disabled' : ''}>
+              ${coordBases.map(base => `<option value="${base}" ${u.base === base ? 'selected' : ''}>${base}</option>`).join('')}
+            </select>
+          </td>` : ''}
         </tr>`).join('');
     } catch {}
   }
@@ -1003,6 +1047,83 @@ const Dashboard = (() => {
   }
 
   // ── MODALS ────────────────────────────────────────────
+  function openAsistenciaModal() {
+    UI.showModal({
+      title: 'Registrar Asistencia',
+      body: `
+        <div class="form-field">
+          <p style="font-size:14px;color:var(--text-2);margin-bottom:12px">Toma una fotografía legible en tu base de trabajo actual. La fecha y hora se registrarán automáticamente.</p>
+          <label>Fotografía</label>
+          <input type="file" id="asistencia-file" accept="image/*" capture="environment" class="form-input">
+        </div>
+        <div id="asistencia-preview-container" style="display:none;margin-top:16px;text-align:center">
+          <canvas id="asistencia-canvas" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></canvas>
+        </div>
+        <input type="hidden" id="asistencia-base64">
+      `,
+      onConfirm: async () => {
+        const base64 = document.getElementById('asistencia-base64').value;
+        if (!base64) {
+          UI.showToast('Debes capturar una fotografía primero', 'error');
+          return;
+        }
+        
+        const fecha = new Date().toISOString().split('T')[0];
+        try {
+          const res = await API.subirAsistencia(base64, fecha);
+          if (res.success) {
+            UI.closeModal();
+            UI.showToast('Asistencia registrada correctamente', 'success');
+          } else {
+            UI.showToast(res.mensaje || 'Error al guardar', 'error');
+          }
+        } catch {
+          UI.showToast('Error de conexión', 'error');
+        }
+      }
+    });
+
+    // Add event listener for file input to compress image via canvas
+    document.getElementById('asistencia-file').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('asistencia-canvas');
+          let width = img.width;
+          let height = img.height;
+          const max_dim = 800; // max width or height
+          
+          if (width > height) {
+            if (width > max_dim) {
+              height *= max_dim / width;
+              width = max_dim;
+            }
+          } else {
+            if (height > max_dim) {
+              width *= max_dim / height;
+              height = max_dim;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // 60% quality
+          document.getElementById('asistencia-base64').value = dataUrl;
+          document.getElementById('asistencia-preview-container').style.display = 'block';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function openUserModal(user = null) {
     if (!Auth.isJefe()) return;
     const isEdit = !!user;
@@ -1032,6 +1153,7 @@ const Dashboard = (() => {
               <label>Rol</label>
               <select id="m-rol">
                 <option value="tecnico" ${user?.rol==='tecnico'?'selected':''}>Técnico</option>
+                <option value="auxiliar" ${user?.rol==='auxiliar'?'selected':''}>Auxiliar</option>
                 <option value="coordinador" ${user?.rol==='coordinador'?'selected':''}>Coordinador</option>
                 <option value="jefe" ${user?.rol==='jefe'?'selected':''}>Jefe</option>
               </select>
@@ -1105,7 +1227,7 @@ const Dashboard = (() => {
         <div class="form-field">
           <label>Turnos disponibles</label>
           <textarea id="m-horarios" rows="4" placeholder="Ej. M:06:00-14:00, T:14:00-22:00, I:09:00-18:00, D:Descanso">${base?.horarios || ''}</textarea>
-          <small class="form-help">Define los códigos y horas para esta base. Usa formato CÓDIGO:DESCRIPCIÓN o CÓDIGO:HH:MM-HH:MM separados por comas.</small>
+          <small class="form-help">Define los turnos operativos de esta base. Las incidencias V, E, C y A siempre estarán disponibles en planeación.</small>
         </div>`,
       onConfirm: async () => {
         const data = {
@@ -1299,6 +1421,214 @@ const Dashboard = (() => {
     }
   }
 
+  async function moveTecnicoBase(clave, nuevaBase) {
+    const basesPermitidas = getSessionBases();
+    if (session.rol !== 'coordinador' || !basesPermitidas.includes(nuevaBase)) {
+      UI.showToast('No tienes permisos para mover a esa base', 'error');
+      renderTecnicos();
+      return;
+    }
+
+    try {
+      const res = await API.getUsuarios(true);
+      const tecnico = res.success && res.usuarios
+        ? res.usuarios.find(u => String(u.clave || '').trim() === String(clave || '').trim())
+        : null;
+      if (!tecnico || !['tecnico', 'auxiliar'].includes(tecnico.rol) || !Auth.canViewBase(tecnico.base)) {
+        UI.showToast('Técnico fuera de tu alcance', 'error');
+        renderTecnicos();
+        return;
+      }
+
+      const save = await API.actualizarUsuario({ ...tecnico, base: nuevaBase });
+      if (save.success) {
+        API.clearCache('usuarios');
+        UI.showToast('Base del técnico actualizada', 'success');
+        renderTecnicos();
+      } else {
+        UI.showToast(save.mensaje || 'Error al mover técnico', 'error');
+        renderTecnicos();
+      }
+    } catch {
+      UI.showToast('Error de conexión', 'error');
+      renderTecnicos();
+    }
+  }
+
+  // ── CONCILIACIÓN DE ASISTENCIAS (Jefe) ────────────────
+  async function renderConciliacion() {
+    const pc = document.getElementById('page-content');
+    if (!pc) return;
+
+    if (!Auth.isJefe()) { pc.innerHTML = forbidden(); return; }
+
+    const hoy = new Date().toISOString().split('T')[0];
+
+    pc.innerHTML = `
+      <div class="flex items-center gap-12 mb-16">
+        <div>
+          <h1 class="page-title">Conciliación de Asistencias</h1>
+          <p class="page-sub">Verifica las asistencias contra los turnos programados</p>
+        </div>
+        <div style="margin-left:auto; display:flex; gap:8px; align-items:center">
+          <label style="font-size:14px;color:var(--text-2);margin-top:8px">Fecha:</label>
+          <input type="date" id="conciliacion-fecha" class="form-input" value="${hoy}" style="padding:6px; height:auto; width:auto;" onchange="Dashboard.refreshConciliacion()">
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <div class="data-table-head">
+          <span class="title">Registros del día</span>
+          <input class="search-input" placeholder="Buscar..." oninput="Dashboard.filterTable(this.value,'conciliacion-body')">
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Técnico</th>
+                <th>Base</th>
+                <th>Turno</th>
+                <th>Hora Carga</th>
+                <th>Foto</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="conciliacion-body"><tr><td colspan="7" style="text-align:center;padding:32px"><div class="spinner-sm"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>`;
+      
+    refreshConciliacion();
+  }
+
+  async function refreshConciliacion() {
+    const tbody = document.getElementById('conciliacion-body');
+    const fechaInput = document.getElementById('conciliacion-fecha');
+    if (!tbody || !fechaInput) return;
+    
+    const fecha = fechaInput.value;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px"><div class="spinner-sm"></div></td></tr>`;
+
+    try {
+      const weekKey = Calendar.getWeekKey([new Date(fecha + 'T12:00:00')]);
+      const [tRes, aRes, uRes] = await Promise.all([
+        API.getTurnos(null, weekKey),
+        API.getAsistencias(fecha, true),
+        API.getUsuarios()
+      ]);
+
+      let turnosHoy = [];
+      if (tRes.success && tRes.turnos) {
+        turnosHoy = tRes.turnos.filter(t => t.fecha === fecha && t.turno !== 'R' && t.turno !== 'V' && t.turno !== 'D' && t.turno !== 'E'); 
+      }
+      
+      const asistencias = aRes.success && aRes.asistencias ? aRes.asistencias : [];
+      const users = uRes.success && uRes.usuarios ? uRes.usuarios : [];
+      
+      const combined = [];
+      const usedAsistencias = new Set();
+
+      turnosHoy.forEach(t => {
+        const asis = asistencias.find(a => a.clave === t.tecnico);
+        const user = users.find(u => u.clave === t.tecnico) || { nombre: t.tecnico };
+        if (asis) usedAsistencias.add(asis.id);
+        combined.push({
+          clave: t.tecnico,
+          nombre: user.nombre,
+          base: t.base,
+          turno: t.turno,
+          asistencia: asis || null
+        });
+      });
+
+      asistencias.forEach(a => {
+        if (!usedAsistencias.has(a.id)) {
+          combined.push({
+            clave: a.clave,
+            nombre: a.nombre,
+            base: a.base,
+            turno: '—', 
+            asistencia: a
+          });
+        }
+      });
+
+      if (!combined.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">📅</div><p>No hay turnos ni asistencias registradas para esta fecha</p></div></td></tr>`;
+        return;
+      }
+
+      combined.sort((a, b) => (a.base + a.nombre).localeCompare(b.base + b.nombre));
+
+      tbody.innerHTML = combined.map(item => {
+        const asis = item.asistencia;
+        const horaCarga = asis ? asis.hora_carga : '—';
+        const linkStr = asis && asis.url_foto ? `<button class="btn btn-ghost btn-sm" onclick="Dashboard.openFotoModal('${asis.url_foto}')">📷 Ver</button>` : '—';
+        const estatus = asis ? asis.estatus_conciliacion : 'Falta (Sin registro)';
+        const asisId = asis ? asis.id : null;
+        
+        let estatusColor = 'status-pending';
+        if (estatus === 'Asistencia') estatusColor = 'status-active';
+        else if (estatus === 'Retardo') estatusColor = 'status-pending'; 
+        else if (estatus.includes('Falta')) estatusColor = 'status-inactive';
+
+        return `
+        <tr>
+          <td><div class="tech-cell"><div class="tech-avatar">${getInitials(item.nombre)}</div>${item.nombre}</div></td>
+          <td>${item.base}</td>
+          <td>${item.turno}</td>
+          <td style="font-family:'Space Mono',monospace">${horaCarga}</td>
+          <td>${linkStr}</td>
+          <td><span class="status-badge ${estatusColor}">${estatus}</span></td>
+          <td class="table-actions">
+            ${asisId ? `
+              <select class="form-input" style="padding:4px 8px; width:auto; font-size:12px; height:auto; display:inline-block" onchange="Dashboard.cambiarEstatusConciliacion('${asisId}', this.value)">
+                <option value="" disabled selected>Acción...</option>
+                <option value="Asistencia">Asistencia</option>
+                <option value="Retardo">Retardo</option>
+                <option value="Falta">Falta</option>
+              </select>
+            ` : '—'}
+          </td>
+        </tr>`;
+      }).join('');
+
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>Error: ${e.message}</p></div></td></tr>`;
+    }
+  }
+
+  function openFotoModal(url) {
+    const previewUrl = url.replace(/\/view.*$/, '/preview').replace(/\?usp=.*$/, '');
+    UI.showModal({
+      title: 'Fotografía de Asistencia',
+      body: `
+        <div style="text-align:center;">
+          <iframe src="${previewUrl}" width="100%" height="450" frameborder="0" style="border-radius: 8px; border: 1px solid var(--border)"></iframe>
+          <div style="margin-top: 12px">
+            <a href="${url}" target="_blank" class="btn btn-ghost btn-sm">Abrir enlace directo</a>
+          </div>
+        </div>
+      `,
+      confirmLabel: 'Aceptar',
+      onConfirm: () => UI.closeModal()
+    });
+  }
+
+  async function cambiarEstatusConciliacion(id, estatus) {
+    try {
+      const res = await API.conciliarAsistencia(id, estatus);
+      if (res.success) {
+        UI.showToast(res.mensaje, 'success');
+        refreshConciliacion();
+      } else {
+        UI.showToast(res.mensaje || 'Error', 'error');
+      }
+    } catch {
+      UI.showToast('Error de conexión', 'error');
+    }
+  }
+
   // ── Search filter ─────────────────────────────────────
   function filterTable(query, tbodyId) {
     const tbody = document.getElementById(tbodyId);
@@ -1343,8 +1673,8 @@ const Dashboard = (() => {
 
   return {
     init, navigate, refreshCalendar,
-    openUserModal, openBaseModal, openSolicitudModal, openNewTurnoModal,
-    resolverSolicitud, toggleUser, filterTable
+    openUserModal, openBaseModal, openSolicitudModal, openNewTurnoModal, openAsistenciaModal, openFotoModal,
+    resolverSolicitud, toggleUser, moveTecnicoBase, filterTable, refreshConciliacion, cambiarEstatusConciliacion
   };
 })();
 

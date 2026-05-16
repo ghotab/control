@@ -11,7 +11,8 @@ const SHEETS = {
   USUARIOS: 'Usuarios',
   TURNOS: 'Turnos',
   SOLICITUDES: 'SolicitudesRH',
-  BASES: 'Bases'
+  BASES: 'Bases',
+  ASISTENCIAS: 'Asistencias'
 };
 
 // ── Entry Point ───────────────────────────────────────────────
@@ -42,12 +43,43 @@ function doGet(e) {
       case 'resolverSolicitud': result = resolverSolicitud(params); break;
       // Indicadores
       case 'getIndicadores':  result = getIndicadores(params); break;
+      // Asistencias
+      case 'getAsistencias':  result = getAsistencias(params); break;
+      case 'conciliarAsistencia': result = conciliarAsistencia(params); break;
 
       default:
         result = { success: false, mensaje: 'Acción no reconocida: ' + accion };
     }
   } catch (err) {
     result = { success: false, mensaje: 'Error interno: ' + err.toString() };
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  let params = {};
+  if (e.postData && e.postData.contents) {
+    try {
+      params = JSON.parse(e.postData.contents);
+    } catch (err) {}
+  } else {
+    params = e.parameter || {};
+  }
+  
+  const accion = params.accion || '';
+  let result;
+
+  try {
+    switch (accion) {
+      case 'subirAsistencia': result = subirAsistencia(params); break;
+      default:
+        result = { success: false, mensaje: 'Acción POST no reconocida: ' + accion };
+    }
+  } catch (err) {
+    result = { success: false, mensaje: 'Error interno POST: ' + err.toString() };
   }
 
   return ContentService
@@ -314,12 +346,13 @@ function getSolicitudes(params) {
   const { clave, base } = params;
   const sheet = getSheet(SHEETS.SOLICITUDES);
   let solicitudes = sheetToObjects(sheet);
+  const claveNorm = String(clave || '').trim();
 
   const bases = parseBases(base);
-  if (clave && bases.length) {
-    solicitudes = solicitudes.filter(s => s.clave === clave || bases.includes(s.base));
-  } else if (clave) {
-    solicitudes = solicitudes.filter(s => s.clave === clave);
+  if (claveNorm && bases.length) {
+    solicitudes = solicitudes.filter(s => String(s.clave || '').trim() === claveNorm || bases.includes(s.base));
+  } else if (claveNorm) {
+    solicitudes = solicitudes.filter(s => String(s.clave || '').trim() === claveNorm);
   } else if (bases.length) {
     solicitudes = solicitudes.filter(s => bases.includes(s.base));
   }
@@ -452,7 +485,11 @@ function crearSolicitud(params) {
 }
 
 function resolverSolicitud(params) {
-  const { id, estatus, comentario } = params;
+  let { id, estatus, comentario, rol } = params;
+  if (rol !== 'jefe') {
+    return { success: false, mensaje: 'Solo el jefe puede dar autorización final' };
+  }
+  if (estatus === 'Aprobada') estatus = 'Aprobado';
   if (!['Aprobado', 'Rechazado'].includes(estatus)) {
     return { success: false, mensaje: 'Estatus inválido' };
   }
@@ -485,7 +522,7 @@ function getIndicadores(params) {
   const basesSheet = getSheet(SHEETS.BASES);
 
   const usuarios = sheetToObjects(usuariosSheet);
-  const tecnicos = usuarios.filter(u => u.rol === 'tecnico' && u.activo !== '0');
+  const tecnicos = usuarios.filter(u => ['tecnico', 'auxiliar'].includes(u.rol) && u.activo !== '0');
 
   const bases = sheetToObjects(basesSheet).filter(b => b.activo !== '0');
 
@@ -534,6 +571,100 @@ function getIndicadores(params) {
   };
 }
 
+// ── ASISTENCIAS ───────────────────────────────────────────────
+function getOrCreateFolder(parentFolder, folderName) {
+  const folders = parentFolder.getFoldersByName(folderName);
+  if (folders.hasNext()) return folders.next();
+  return parentFolder.createFolder(folderName);
+}
+
+function subirAsistencia(params) {
+  const { clave, nombre, base, fecha, imageBase64 } = params;
+  if (!clave || !base || !fecha || !imageBase64) return { success: false, mensaje: 'Datos incompletos para subir asistencia' };
+
+  try {
+    // Decode base64
+    const dataParts = imageBase64.split(',');
+    const base64Data = dataParts.length > 1 ? dataParts[1] : dataParts[0];
+    const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), 'image/jpeg', `Asistencia_${clave}_${fecha.replace(/-/g, '')}.jpg`);
+
+    // Organize folders: Asistencias > Año > Mes > Base
+    const dateObj = new Date(fecha + 'T12:00:00'); // mid-day to avoid timezone shifting
+    const year = String(dateObj.getFullYear());
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+
+    const rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), 'Asistencias');
+    const yearFolder = getOrCreateFolder(rootFolder, year);
+    const monthFolder = getOrCreateFolder(yearFolder, month);
+    const baseFolder = getOrCreateFolder(monthFolder, base);
+
+    // Save file
+    const file = baseFolder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const fileUrl = file.getUrl();
+
+    // Log to sheet
+    const sheet = getSheet(SHEETS.ASISTENCIAS);
+    const id = generateId();
+    const now = new Date();
+    const horaCarga = Utilities.formatDate(now, Session.getScriptTimeZone() || 'America/Mexico_City', 'HH:mm:ss');
+    
+    // [id, clave, nombre, base, fecha, hora_carga, url_foto, estatus_conciliacion]
+    sheet.appendRow([id, clave, nombre, base, fecha, horaCarga, fileUrl, 'Sin conciliar']);
+
+    return { success: true, mensaje: 'Asistencia registrada', url: fileUrl };
+  } catch (err) {
+    return { success: false, mensaje: 'Error al procesar la imagen: ' + err.toString() };
+  }
+}
+
+function getAsistencias(params) {
+  const { fecha, base } = params;
+  const sheet = getSheet(SHEETS.ASISTENCIAS);
+  let asistencias = sheetToObjects(sheet);
+
+  if (fecha) {
+    asistencias = asistencias.filter(a => a.fecha === fecha);
+  }
+  
+  if (base) {
+    const bases = parseBases(base);
+    if (bases.length) {
+      asistencias = asistencias.filter(a => bases.includes(a.base));
+    }
+  }
+
+  return { success: true, asistencias };
+}
+
+function conciliarAsistencia(params) {
+  const { id, estatus, rol } = params;
+  if (rol !== 'jefe') {
+    return { success: false, mensaje: 'Solo el jefe puede conciliar asistencias' };
+  }
+  
+  if (!['Asistencia', 'Retardo', 'Falta', 'Sin conciliar'].includes(estatus)) {
+    return { success: false, mensaje: 'Estatus inválido' };
+  }
+
+  const sheet = getSheet(SHEETS.ASISTENCIAS);
+  const allData = sheet.getDataRange().getValues();
+  const headers = allData[0];
+  const idCol = headers.indexOf('id');
+  const estatusCol = headers.indexOf('estatus_conciliacion');
+
+  if (idCol < 0 || estatusCol < 0) return { success: false, mensaje: 'Estructura de hoja inválida' };
+
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][idCol]) === String(id)) {
+      sheet.getRange(i + 1, estatusCol + 1).setValue(estatus);
+      return { success: true, mensaje: `Asistencia actualizada a ${estatus}` };
+    }
+  }
+
+  return { success: false, mensaje: 'Registro de asistencia no encontrado' };
+}
+
 // ── SETUP HELPER (run once to create sheet structure) ──────────
 function setupSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -562,7 +693,7 @@ function setupSheets() {
   ensureSheet(SHEETS.SOLICITUDES, ['id', 'clave', 'nombre', 'base', 'tipo', 'fecha', 'estatus', 'comentario', 'timestamp']);
   ensureSheet(SHEETS.BASES, ['id', 'nombre', 'tipo', 'direccion', 'activo', 'tecnicos']);
   ensureHeader(ss.getSheetByName(SHEETS.BASES), 'horarios');
-  ensureHeader(ss.getSheetByName(SHEETS.BASES), 'horarios');
+  ensureSheet(SHEETS.ASISTENCIAS, ['id', 'clave', 'nombre', 'base', 'fecha', 'hora_carga', 'url_foto', 'estatus_conciliacion']);
 
   // Seed default jefe user if none exists
   const usuariosSheet = ss.getSheetByName(SHEETS.USUARIOS);

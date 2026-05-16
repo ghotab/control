@@ -2,43 +2,68 @@
 
 const Calendar = (() => {
   const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  const SHIFT_N = { label: 'I', title: 'Intermedio', hours: '09:00–18:00', cls: 'shift-N', color: '#f59e0b' };
-  const SHIFT_R = { label: 'D', title: 'Descanso', hours: '', cls: 'shift-R', color: '#64748b' };
+  const SHIFT_N = { label: 'I', title: 'Intermedio', hours: '', cls: 'shift-N', color: '#f59e0b' };
+  const SHIFT_R = { label: 'D', title: 'Descanso', hours: '', cls: 'shift-R', color: '#64748a' };
   const SHIFTS = {
-    M: { label: 'M', title: 'Mañana', hours: '06:00–14:00', cls: 'shift-M', color: '#00984d' },
-    T: { label: 'T', title: 'Tarde', hours: '14:00–22:00', cls: 'shift-T', color: '#0f325a' },
+    M: { label: 'M', title: 'Mañana', hours: '', cls: 'shift-M', color: '#03af45' },
+    T: { label: 'T', title: 'Tarde', hours: '', cls: 'shift-T', color: '#093a73' },
     I: SHIFT_N,
-    D: SHIFT_R
+    D: SHIFT_R,
+    V: { label: 'V', title: 'Vacaciones', hours: '', cls: 'shift-V', color: '#f62056' },
+    E: { label: 'E', title: 'Día Económico', hours: '', cls: 'shift-E', color: '#4c5765' },
+    C: { label: 'C', title: 'Cumpleaños', hours: '', cls: 'shift-C', color: '#4c5765' },
+    A: { label: 'A', title: 'Aniversario', hours: '', cls: 'shift-A', color: '#4c5765' }
   };
 
   let availableShifts = { ...SHIFTS };
+  let availableShiftsByBase = {};
   let currentWeek = null;
 
-  function setAvailableShifts(defs = []) {
-    availableShifts = { ...SHIFTS };
+  function buildShiftMap(defs = []) {
+    const shiftMap = { ...SHIFTS };
     defs.forEach(def => {
       const code = String(def.code || '').trim().toUpperCase();
       if (!code) return;
-      availableShifts[code] = {
-        label: code,
+      shiftMap[code] = {
+        label: def.label || code,
         title: def.title || code,
         hours: def.hours || '',
         cls: def.cls || 'shift-custom',
         color: def.color || '#d97706'
       };
     });
+    return shiftMap;
   }
 
-  function getAvailableShiftDefinitions() {
-    return Object.values(availableShifts);
+  function setAvailableShifts(defs = []) {
+    availableShifts = buildShiftMap(defs);
+    availableShiftsByBase = {};
   }
 
-  function getShiftDefinition(code) {
+  function setAvailableShiftsByBase(baseDefs = {}) {
+    availableShiftsByBase = {};
+    Object.entries(baseDefs).forEach(([base, defs]) => {
+      const key = String(base || '').trim();
+      if (key) availableShiftsByBase[key] = buildShiftMap(defs);
+    });
+  }
+
+  function getShiftMap(base) {
+    const key = String(base || '').trim();
+    return availableShiftsByBase[key] || availableShifts;
+  }
+
+  function getAvailableShiftDefinitions(base) {
+    return Object.values(getShiftMap(base));
+  }
+
+  function getShiftDefinition(code, base) {
     if (!code) return null;
     const key = String(code).trim().toUpperCase();
-    if (availableShifts[key]) return availableShifts[key];
-    if (key === 'N') return availableShifts['I'];
-    if (key === 'R') return availableShifts['D'];
+    const shifts = getShiftMap(base);
+    if (shifts[key]) return shifts[key];
+    if (key === 'N') return shifts['I'];
+    if (key === 'R') return shifts['D'];
     return null;
   }
   let pendingChanges = {}; // { "tecnico_fecha": turno }
@@ -85,6 +110,8 @@ const Calendar = (() => {
     if (!container) return;
 
     const week = getWeekNum(dates[0]);
+    const tableColumnCount = 9 + (canEdit ? 1 : 0);
+    const jsArg = value => JSON.stringify(String(value || '')).replace(/'/g, '&#39;');
 
     let html = `
       <div class="cal-grid">
@@ -101,7 +128,7 @@ const Calendar = (() => {
     `;
 
     if (!technicians.length) {
-      html += `<tr><td colspan="10"><div class="empty-state"><div class="icon">👥</div><p>No hay técnicos en esta base</p></div></td></tr>`;
+      html += `<tr><td colspan="${tableColumnCount}"><div class="empty-state"><div class="icon">👥</div><p>No hay técnicos en esta base</p></div></td></tr>`;
     }
 
     let currentBase = null;
@@ -109,9 +136,8 @@ const Calendar = (() => {
       // Insert base separator row if base changes
       if (tech.base && tech.base !== currentBase) {
         currentBase = tech.base;
-        html += `<tr style="background:var(--bg-2);height:32px;border:none">
-          <td colspan="${7 + (canEdit ? 1 : 0)}" style="padding:8px 12px;font-weight:600;color:var(--text-2);font-size:13px">📍 ${tech.base}</td>
-          <td colspan="2"></td>
+        html += `<tr class="base-separator">
+          <td colspan="${tableColumnCount}">📍 ${tech.base}</td>
         </tr>`;
       }
 
@@ -129,22 +155,23 @@ const Calendar = (() => {
       for (const date of dates) {
         const iso = toISO(date);
         const key = `${tech.clave}_${iso}`;
-        const turno = pendingChanges[key] !== undefined
-          ? pendingChanges[key]
+        const pending = pendingChanges[key];
+        const turno = pending !== undefined
+          ? (typeof pending === 'object' ? pending.turno : pending)
           : (turnosMap[key] || null);
 
-        if (turno && turno !== 'R' && getShiftDefinition(turno)) {
+        if (turno && !['R', 'D', 'V', 'E', 'C', 'A'].includes(turno) && getShiftDefinition(turno, tech.base)) {
           totalHours += 8;
         }
 
-        const shift = turno ? getShiftDefinition(turno) : null;
+        const shift = turno ? getShiftDefinition(turno, tech.base) : null;
 
         if (canEdit) {
           html += `<td>
             <div class="shift-cell" data-tech="${tech.clave}" data-date="${iso}">
               ${shift
-                ? `<span class="shift-badge ${shift.cls}" onclick="Calendar.openShiftPicker(this,'${tech.clave}','${iso}')" title="${shift.title} ${shift.hours}">${shift.label}</span>`
-                : `<span class="shift-badge shift-empty" onclick="Calendar.openShiftPicker(this,'${tech.clave}','${iso}')" title="Sin turno">+</span>`
+                ? `<span class="shift-badge ${shift.cls}" onclick='Calendar.openShiftPicker(this,${jsArg(tech.clave)},${jsArg(iso)},${jsArg(tech.base)})' title="${shift.title} ${shift.hours}">${shift.label}</span>`
+                : `<span class="shift-badge shift-empty" onclick='Calendar.openShiftPicker(this,${jsArg(tech.clave)},${jsArg(iso)},${jsArg(tech.base)})' title="Sin turno">+</span>`
               }
             </div>
           </td>`;
@@ -188,16 +215,17 @@ const Calendar = (() => {
   // ── Shift Picker Popup ─────────────────────────────────
   let activePicker = null;
 
-  function openShiftPicker(el, clave, fecha) {
+  function openShiftPicker(el, clave, fecha, base = '') {
     if (!Auth.isCoordinador()) return;
     closePicker();
 
     const picker = document.createElement('div');
     picker.className = 'shift-selector';
-    picker.innerHTML = Object.entries(availableShifts).map(([k, v]) =>
-      `<div class="shift-option ${v.cls}" title="${v.title}${v.hours ? ' ' + v.hours : ''}" onclick="Calendar.selectShift('${clave}','${fecha}','${k}')">${v.label || k}</div>`
+    const jsArg = value => JSON.stringify(String(value || '')).replace(/'/g, '&#39;');
+    picker.innerHTML = Object.entries(getShiftMap(base)).map(([k, v]) =>
+      `<div class="shift-option ${v.cls}" title="${v.title}${v.hours ? ' ' + v.hours : ''}" onclick='Calendar.selectShift(${jsArg(clave)},${jsArg(fecha)},${jsArg(k)},${jsArg(base)})'>${v.label || k}</div>`
     ).join('') +
-    `<div class="shift-option" style="background:var(--red-dim);color:var(--red)" title="Quitar turno" onclick="Calendar.selectShift('${clave}','${fecha}',null)">✕</div>`;
+    `<div class="shift-option" style="background:var(--red-dim);color:var(--red)" title="Quitar turno" onclick='Calendar.selectShift(${jsArg(clave)},${jsArg(fecha)},null,${jsArg(base)})'>✕</div>`;
 
     const rect = el.getBoundingClientRect();
     picker.style.position = 'fixed';
@@ -219,12 +247,12 @@ const Calendar = (() => {
     }
   }
 
-  function selectShift(clave, fecha, turno) {
+  function selectShift(clave, fecha, turno, base = '') {
     const key = `${clave}_${fecha}`;
     if (turno === null) {
       delete pendingChanges[key];
     } else {
-      pendingChanges[key] = turno;
+      pendingChanges[key] = { turno, base };
     }
     closePicker();
     // Re-render
@@ -237,9 +265,11 @@ const Calendar = (() => {
     UI.showToast('Guardando cambios...', 'info');
     try {
       const session = Auth.getSession();
-      const payload = Object.entries(pendingChanges).map(([key, turno]) => {
+      const payload = Object.entries(pendingChanges).map(([key, change]) => {
         const [clave, fecha] = key.split('_');
-        return { base: session.base, tecnico: clave, fecha, turno };
+        const turno = typeof change === 'object' ? change.turno : change;
+        const base = typeof change === 'object' && change.base ? change.base : session.base;
+        return { base, tecnico: clave, fecha, turno };
       });
 
       const res = await API.guardarTurnos(payload);
@@ -295,7 +325,7 @@ const Calendar = (() => {
     renderGrid, renderPersonalSchedule,
     openShiftPicker, closePicker, selectShift,
     saveChanges, discardChanges,
-    setAvailableShifts, getAvailableShiftDefinitions, getShiftDefinition,
+    setAvailableShifts, setAvailableShiftsByBase, getAvailableShiftDefinitions, getShiftDefinition,
     SHIFTS, DAYS,
     getPendingChanges: () => pendingChanges
   };

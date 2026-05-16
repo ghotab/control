@@ -2,7 +2,7 @@
 
 const API = (() => {
   const BASE_URL_AUTH = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec'; // Login & Usuarios
-  const BASE_URL = 'https://script.google.com/macros/s/AKfycbwt7ICR4Ab4ozxtvRgEO_x4WisB8OWt4Y3lSyoLV34ANoa56ZGhDgNh3-Y_5VpnZNAYIg/exec'; // Turnos, Bases, Solicitudes
+  const BASE_URL = 'https://script.google.com/macros/s/AKfycbxBIHaRx6_Blmj_JRqfyGLfNAHakDrt2bzvGlm9Wv97EtCzGmPXilzD7BbDjJYxsmQFYA/exec'; // Turnos, Bases, Solicitudes
   const CACHE_KEY = 'turnos_cache';
   const CACHE_TTL = 5 * 60 * 1000; // 5 min
 
@@ -12,7 +12,7 @@ const API = (() => {
       const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
       const entry = raw[key];
       if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
-    } catch {}
+    } catch { }
     return null;
   }
 
@@ -21,7 +21,7 @@ const API = (() => {
       const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
       raw[key] = { data, ts: Date.now() };
       localStorage.setItem(CACHE_KEY, JSON.stringify(raw));
-    } catch {}
+    } catch { }
   }
 
   function clearCache(prefix) {
@@ -29,22 +29,30 @@ const API = (() => {
       const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
       Object.keys(raw).forEach(k => { if (!prefix || k.startsWith(prefix)) delete raw[k]; });
       localStorage.setItem(CACHE_KEY, JSON.stringify(raw));
-    } catch {}
+    } catch { }
   }
 
   // ── Core fetch ─────────────────────────────────────────
   async function call(params, options = {}) {
     const baseUrl = options.useAuth ? BASE_URL_AUTH : BASE_URL;
-    const qs = new URLSearchParams(params).toString();
-    const url = `${baseUrl}?${qs}`;
+    const isPost = options.method === 'POST';
+    const qs = isPost ? '' : new URLSearchParams(params).toString();
+    const url = isPost ? baseUrl : `${baseUrl}?${qs}`;
 
     const cacheKey = options.cacheKey || null;
-    if (cacheKey && !options.forceRefresh) {
+    if (cacheKey && !options.forceRefresh && !isPost) {
       const cached = getCache(cacheKey);
       if (cached) return cached;
     }
 
-    const res = await fetch(url);
+    const fetchOptions = isPost ? {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(params)
+    } : {};
+
+    const res = await fetch(url, fetchOptions);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -116,14 +124,14 @@ const API = (() => {
   async function getSolicitudes(force = false) {
     const session = Auth.getSession();
     const params = { accion: 'getSolicitudes' };
-    if (session.rol === 'tecnico') {
+    if (session.rol === 'tecnico' || session.rol === 'auxiliar') {
       params.clave = session.clave;
     } else if (session.rol === 'coordinador') {
       params.clave = session.clave;
       if (session.base) params.base = session.base;
     }
 
-    return call(params, { cacheKey: `solicitudes_${session.clave}`, forceRefresh: force });
+    return call(params, { forceRefresh: force });
   }
 
   async function crearSolicitud(solicitud) {
@@ -132,8 +140,9 @@ const API = (() => {
   }
 
   async function resolverSolicitud(id, estatus, comentario = '') {
+    const session = Auth.getSession();
     clearCache('solicitudes_');
-    return call({ accion: 'resolverSolicitud', id, estatus, comentario });
+    return call({ accion: 'resolverSolicitud', id, estatus, comentario, clave: session?.clave || '', rol: session?.rol || '' });
   }
 
   // ── Indicadores ───────────────────────────────────────
@@ -141,12 +150,41 @@ const API = (() => {
     return call({ accion: 'getIndicadores' }, { cacheKey: 'indicadores' });
   }
 
+  // ── Asistencias ───────────────────────────────────────
+  async function subirAsistencia(imageBase64, fecha) {
+    const session = Auth.getSession();
+    return call({
+      accion: 'subirAsistencia',
+      clave: session.clave,
+      nombre: session.nombre,
+      base: session.base,
+      fecha,
+      imageBase64
+    }, { method: 'POST' });
+  }
+
+  async function getAsistencias(fecha, force = false) {
+    const session = Auth.getSession();
+    const params = { accion: 'getAsistencias', fecha };
+    if (session.rol !== 'jefe') {
+      if (session.base) params.base = session.base;
+    }
+    return call(params, { cacheKey: `asistencias_${fecha}_${session.base || 'all'}`, forceRefresh: force });
+  }
+
+  async function conciliarAsistencia(id, estatus) {
+    const session = Auth.getSession();
+    clearCache('asistencias_');
+    return call({ accion: 'conciliarAsistencia', id, estatus, rol: session.rol });
+  }
+
   return {
     login, getTurnos, guardarTurnos,
     getUsuarios, crearUsuario, actualizarUsuario, cambiarEstatusUsuario,
     getBases, crearBase, actualizarBase,
     getSolicitudes, crearSolicitud, resolverSolicitud,
-    getIndicadores, clearCache
+    getIndicadores, clearCache,
+    subirAsistencia, getAsistencias, conciliarAsistencia
   };
 })();
 
