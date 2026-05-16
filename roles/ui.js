@@ -82,7 +82,9 @@ const UI = (() => {
     const confirmBtn = document.getElementById('modal-confirm-btn');
     if (!confirmBtn || confirmBtn.disabled) return;
 
-    confirmBtn.dataset.originalText = confirmBtn.textContent;
+    if (!confirmBtn.dataset.originalText) {
+      confirmBtn.dataset.originalText = confirmBtn.textContent;
+    }
     confirmBtn.innerHTML = `<span class="btn-spinner"></span>Guardando...`;
     confirmBtn.disabled = true;
     confirmBtn.classList.add('loading');
