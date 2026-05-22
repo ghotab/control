@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Control GED — Bitácora Evidencias Digitales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --bg2: #13161e;
+  --bg3: #1a1e28;
+  --bg4: #222736;
+  --border: #2a2f3d;
+  --border2: #353c50;
+  --accent: #00d4aa;
+  --accent2: #0099ff;
+  --accent3: #ff6b35;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --success: #10b981;
+  --text1: #f0f2f7;
+  --text2: #a8b0c4;
+  --text3: #606880;
+  --mono: 'IBM Plex Mono', monospace;
+  --head: 'Syne', sans-serif;
+  --body: 'Inter', sans-serif;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --sidebar-w: 240px;
+  --header-h: 60px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--text1);
+  min-height: 100vh;
+  display: flex;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 100;
+  transition: transform 0.3s;
+}
+.sidebar-logo {
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--head);
+  font-weight: 800;
+  font-size: 14px;
+  color: #000;
+  flex-shrink: 0;
+}
+.logo-text { font-family: var(--head); font-size: 13px; font-weight: 700; color: var(--text1); line-height: 1.2; }
+.logo-sub { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+.sidebar-section { padding: 12px 0; }
+.sidebar-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 6px 20px 4px;
+  font-family: var(--mono);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text1); }
+.nav-item.active { background: rgba(0,212,170,0.08); color: var(--accent); border-left-color: var(--accent); }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: var(--mono);
+  background: var(--accent3);
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+.conn-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  margin-right: 6px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* MAIN */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.topbar {
+  height: var(--header-h);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar-title {
+  font-family: var(--head);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text1);
+  flex: 1;
+}
+.topbar-folio {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(0,212,170,0.08);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,212,170,0.2);
+}
+.topbar-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text1);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.topbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+.topbar-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.topbar-btn.primary:hover { background: #00b894; }
+
+/* CONTENT */
+.content { padding: 28px; flex: 1; }
+
+/* DASHBOARD */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--accent));
+}
+.stat-label { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-bottom: 8px; }
+.stat-num { font-family: var(--head); font-size: 32px; font-weight: 800; color: var(--text1); line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.stat-icon {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 28px; height: 28px;
+  opacity: 0.15;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-title {
+  font-family: var(--head);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text1);
+  flex: 1;
+}
+.card-body { padding: 0; }
+
+/* TABLE */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.data-table th {
+  padding: 10px 16px;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--bg3); color: var(--text1); }
+.data-table .folio-cell {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+}
+
+/* BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.badge-success { background: rgba(16,185,129,0.12); color: #34d399; }
+.badge-warning { background: rgba(245,158,11,0.12); color: #fbbf24; }
+.badge-danger { background: rgba(239,68,68,0.12); color: #f87171; }
+.badge-info { background: rgba(0,153,255,0.12); color: #60a5fa; }
+.badge-neutral { background: rgba(255,255,255,0.06); color: var(--text2); }
+.badge-orange { background: rgba(255,107,53,0.12); color: #fb8a5e; }
+
+/* FORMS */
+.form-page { max-width: 900px; }
+.form-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.form-section-header {
+  padding: 14px 20px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-section-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.form-section-title {
+  font-family: var(--head);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text1);
+}
+.form-section-sub { font-size: 11px; color: var(--text3); margin-left: auto; font-family: var(--mono); }
+.form-body { padding: 20px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  font-family: var(--mono);
+  letter-spacing: 0.03em;
+}
+.form-label .req { color: var(--danger); margin-left: 2px; }
+.form-control {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text1);
+  font-family: var(--body);
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.form-control:focus { border-color: var(--accent); }
+.form-control::placeholder { color: var(--text3); }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 80px; }
+.folio-display {
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 12px;
+  letter-spacing: 0.05em;
+}
+.toggle-group { display: flex; gap: 8px; }
+.toggle-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg3);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.toggle-btn.selected { border-color: var(--accent); background: rgba(0,212,170,0.1); color: var(--accent); }
+.toggle-btn.selected-no { border-color: var(--danger); background: rgba(239,68,68,0.1); color: var(--danger); }
+
+/* TRANSFER TABLE */
+.transfer-table-wrap { overflow-x: auto; margin-top: 12px; }
+.transfer-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.transfer-table th {
+  background: var(--bg3);
+  padding: 8px 10px;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  border: 1px solid var(--border);
+}
+.transfer-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+}
+.transfer-table input, .transfer-table select {
+  background: transparent;
+  border: none;
+  color: var(--text1);
+  font-size: 12px;
+  width: 100%;
+  outline: none;
+  font-family: var(--body);
+}
+.transfer-table input:focus, .transfer-table select:focus { color: var(--accent); }
+.add-row-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.15s;
+}
+.add-row-btn:hover { border-color: var(--accent); color: var(--accent); }
+.del-row { color: var(--danger); cursor: pointer; padding: 0 4px; opacity: 0.6; }
+.del-row:hover { opacity: 1; }
+
+/* FORM ACTIONS */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 20px 0 0;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+.btn-primary:hover { background: #00b894; }
+.btn-secondary { background: var(--bg3); border-color: var(--border2); color: var(--text1); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: var(--danger); }
+.btn-danger:hover { background: rgba(239,68,68,0.2); }
+.save-msg {
+  font-size: 12px;
+  font-family: var(--mono);
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  display: none;
+}
+.save-msg.ok { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+.save-msg.err { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+
+/* LIST VIEW */
+.list-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text1);
+  font-size: 13px;
+  padding: 8px 14px;
+  outline: none;
+  min-width: 220px;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.filter-select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text2);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* CHARTS */
+.chart-bar { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 11px; color: var(--text2); width: 110px; flex-shrink: 0; font-family: var(--mono); }
+.bar-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.6s ease; }
+.bar-count { font-size: 11px; color: var(--text3); font-family: var(--mono); width: 28px; text-align: right; }
+
+/* PRIORITY DOTS */
+.prio { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.prio::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.prio-alta::before { background: var(--danger); }
+.prio-media::before { background: var(--warn); }
+.prio-baja::before { background: var(--success); }
+
+/* EMPTY STATE */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text3);
+}
+.empty-state svg { width: 48px; height: 48px; opacity: 0.3; margin: 0 auto 12px; display: block; }
+.empty-state h3 { font-family: var(--head); font-size: 16px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.empty-state p { font-size: 12px; }
+
+/* TOAST */
+#toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--text1);
+  z-index: 9999;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.25s;
+  max-width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: rgba(16,185,129,0.3); }
+#toast.error { border-color: rgba(239,68,68,0.3); }
+
+/* CONFIG PANEL */
+.config-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+.config-section h3 { font-family: var(--head); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.config-section p { font-size: 12px; color: var(--text2); margin-bottom: 14px; }
+.url-input { font-family: var(--mono); font-size: 12px; }
+
+/* PROGRESS */
+.progress-steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+.progress-step {
+  flex: 1;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text3);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.progress-step:last-child { border-right: none; }
+.progress-step.active { background: rgba(0,212,170,0.08); color: var(--accent); }
+.progress-step.done { background: rgba(16,185,129,0.05); color: var(--success); }
+
+/* RISK METER */
+.risk-indicator {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.risk-bar { width: 4px; height: 14px; border-radius: 2px; background: var(--border); }
+.risk-bar.active-low { background: var(--success); }
+.risk-bar.active-med { background: var(--warn); }
+.risk-bar.active-high { background: var(--danger); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .dash-grid { grid-template-columns: 1fr; }
+  .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">GED</div>
+    <div>
+      <div class="logo-text">Control GED</div>
+      <div class="logo-sub">v2.1.0 · Municipal</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Principal</div>
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Registros</div>
+    <div class="nav-item" data-page="solicitudes-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Nueva Solicitud
+    </div>
+    <div class="nav-item" data-page="solicitudes-list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Solicitudes
+    </div>
+    <div class="nav-item" data-page="cadena-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      Cadena Custodia
+    </div>
+    <div class="nav-item" data-page="comparticion-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Compartición
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Consultas</div>
+    <div class="nav-item" data-page="solicitudes-list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Búsqueda
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:10px">
+        <span id="user-initials"></span>
+      </div>
+      <div>
+        <div style="color:var(--text1);font-size:12px;font-family:var(--body);font-weight:600" id="user-name-display"></div>
+        <div style="color:var(--text3);font-size:10px" id="user-role-display"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <span class="conn-dot"></span>
+        <span id="conn-status">API conectada</span>
+      </div>
+      <button style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;font-family:var(--mono);" onclick="sessionStorage.removeItem('loggedUser');window.location.href='login.html'">Salir</button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div id="topbar-folio" class="topbar-folio" style="display:none"></div>
+    <button class="topbar-btn" onclick="showPage('dashboard')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="topbar-btn primary" onclick="refreshData()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Actualizar
+    </button>
+  </div>
+
+  <div class="content" id="content">
+    <!-- Pages rendered here -->
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+const loggedUserRaw = sessionStorage.getItem('loggedUser');
+if (!loggedUserRaw) {
+  window.location.href = 'login.html';
+}
+const LOGGED_USER = JSON.parse(loggedUserRaw);
+
+// ============================================================
+// STATE
+// ============================================================
+const GED_API_URL = 'https://script.google.com/macros/s/AKfycbxPfjNNuuiPAtK85SVo9XTk7iEWTJV3ie9nhCbiLfK0YgmqLX_iI7XKHUc6qGyTbw8Q/exec';
+const USERS_API_URL = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+
+const STATE = {
+  apiUrl: GED_API_URL,
+  currentPage: 'dashboard',
+  data: {
+    solicitudes: [],
+    incidencias: [],
+    prestamos: [],
+    extracciones: []
+  },
+  dashboard: null,
+  usuarios: [],
+  transferRows: [],
+  currentFolio: null
+};
+
+// ============================================================
+// FOLIO GENERATOR (client-side)
+// ============================================================
+function generateFolio(prefix = 'GED') {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const seq = String(Math.floor(Math.random() * 9000) + 1000);
+  return `${prefix}-${yy}${mm}-${seq}`;
+}
+
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+function nowTime() {
+  return new Date().toTimeString().slice(0, 5);
+}
+
+// ============================================================
+// API CALLS
+// ============================================================
+async function usuariosApiCall(action, params = {}) {
+  const url = new URL(USERS_API_URL);
+  url.searchParams.set('accion', action);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) url.searchParams.set(key, value);
+  });
+  try {
+    const res = await fetch(url.toString());
+    return await res.json();
+  } catch (e) {
+    toast('Error consultando usuarios: ' + e.message, 'error');
+    return null;
+  }
+}
+
+async function apiCall(action, payload = {}) {
+  try {
+    const res = await fetch(STATE.apiUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...payload })
+    });
+    return await res.json();
+  } catch (e) {
+    toast('Error de conexión: ' + e.message, 'error');
+    return null;
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  const icons = { info: '💬', success: '✅', error: '❌', warn: '⚠️' };
+  el.innerHTML = `<span>${icons[type] || '💬'}</span><span>${msg}</span>`;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 3000);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(page) {
+  STATE.currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  const titles = {
+    dashboard: 'Dashboard',
+    'solicitudes-new': 'Nueva Solicitud de Evidencia Digital',
+    'solicitudes-list': 'Consulta de Solicitudes',
+    'cadena-new': 'Cadena de Custodia',
+    'comparticion-new': 'Registro de Compartición'
+  };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  const folio = document.getElementById('topbar-folio');
+  folio.style.display = 'none';
+  renderPage(page);
+}
+
+// ============================================================
+// PAGE ROUTER
+// ============================================================
+function renderPage(page) {
+  const c = document.getElementById('content');
+  switch (page) {
+    case 'dashboard': c.innerHTML = renderDashboard(); loadDashboard(); break;
+    case 'solicitudes-new': c.innerHTML = renderSolicitudForm(); initFormDefaults(); break;
+    case 'solicitudes-list': c.innerHTML = renderSolicitudesList(); loadSolicitudes(); break;
+    case 'cadena-new': c.innerHTML = renderCadenaForm(); initCadenaDefaults(); break;
+    case 'comparticion-new': c.innerHTML = renderComparticionForm(); break;
+    default: c.innerHTML = '<p>Página no encontrada</p>';
+  }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  return `
+  <h2 style="sr-only">Panel de control GED</h2>
+  <div class="stats-grid" id="stats-grid">
+    ${statCard('Total Solicitudes', '—', 'var(--accent)', 'solicitudes registradas')}
+    ${statCard('Pendientes', '—', 'var(--warn)', 'en proceso')}
+    ${statCard('Recuperados', '—', 'var(--success)', 'con evidencia')}
+    ${statCard('Sin Video', '—', 'var(--danger)', 'sin resultado')}
+  </div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="card-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="card-title">Últimas Solicitudes</span>
+        <button class="topbar-btn" style="padding:5px 10px;font-size:11px" onclick="showPage('solicitudes-list')">Ver todas</button>
+      </div>
+      <div class="card-body">
+        <table class="data-table" id="dash-solicitudes">
+          <thead><tr><th>Folio GED</th><th>Unidad</th><th>Tipo Evento</th><th>Prioridad</th><th>Resultado</th></tr></thead>
+          <tbody><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent3)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          <span class="card-title">Tipos de Evento</span>
+        </div>
+        <div id="chart-fallas" class="chart-bar">
+          <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px">Sin datos</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="card-title">Resultados</span>
+        </div>
+        <div id="chart-resultados" class="chart-bar">
+          <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px">Sin datos</p>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function statCard(label, val, color, sub) {
+  return `<div class="stat-card" style="--card-accent:${color}">
+    <div class="stat-label">${label}</div>
+    <div class="stat-num" style="color:${color}">${val}</div>
+    <div class="stat-sub">${sub}</div>
+  </div>`;
+}
+
+async function loadDashboard() {
+  const d = await apiCall('getDashboard');
+  if (!d) return;
+  STATE.dashboard = d;
+  const nums = document.querySelectorAll('.stat-num');
+  if (nums[0]) nums[0].textContent = d.totalSolicitudes || 0;
+  if (nums[1]) nums[1].textContent = d.solicitudesPendientes || 0;
+  if (nums[2]) nums[2].textContent = d.solicitudesRecuperadas || 0;
+  if (nums[3]) nums[3].textContent = d.solicitudesSinVideo || 0;
+  // Table
+  const tb = document.querySelector('#dash-solicitudes tbody');
+  if (d.ultimasSolicitudes && d.ultimasSolicitudes.length) {
+    tb.innerHTML = d.ultimasSolicitudes.map(r => `<tr>
+      <td class="folio-cell">${r['Folio GED'] || '—'}</td>
+      <td>${r['Unidad'] || '—'}</td>
+      <td>${r['Tipo Evento'] || '—'}</td>
+      <td>${prioBadge(r['Prioridad'])}</td>
+      <td>${resultBadge(r['Resultado'])}</td>
+    </tr>`).join('');
+  } else {
+    tb.innerHTML = `<tr><td colspan="5" class="empty-state" style="padding:24px;text-align:center;color:var(--text3)">Sin registros recientes</td></tr>`;
+  }
+  // Charts
+  renderBarChart('chart-fallas', d.tiposEventoCount || {}, 'var(--accent3)');
+  renderBarChart('chart-resultados', d.resultadosCount || {}, 'var(--accent2)');
+}
+
+function renderBarChart(id, obj, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) { el.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px">Sin datos</p>'; return; }
+  const max = Math.max(...entries.map(e => e[1]));
+  el.innerHTML = entries.slice(0, 8).map(([k, v]) => `
+    <div class="bar-row">
+      <div class="bar-label" title="${k}">${k.length > 14 ? k.slice(0, 14) + '…' : k}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/max*100)}%;background:${color}"></div></div>
+      <div class="bar-count">${v}</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// SOLICITUD FORM
+// ============================================================
+function renderSolicitudForm() {
+  const folio = generateFolio('GED');
+  STATE.currentFolio = folio;
+  return `<div class="form-page">
+  <!-- Datos Generales -->
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,212,170,0.1)">📋</div>
+      <div class="form-section-title">Datos Generales</div>
+      <div class="form-section-sub">SECCIÓN 1/3</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Folio GED</div>
+          <div class="folio-display" id="folio-display">${folio}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Área Solicitante <span class="req">*</span></label>
+          <select class="form-control" id="f-areaSolicitante" onchange="toggleSolicitudOther('f-areaSolicitante','f-areaSolicitanteOtroWrap')">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Analisis Estadistico Boleteras','Call Center','Control de Diesel','Inspeccion','Juridico','Otro','Personal a Bordo','Tecnologia a Bordo'])}
+          </select>
+        </div>
+        <div class="form-group" id="f-areaSolicitanteOtroWrap" style="display:none">
+          <label class="form-label">Especificar área</label>
+          <input class="form-control" id="f-areaSolicitanteOtro" placeholder="Área solicitante">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Folio Solicitud <span class="req">*</span></label>
+          <input class="form-control" id="f-folioSolicitud" placeholder="Folio de solicitud">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Medio de Recepción <span class="req">*</span></label>
+          <select class="form-control" id="f-medioRecepcion" onchange="toggleSolicitudOther('f-medioRecepcion','f-medioRecepcionOtroWrap')">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Correo Electronico','Meipack','Otro','Workflow'])}
+          </select>
+        </div>
+        <div class="form-group" id="f-medioRecepcionOtroWrap" style="display:none">
+          <label class="form-label">Especificar medio</label>
+          <input class="form-control" id="f-medioRecepcionOtro" placeholder="Medio de recepción">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha/Hora Solicitud <span class="req">*</span></label>
+          <input type="datetime-local" class="form-control" id="f-fechaHoraSolicitud">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datos del Evento -->
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,153,255,0.1)">🎬</div>
+      <div class="form-section-title">Datos del Evento</div>
+      <div class="form-section-sub">SECCIÓN 2/3</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Unidad <span class="req">*</span></label>
+          <input class="form-control" id="f-unidad" inputmode="numeric" maxlength="5" pattern="\\d{5}" placeholder="00000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha <span class="req">*</span></label>
+          <input type="date" class="form-control" id="f-fechaEvento">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora</label>
+          <input type="time" class="form-control" id="f-horaEvento">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo <span class="req">*</span></label>
+          <select class="form-control" id="f-tipoEvento" onchange="updateSolicitudPriority()">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Accidente con Fallecidos','Accidente con lesionados','Acoso','Asaltos','Choques relevantes','Conducta de operador','Conducta indebida','Eventos mediaticos','Incidentes lamineros menores','Intervencion de autoridades','Objetos perdidos y validaciones menores','Perdida patrimonial mayor','Puntualidad','Queja de usuario','Rinas','Robos','Secuestro','Uniforme','Validaciones internas','Vandalismo','Violencia familiar'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prioridad <span class="req">*</span></label>
+          <input class="form-control" id="f-prioridad" placeholder="Se calcula automáticamente" readonly>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Ubicación</label>
+          <input class="form-control" id="f-ubicacion" placeholder="Dirección o referencia del lugar del evento">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Descripción del Evento</label>
+          <textarea class="form-control" id="f-descripcion" rows="3" placeholder="Describa los hechos, personas involucradas, contexto…"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Control Operativo -->
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(245,158,11,0.1)">⚙️</div>
+      <div class="form-section-title">Control Operativo</div>
+      <div class="form-section-sub">SECCIÓN 3/3</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Auxiliar Asignado</label>
+          <input class="form-control" id="f-auxiliarAsignado" value="${LOGGED_USER.nombre}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Resultado <span class="req">*</span></label>
+          <select class="form-control" id="f-resultado">
+            <option value="Pendiente">Pendiente</option>
+            ${opts(['Recuperado','Sin video','Con incidencia técnica','Sobreescritura'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha/Hora de Atención</label>
+          <input type="datetime-local" class="form-control" id="f-fechaHoraAtencion">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-control" id="f-observaciones" rows="3" placeholder="Notas, comentarios adicionales…"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="saveSolicitud()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Guardar Solicitud
+    </button>
+    <button class="btn btn-secondary" onclick="resetForm()">Limpiar</button>
+    <div class="save-msg" id="save-msg"></div>
+  </div>
+  </div>`;
+}
+
+function opts(arr) {
+  return arr.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+function toggleSolicitudOther(selectId, wrapId) {
+  const shouldShow = getVal(selectId) === 'Otro';
+  const wrap = document.getElementById(wrapId);
+  if (wrap) wrap.style.display = shouldShow ? '' : 'none';
+}
+
+function getSolicitudSelectValue(selectId, otherId) {
+  const value = getVal(selectId);
+  if (value !== 'Otro') return value;
+  const other = getVal(otherId).trim();
+  return other ? `Otro: ${other}` : '';
+}
+
+function getPrioridadPorTipo(tipo) {
+  const prioridades = {
+    'Accidente con Fallecidos': 'Crítica',
+    'Accidente con lesionados': 'Crítica',
+    'Eventos mediaticos': 'Crítica',
+    'Intervencion de autoridades': 'Crítica',
+    'Perdida patrimonial mayor': 'Crítica',
+    'Secuestro': 'Crítica',
+    'Vandalismo': 'Crítica',
+    'Acoso': 'Alta',
+    'Asaltos': 'Alta',
+    'Choques relevantes': 'Alta',
+    'Conducta indebida': 'Alta',
+    'Queja de usuario': 'Alta',
+    'Rinas': 'Alta',
+    'Robos': 'Alta',
+    'Violencia familiar': 'Alta',
+    'Incidentes lamineros menores': 'Media',
+    'Puntualidad': 'Media',
+    'Uniforme': 'Media',
+    'Validaciones internas': 'Media',
+    'Conducta de operador': 'Media',
+    'Objetos perdidos y validaciones menores': 'Baja'
+  };
+  return prioridades[tipo] || '';
+}
+
+function updateSolicitudPriority() {
+  const prioridad = document.getElementById('f-prioridad');
+  if (prioridad) prioridad.value = getPrioridadPorTipo(getVal('f-tipoEvento'));
+}
+
+
+
+function transferAreaOptions() {
+  return `<option value="">— Seleccionar —</option>${opts(['Analisis','Tecnologia a Bordo','Paqueteria','Juridico','Jefe TAB','Gerencia TAB','Direccion TAB'])}`;
+}
+
+function nowDateTimeLocal() {
+  return `${todayDate()}T${nowTime()}`;
+}
+
+function initFormDefaults() {
+  const fi = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  fi('f-fechaHoraSolicitud', nowDateTimeLocal());
+  fi('f-fechaEvento', todayDate());
+  fi('f-fechaHoraAtencion', nowDateTimeLocal());
+  updateSolicitudPriority();
+  const fd = document.getElementById('topbar-folio');
+  fd.textContent = STATE.currentFolio;
+  fd.style.display = '';
+}
+
+function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+async function saveSolicitud() {
+  const folio = STATE.currentFolio || generateFolio('GED');
+  const folioSolicitud = getVal('f-folioSolicitud');
+  const horaEvento = getVal('f-horaEvento');
+  const fechaHoraSolicitud = getVal('f-fechaHoraSolicitud');
+  const fechaHoraAtencion = getVal('f-fechaHoraAtencion');
+  updateSolicitudPriority();
+  const payload = {
+    folioGED: folio,
+    folioSolicitud,
+    folioOrigen: folioSolicitud,
+    fechaHoraSolicitud,
+    fechaSolicitud: fechaHoraSolicitud ? fechaHoraSolicitud.slice(0, 10) : '',
+    horaSolicitud: fechaHoraSolicitud ? fechaHoraSolicitud.slice(11, 16) : '',
+    areaSolicitante: getSolicitudSelectValue('f-areaSolicitante', 'f-areaSolicitanteOtro'),
+    medioRecepcion: getSolicitudSelectValue('f-medioRecepcion', 'f-medioRecepcionOtro'),
+    unidad: getVal('f-unidad'),
+    fechaEvento: getVal('f-fechaEvento'),
+    horaEvento,
+    horaAproximada: horaEvento,
+    ubicacion: getVal('f-ubicacion'),
+    tipoEvento: getVal('f-tipoEvento'),
+    prioridad: getVal('f-prioridad'),
+    descripcion: getVal('f-descripcion'),
+    auxiliarAsignado: LOGGED_USER.clave,
+    fechaHoraAtencion,
+    fechaAtencion: fechaHoraAtencion ? fechaHoraAtencion.slice(0, 10) : '',
+    horaAtencion: fechaHoraAtencion ? fechaHoraAtencion.slice(11, 16) : '',
+    resultado: getVal('f-resultado'),
+    observaciones: getVal('f-observaciones')
+  };
+  if (!payload.areaSolicitante || !payload.folioSolicitud || !payload.medioRecepcion || !payload.fechaHoraSolicitud || !payload.unidad || !payload.fechaEvento || !payload.tipoEvento || !payload.prioridad) {
+    toast('Complete los campos obligatorios (*)', 'error'); return;
+  }
+  if (!/^\d{5}$/.test(payload.unidad)) {
+    toast('La unidad debe capturarse a 5 dígitos', 'error'); return;
+  }
+  const res = await apiCall('saveSolicitud', { payload });
+  if (res && res.ok) {
+    toast(`Solicitud ${folio} guardada`, 'success');
+    showMsg('save-msg', `✅ Folio: ${folio}`, true);
+    STATE.currentFolio = generateFolio('GED');
+    document.getElementById('folio-display').textContent = STATE.currentFolio;
+    document.getElementById('topbar-folio').textContent = STATE.currentFolio;
+  } else {
+    toast('Error al guardar', 'error');
+  }
+}
+
+function showMsg(id, msg, ok) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `save-msg ${ok ? 'ok' : 'err'}`;
+  el.style.display = '';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function resetForm() { showPage('solicitudes-new'); }
+
+// ============================================================
+// CADENA DE CUSTODIA
+// ============================================================
+function renderCadenaForm() {
+  const folio = generateFolio('GED');
+  STATE.currentFolio = folio;
+  STATE.transferRows = [{ id: Date.now() }];
+  return `<div class="form-page">
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,212,170,0.1)">🔗</div>
+      <div class="form-section-title">Cadena de Custodia</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Folio GED</div>
+          <div class="folio-display">${folio}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Autobús</label>
+          <input class="form-control" id="cc-autobus" inputmode="numeric" maxlength="5" placeholder="00000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bandeja</label>
+          <input class="form-control" id="cc-bandeja" placeholder="Identificador de bandeja">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,153,255,0.1)">💾</div>
+      <div class="form-section-title">Extracción</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Fecha/Hora Extracción</label>
+          <input type="datetime-local" class="form-control" id="cc-fechaHoraExtraccion">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Auxiliar</label>
+          <input class="form-control" id="cc-auxiliarExtraccion" value="${LOGGED_USER.nombre}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Método</label>
+          <select class="form-control" id="cc-metodo">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Cambio de Bandeja','Recorte de CEIBA'])}
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Validación CEIBA</label>
+          <div class="toggle-group">
+            <div class="toggle-btn" onclick="selectToggle('cc-ceiba','Sí',this)">✅ Sí</div>
+            <div class="toggle-btn" onclick="selectToggle('cc-ceiba','No',this)">❌ No</div>
+          </div>
+          <input type="hidden" id="cc-ceiba" value="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(245,158,11,0.1)">🔄</div>
+      <div class="form-section-title">Transferencias</div>
+    </div>
+    <div class="form-body">
+      <div class="transfer-table-wrap">
+        <table class="transfer-table" id="transfer-table">
+          <thead><tr>
+            <th>Fecha</th><th>Hora</th><th>Entrega</th><th>Recibe</th>
+            <th>Área</th><th>Motivo</th><th>Condición</th><th></th>
+          </tr></thead>
+          <tbody id="transfer-tbody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addTransferRow()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar transferencia
+      </button>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(239,68,68,0.1)">🔒</div>
+      <div class="form-section-title">Cierre</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Estatus Final</label>
+          <select class="form-control" id="cc-estatusFinal">
+            <option value="">— Seleccionar —</option>
+            ${opts(['En resguardo','Destruido','En análisis forense','Devuelto'])}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="saveCadena()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Guardar Cadena de Custodia
+    </button>
+    <button class="btn btn-secondary" onclick="showPage('cadena-new')">Limpiar</button>
+    <div class="save-msg" id="save-msg-cc"></div>
+  </div>
+  </div>`;
+}
+
+function initCadenaDefaults() {
+  const fi = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  fi('cc-fechaHoraExtraccion', nowDateTimeLocal());
+  addTransferRow();
+  const fd = document.getElementById('topbar-folio');
+  fd.textContent = STATE.currentFolio;
+  fd.style.display = '';
+}
+
+function addTransferRow() {
+  const id = Date.now();
+  const tbody = document.getElementById('transfer-tbody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.id = `tr-${id}`;
+  tr.innerHTML = `
+    <td><input type="date" value="${todayDate()}"></td>
+    <td><input type="time" value="${nowTime()}"></td>
+    <td><input placeholder="Nombre quien entrega"></td>
+    <td><input placeholder="Nombre quien recibe"></td>
+    <td><select style="background:var(--bg3);border:none;color:var(--text1);font-size:12px">
+      ${transferAreaOptions()}
+    </select></td>
+    <td><input placeholder="Motivo de transferencia"></td>
+    <td><select style="background:var(--bg3);border:none;color:var(--text1);font-size:12px">
+      ${opts(['Óptima','Con observaciones','Dañado'])}
+    </select></td>
+    <td><span class="del-row" onclick="this.closest('tr').remove()">✕</span></td>`;
+  tbody.appendChild(tr);
+}
+
+function getTransferRows() {
+  const tbody = document.getElementById('transfer-tbody');
+  if (!tbody) return [];
+  return Array.from(tbody.querySelectorAll('tr')).map(tr => {
+    const inputs = tr.querySelectorAll('input, select');
+    return {
+      fecha: inputs[0]?.value,
+      hora: inputs[1]?.value,
+      entrega: inputs[2]?.value,
+      recibe: inputs[3]?.value,
+      area: inputs[4]?.value,
+      motivo: inputs[5]?.value,
+      condicion: inputs[6]?.value
+    };
+  });
+}
+
+function selectToggle(hiddenId, val, el) {
+  document.getElementById(hiddenId).value = val;
+  el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.className = 'toggle-btn');
+  el.classList.add(val === 'Sí' ? 'selected' : 'selected-no');
+}
+
+async function saveCadena() {
+  const fechaHoraExtraccion = getVal('cc-fechaHoraExtraccion');
+  const auxiliarExtraccion = LOGGED_USER.clave;
+  const autobus = getVal('cc-autobus');
+  const payload = {
+    folioGED: STATE.currentFolio,
+    autobus,
+    unidad: autobus,
+    bandeja: getVal('cc-bandeja'),
+    fechaHoraExtraccion,
+    fechaExtraccion: fechaHoraExtraccion ? fechaHoraExtraccion.slice(0, 10) : '',
+    horaExtraccion: fechaHoraExtraccion ? fechaHoraExtraccion.slice(11, 16) : '',
+    auxiliarExtraccion,
+    responsableExtraccion: auxiliarExtraccion,
+    metodo: getVal('cc-metodo'),
+    validacionCEIBA: getVal('cc-ceiba'),
+    estatusFinal: getVal('cc-estatusFinal'),
+    transferencias: getTransferRows()
+  };
+  const res = await apiCall('saveCadena', { payload });
+  if (res && res.ok) {
+    toast(`Cadena de custodia ${payload.folioGED} registrada`, 'success');
+    showMsg('save-msg-cc', `✅ Guardado: ${payload.folioGED}`, true);
+  } else {
+    toast('Error al guardar', 'error');
+  }
+}
+
+// ============================================================
+// BITÁCORA EXTRACCIONES
+// ============================================================
+function renderBitacoraForm() {
+  const folio = generateFolio('GED');
+  STATE.currentFolio = folio;
+  return `<div class="form-page">
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,212,170,0.08)">🎥</div>
+      <div class="form-section-title">Bitácora de Extracciones</div>
+      <div class="form-section-sub">CORAZÓN OPERATIVO</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Folio GED</div>
+          <div class="folio-display">${folio}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha <span class="req">*</span></label>
+          <input type="date" class="form-control" id="bx-fecha" value="${todayDate()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora Inicio</label>
+          <input type="time" class="form-control" id="bx-horaInicio" value="${nowTime()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora Fin</label>
+          <input type="time" class="form-control" id="bx-horaFin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Auxiliar <span class="req">*</span></label>
+          <input class="form-control" id="bx-auxiliar" value="${LOGGED_USER.nombre}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidad <span class="req">*</span></label>
+          <input class="form-control" id="bx-unidad" placeholder="Identificador de unidad">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo Extracción</label>
+          <select class="form-control" id="bx-tipoExtraccion">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Solicitud MP','Solicitud Judicial','Revisión Interna','Auditoría','Otro'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Método <span class="req">*</span></label>
+          <select class="form-control" id="bx-metodo">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Local','Remoto','Cambio de bandeja'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Resultado <span class="req">*</span></label>
+          <select class="form-control" id="bx-resultado">
+            <option value="Pendiente">Pendiente</option>
+            ${opts(['Recuperado','Parcial','Sin video','Con incidencia técnica','Sobreescritura'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tiempo de Atención</label>
+          <div class="folio-display" id="bx-tiempo" style="font-size:13px">— Calculado automático —</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">¿Se Compartió?</label>
+          <div class="toggle-group">
+            <div class="toggle-btn" onclick="selectToggle('bx-compartio','Sí',this)">Sí</div>
+            <div class="toggle-btn" onclick="selectToggle('bx-compartio','No',this)">No</div>
+          </div>
+          <input type="hidden" id="bx-compartio" value="No">
+        </div>
+        <div class="form-group">
+          <label class="form-label">¿Incidencia Detectada?</label>
+          <div class="toggle-group">
+            <div class="toggle-btn" onclick="selectToggle('bx-incidencia','Sí',this);toggleIncAlert(true)">Sí</div>
+            <div class="toggle-btn" onclick="selectToggle('bx-incidencia','No',this);toggleIncAlert(false)">No</div>
+          </div>
+          <input type="hidden" id="bx-incidencia" value="No">
+        </div>
+        <div class="form-group form-full" id="inc-alert" style="display:none">
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px;font-size:12px;color:var(--danger)">
+            ⚠️ Se recomienda registrar también una Incidencia Técnica.
+            <button class="btn btn-danger" style="margin-left:12px;padding:4px 10px;font-size:11px" onclick="showPage('incidencias-new')">Registrar ahora</button>
+          </div>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-control" id="bx-observaciones" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="saveBitacora()">Guardar Extracción</button>
+    <button class="btn btn-secondary" onclick="showPage('bitacora-new')">Limpiar</button>
+    <div class="save-msg" id="save-msg-bx"></div>
+  </div>
+  </div>`;
+}
+
+function toggleIncAlert(show) {
+  const el = document.getElementById('inc-alert');
+  if (el) el.style.display = show ? '' : 'none';
+}
+
+async function saveBitacora() {
+  const hi = getVal('bx-horaInicio'), hf = getVal('bx-horaFin');
+  const payload = {
+    fecha: getVal('bx-fecha'),
+    horaInicio: hi,
+    horaFin: hf,
+    auxiliar: LOGGED_USER.clave,
+    unidad: getVal('bx-unidad'),
+    tipoExtraccion: getVal('bx-tipoExtraccion'),
+    metodo: getVal('bx-metodo'),
+    resultado: getVal('bx-resultado'),
+    seCompartio: getVal('bx-compartio'),
+    incidenciaDetectada: getVal('bx-incidencia'),
+    observaciones: getVal('bx-observaciones')
+  };
+  if (!payload.auxiliar || !payload.unidad || !payload.metodo) {
+    toast('Complete campos obligatorios', 'error'); return;
+  }
+  const res = await apiCall('saveBitacora', { payload });
+  if (res && res.ok) {
+    if (res.tiempoAtencion) document.getElementById('bx-tiempo').textContent = res.tiempoAtencion;
+    toast(`Extracción registrada: ${res.folio}`, 'success');
+    showMsg('save-msg-bx', `✅ ${res.folio}`, true);
+  } else {
+    toast('Error al guardar', 'error');
+  }
+}
+
+// ============================================================
+// COMPARTICIÓN
+// ============================================================
+function renderComparticionForm() {
+  const folio = generateFolio('GED');
+  STATE.currentFolio = folio;
+  return `<div class="form-page">
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,153,255,0.1)">📤</div>
+      <div class="form-section-title">Registro de Compartición de Evidencia</div>
+      <div class="form-section-sub">⚖️ CRÍTICO JURÍDICAMENTE</div>
+    </div>
+    <div class="form-body">
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--warn)">
+        ⚠️ Este registro tiene implicaciones jurídicas. Asegúrese de que la compartición esté debidamente autorizada.
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Folio GED</div>
+          <div class="folio-display">${folio}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Evento</label>
+          <select class="form-control" id="cp-tipoEvento">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Robo','Lesiones','Homicidio','Violencia familiar','Accidente vial','Vandalismo','Otro'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Compartición <span class="req">*</span></label>
+          <input type="date" class="form-control" id="cp-fecha" value="${todayDate()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora de Compartición</label>
+          <input type="time" class="form-control" id="cp-hora" value="${nowTime()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clave de Colaborador <span class="req">*</span></label>
+          <input class="form-control" id="cp-claveCompartidoPor" value="${LOGGED_USER.clave}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Auxiliar</label>
+          <input class="form-control" id="cp-compartidoPor" value="${LOGGED_USER.nombre}" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Autorizado Por <span class="req">*</span></label>
+          <input class="form-control" id="cp-autorizadoPor" placeholder="Nombre del autorizante">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Destinatario <span class="req">*</span></label>
+          <input class="form-control" id="cp-destinatario" placeholder="Nombre del receptor">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Área Destino</label>
+          <input class="form-control" id="cp-areaDestino" placeholder="Dependencia u organismo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Medio de Compartición</label>
+          <select class="form-control" id="cp-medio">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Link Onedrive','USB/Dispositivo','Correo Electronico Institucional','Docusign','Otro'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Link Generado</label>
+          <input class="form-control" id="cp-link" placeholder="https://…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Acceso del Link</label>
+          <select class="form-control" id="cp-accesoLink">
+            <option value="">No aplica</option>
+            ${opts(['Compartido publico','Compartido restringido a destinatario'])}
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-control" id="cp-observaciones" rows="3" placeholder="Notas adicionales sobre la compartición…"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="saveComparticion()">Guardar Compartición</button>
+    <button class="btn btn-secondary" onclick="showPage('comparticion-new')">Limpiar</button>
+    <div class="save-msg" id="save-msg-cp"></div>
+  </div>
+  </div>`;
+}
+
+
+
+async function saveComparticion() {
+  const payload = {
+    fechaComparticion: getVal('cp-fecha'),
+    horaComparticion: getVal('cp-hora'),
+    claveCompartidoPor: getVal('cp-claveCompartidoPor'),
+    compartidoPor: getVal('cp-compartidoPor'),
+    autorizadoPor: getVal('cp-autorizadoPor'),
+    destinatario: getVal('cp-destinatario'),
+    areaDestino: getVal('cp-areaDestino'),
+    tipoEvento: getVal('cp-tipoEvento'),
+    medioComparticion: getVal('cp-medio'),
+    linkGenerado: getVal('cp-link'),
+    accesoLink: getVal('cp-accesoLink'),
+    observaciones: getVal('cp-observaciones')
+  };
+  if (!payload.claveCompartidoPor || !payload.autorizadoPor || !payload.destinatario) {
+    toast('Complete campos obligatorios', 'error'); return;
+  }
+  if (!payload.compartidoPor) {
+    toast('Error: no hay usuario en sesión', 'error'); return;
+  }
+  const res = await apiCall('saveComparticion', { payload });
+  if (res && res.ok) {
+    toast(`Compartición registrada: ${res.folio}`, 'success');
+    showMsg('save-msg-cp', `✅ ${res.folio}`, true);
+  } else { toast('Error al guardar', 'error'); }
+}
+
+// ============================================================
+// INCIDENCIAS TÉCNICAS
+// ============================================================
+function renderIncidenciaForm() {
+  const folio = generateFolio('INC');
+  STATE.currentFolio = folio;
+  return `<div class="form-page">
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(239,68,68,0.1)">⚠️</div>
+      <div class="form-section-title">Incidencia Técnica Detectada</div>
+      <div class="form-section-sub">EVIDENCIA ESTADÍSTICA</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Folio Incidencia</div>
+          <div class="folio-display">${folio}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha <span class="req">*</span></label>
+          <input type="date" class="form-control" id="inc-fecha" value="${todayDate()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidad <span class="req">*</span></label>
+          <input class="form-control" id="inc-unidad" placeholder="Identificador DVR/Unidad">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo DVR</label>
+          <input class="form-control" id="inc-tipoDVR" placeholder="Ej. Hikvision DS-7208, Dahua…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Falla <span class="req">*</span></label>
+          <select class="form-control" id="inc-tipoFalla">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Videoloss','Sin audio','Intermitencia','DVR apagado','Desfase horario','Disco corrupto','Sin grabación','Canal inactivo','Sobreescritura','Fallo de exportación'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Criticidad <span class="req">*</span></label>
+          <select class="form-control" id="inc-criticidad">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Alta','Media','Baja'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Canal Afectado</label>
+          <input class="form-control" id="inc-canalAfectado" placeholder="Ej. Canal 3, Todos…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Detectado Por</label>
+          <input class="form-control" id="inc-detectadoPor" placeholder="Nombre del personal">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Durante</label>
+          <select class="form-control" id="inc-durante">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Extracción','Revisión rutinaria','Atención de solicitud','Mantenimiento','Auditoría'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reportado En</label>
+          <select class="form-control" id="inc-reportadoEn">
+            <option value="">— Seleccionar —</option>
+            ${opts(['Meipack','Correo interno','Bitácora física','Sistema GED','Verbal','Otro'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Folio Meipack</label>
+          <input class="form-control" id="inc-folioMeipack" placeholder="Número de ticket Meipack">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-control" id="inc-observaciones" rows="3" placeholder="Descripción detallada de la falla, impacto, acciones tomadas…"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="saveIncidencia()">Registrar Incidencia</button>
+    <button class="btn btn-secondary" onclick="showPage('incidencias-new')">Limpiar</button>
+    <div class="save-msg" id="save-msg-inc"></div>
+  </div>
+  </div>`;
+}
+
+async function saveIncidencia() {
+  const payload = {
+    fecha: getVal('inc-fecha'),
+    unidad: getVal('inc-unidad'),
+    tipoDVR: getVal('inc-tipoDVR'),
+    tipoFalla: getVal('inc-tipoFalla'),
+    canalAfectado: getVal('inc-canalAfectado'),
+    detectadoPor: getVal('inc-detectadoPor'),
+    durante: getVal('inc-durante'),
+    reportadoEn: getVal('inc-reportadoEn'),
+    folioMeipack: getVal('inc-folioMeipack'),
+    criticidad: getVal('inc-criticidad'),
+    observaciones: getVal('inc-observaciones')
+  };
+  if (!payload.unidad || !payload.tipoFalla) { toast('Complete campos obligatorios', 'error'); return; }
+  const res = await apiCall('saveIncidencia', { payload });
+  if (res && res.ok) {
+    toast(`Incidencia ${res.folio} registrada`, 'success');
+    showMsg('save-msg-inc', `✅ ${res.folio}`, true);
+    const badge = document.getElementById('badge-inc');
+    if (badge) badge.textContent = parseInt(badge.textContent || 0) + 1;
+  } else { toast('Error al guardar', 'error'); }
+}
+
+// ============================================================
+// PRÉSTAMO DE BANDEJAS
+// ============================================================
+function renderPrestamoForm() {
+  const folio = generateFolio('PREST');
+  STATE.currentFolio = folio;
+  return `<div class="form-page">
+  <div class="form-section">
+    <div class="form-section-header">
+      <div class="form-section-icon" style="background:rgba(0,212,170,0.08)">📦</div>
+      <div class="form-section-title">Control de Préstamo de Bandejas</div>
+      <div class="form-section-sub">RIESGO OPERACIONAL</div>
+    </div>
+    <div class="form-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Folio Préstamo</div>
+          <div class="folio-display">${folio}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bandeja <span class="req">*</span></label>
+          <input class="form-control" id="pr-bandeja" placeholder="ID o número de bandeja">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidad <span class="req">*</span></label>
+          <input class="form-control" id="pr-unidad" placeholder="Unidad de origen">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-control" id="pr-estatus">
+            <option value="Prestado">Prestado</option>
+            ${opts(['Devuelto','Devuelto con incidencia','Vencido','Extraviado'])}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Salida <span class="req">*</span></label>
+          <input type="date" class="form-control" id="pr-fechaSalida" value="${todayDate()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora Salida</label>
+          <input type="time" class="form-control" id="pr-horaSalida" value="${nowTime()}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entregó <span class="req">*</span></label>
+          <input class="form-control" id="pr-entrego" placeholder="Nombre de quien entrega">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Recibió <span class="req">*</span></label>
+          <input class="form-control" id="pr-recibio" placeholder="Nombre de quien recibe">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Área Receptora</label>
+          <input class="form-control" id="pr-areaReceptora" placeholder="Área o dependencia receptora">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motivo</label>
+          <input class="form-control" id="pr-motivo" placeholder="Razón del préstamo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Compromiso</label>
+          <input type="date" class="form-control" id="pr-fechaCompromiso">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Devolución</label>
+          <input type="date" class="form-control" id="pr-fechaDevolucion">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Validación Previa</label>
+          <div class="toggle-group">
+            <div class="toggle-btn" onclick="selectToggle('pr-valprevia','Sí',this)">✅ Sí</div>
+            <div class="toggle-btn" onclick="selectToggle('pr-valprevia','No',this)">❌ No</div>
+          </div>
+          <input type="hidden" id="pr-valprevia" value="">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Validación Posterior</label>
+          <div class="toggle-group">
+            <div class="toggle-btn" onclick="selectToggle('pr-valposterior','Sí',this)">✅ Sí</div>
+            <div class="toggle-btn" onclick="selectToggle('pr-valposterior','No',this)">❌ No</div>
+          </div>
+          <input type="hidden" id="pr-valposterior" value="">
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-control" id="pr-observaciones" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="savePrestamo()">Registrar Préstamo</button>
+    <button class="btn btn-secondary" onclick="showPage('prestamo-new')">Limpiar</button>
+    <div class="save-msg" id="save-msg-pr"></div>
+  </div>
+  </div>`;
+}
+
+async function savePrestamo() {
+  const payload = {
+    fechaSalida: getVal('pr-fechaSalida'),
+    horaSalida: getVal('pr-horaSalida'),
+    bandeja: getVal('pr-bandeja'),
+    unidad: getVal('pr-unidad'),
+    entrego: getVal('pr-entrego'),
+    recibio: getVal('pr-recibio'),
+    areaReceptora: getVal('pr-areaReceptora'),
+    motivo: getVal('pr-motivo'),
+    fechaCompromiso: getVal('pr-fechaCompromiso'),
+    fechaDevolucion: getVal('pr-fechaDevolucion'),
+    estatus: getVal('pr-estatus'),
+    validacionPrevia: getVal('pr-valprevia'),
+    validacionPosterior: getVal('pr-valposterior'),
+    observaciones: getVal('pr-observaciones')
+  };
+  if (!payload.bandeja || !payload.unidad || !payload.entrego || !payload.recibio) {
+    toast('Complete campos obligatorios', 'error'); return;
+  }
+  const res = await apiCall('savePrestamo', { payload });
+  if (res && res.ok) {
+    toast(`Préstamo ${res.folio} registrado`, 'success');
+    showMsg('save-msg-pr', `✅ ${res.folio}`, true);
+  } else { toast('Error al guardar', 'error'); }
+}
+
+// ============================================================
+// SOLICITUDES LIST
+// ============================================================
+function renderSolicitudesList() {
+  return `
+  <div class="list-toolbar">
+    <input class="search-input" id="search-sol" placeholder="🔍 Buscar por folio, unidad, área…" oninput="filterSolicitudes()">
+    <select class="filter-select" id="filter-resultado" onchange="filterSolicitudes()">
+      <option value="">Todos los resultados</option>
+      ${opts(['Con incidencia técnica','Pendiente','Recuperado','Sin video','Sobreescritura'])}
+    </select>
+    <select class="filter-select" id="filter-prioridad" onchange="filterSolicitudes()">
+      <option value="">Todas las prioridades</option>
+      ${opts(['Alta','Baja','Crítica','Media'])}
+    </select>
+    <button class="btn btn-primary" onclick="showPage('solicitudes-new')" style="margin-left:auto">+ Nueva Solicitud</button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Solicitudes de Evidencias Digitales</span>
+      <span id="sol-count" style="font-size:12px;color:var(--text3);font-family:var(--mono)">Cargando…</span>
+    </div>
+    <div class="card-body">
+      <table class="data-table" id="sol-table">
+        <thead><tr>
+          <th>Folio GED</th><th>Folio Solicitud</th><th>Fecha/Hora</th><th>Área</th><th>Unidad</th>
+          <th>Tipo Evento</th><th>Prioridad</th><th>Resultado</th><th>Auxiliar</th>
+        </tr></thead>
+        <tbody id="sol-tbody"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3)">Cargando datos…</td></tr></tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+let allSolicitudes = [];
+async function loadSolicitudes() {
+  const data = await apiCall('getSolicitudes', { filters: {} });
+  if (!data) return;
+  allSolicitudes = Array.isArray(data) ? data : [];
+  renderSolicitudesTable(allSolicitudes);
+}
+
+function renderSolicitudesTable(rows) {
+  const tbody = document.getElementById('sol-tbody');
+  const count = document.getElementById('sol-count');
+  if (!tbody) return;
+  if (count) count.textContent = `${rows.length} registros`;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><h3>Sin registros</h3><p>No se encontraron solicitudes con los filtros aplicados.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td class="folio-cell">${r['Folio GED'] || '—'}</td>
+    <td>${r['Folio Solicitud'] || r['Folio Origen'] || '—'}</td>
+    <td style="font-size:11px;font-family:var(--mono)">${r['FechaHora Solicitud'] || [r['Fecha Solicitud'], r['Hora Solicitud']].filter(Boolean).join(' ') || '—'}</td>
+    <td>${r['Area Solicitante'] || r['Solicitante'] || '—'}</td>
+    <td>${r['Unidad'] || '—'}</td>
+    <td>${r['Tipo Evento'] || '—'}</td>
+    <td>${prioBadge(r['Prioridad'])}</td>
+    <td>${resultBadge(r['Resultado'])}</td>
+    <td>${r['Auxiliar Asignado'] || '—'}</td>
+  </tr>`).join('');
+}
+
+function filterSolicitudes() {
+  const q = document.getElementById('search-sol')?.value.toLowerCase() || '';
+  const res = document.getElementById('filter-resultado')?.value || '';
+  const prio = document.getElementById('filter-prioridad')?.value || '';
+  const filtered = allSolicitudes.filter(r => {
+    const match = !q || Object.values(r).some(v => String(v).toLowerCase().includes(q));
+    const matchRes = !res || r['Resultado'] === res;
+    const matchPrio = !prio || r['Prioridad'] === prio;
+    return match && matchRes && matchPrio;
+  });
+  renderSolicitudesTable(filtered);
+}
+
+// ============================================================
+// INCIDENCIAS LIST (estadísticas)
+// ============================================================
+function renderIncidenciasList() {
+  return `
+  <div class="stats-grid" id="inc-stats">
+    ${statCard('Total Incidencias', '—', 'var(--accent3)', 'registradas')}
+    ${statCard('Criticidad Alta', '—', 'var(--danger)', 'prioritarias')}
+    ${statCard('Videoloss', '—', 'var(--warn)', 'sin señal')}
+    ${statCard('DVR Apagado', '—', 'var(--accent3)', 'sin energía')}
+  </div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Registro de Incidencias</span>
+        <button class="btn btn-primary" style="padding:5px 12px;font-size:11px" onclick="showPage('incidencias-new')">+ Nueva</button>
+      </div>
+      <div class="card-body">
+        <table class="data-table" id="inc-table">
+          <thead><tr><th>Folio</th><th>Fecha</th><th>Unidad</th><th>Tipo Falla</th><th>Criticidad</th><th>Detectado Por</th></tr></thead>
+          <tbody id="inc-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Por Tipo de Falla</span></div>
+      <div id="inc-chart" class="chart-bar"><p style="font-size:12px;color:var(--text3);text-align:center;padding:20px">Sin datos</p></div>
+    </div>
+  </div>`;
+}
+
+async function loadIncidencias() {
+  const data = await apiCall('getIncidencias', { filters: {} });
+  if (!data || !Array.isArray(data)) return;
+  const nums = document.querySelectorAll('#inc-stats .stat-num');
+  if (nums[0]) nums[0].textContent = data.length;
+  if (nums[1]) nums[1].textContent = data.filter(r => r['Criticidad'] === 'Alta').length;
+  if (nums[2]) nums[2].textContent = data.filter(r => r['Tipo Falla'] === 'Videoloss').length;
+  if (nums[3]) nums[3].textContent = data.filter(r => r['Tipo Falla'] === 'DVR apagado').length;
+  const tbody = document.getElementById('inc-tbody');
+  if (tbody) {
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Sin incidencias registradas</td></tr>`;
+    } else {
+      tbody.innerHTML = data.slice().reverse().map(r => `<tr>
+        <td class="folio-cell">${r['Folio Incidencia'] || '—'}</td>
+        <td style="font-size:11px;font-family:var(--mono)">${r['Fecha'] || '—'}</td>
+        <td>${r['Unidad'] || '—'}</td>
+        <td>${r['Tipo Falla'] || '—'}</td>
+        <td>${criticidadBadge(r['Criticidad'])}</td>
+        <td>${r['Detectado Por'] || '—'}</td>
+      </tr>`).join('');
+    }
+  }
+  const fallas = {};
+  data.forEach(r => { const f = r['Tipo Falla']; fallas[f] = (fallas[f] || 0) + 1; });
+  renderBarChart('inc-chart', fallas, 'var(--accent3)');
+}
+
+// ============================================================
+// BADGES & HELPERS
+// ============================================================
+function prioBadge(p) {
+  const m = { 'Crítica': 'danger', 'Alta': 'danger', 'Media': 'warning', 'Baja': 'success' };
+  return `<span class="badge badge-${m[p] || 'neutral'}">${p || '—'}</span>`;
+}
+function resultBadge(r) {
+  const m = { 'Recuperado': 'success', 'Parcial': 'warning', 'Sin video': 'danger', 'Con incidencia técnica': 'orange', 'Sobreescritura': 'danger', 'Pendiente': 'neutral' };
+  return `<span class="badge badge-${m[r] || 'neutral'}">${r || '—'}</span>`;
+}
+function criticidadBadge(c) {
+  const m = { 'Alta': 'danger', 'Media': 'warning', 'Baja': 'success' };
+  return `<span class="badge badge-${m[c] || 'neutral'}">${c || '—'}</span>`;
+}
+
+async function refreshData() {
+  if (STATE.currentPage === 'dashboard') loadDashboard();
+  else if (STATE.currentPage === 'solicitudes-list') loadSolicitudes();
+  else toast('Datos actualizados', 'success');
+}
+
+// ============================================================
+// NAV CLICK HANDLERS
+// ============================================================
+document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => showPage(el.dataset.page));
+});
+
+// ============================================================
+// INIT
+// ============================================================
+document.getElementById('conn-status').textContent = 'API conectada';
+document.getElementById('user-name-display').textContent = LOGGED_USER.nombre;
+document.getElementById('user-role-display').textContent = LOGGED_USER.rol;
+document.getElementById('user-initials').textContent = (LOGGED_USER.nombre || 'U').substring(0, 2).toUpperCase();
+showPage('dashboard');
+</script>
+</body>
+</html>
