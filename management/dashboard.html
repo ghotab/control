@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Control — Jefe de Operaciones</title>
+<style>
+:root{
+  --bg:#0b0f1a;--s1:#111827;--s2:#1a2235;--s3:#222c42;
+  --border:rgba(255,255,255,0.08);--bh:rgba(255,255,255,0.15);
+  --accent:#3b82f6;--acc2:#6366f1;--acc3:#8b5cf6;
+  --text:#f1f5f9;--muted:#94a3b8;
+  --danger:#ef4444;--warn:#f59e0b;--success:#22c55e;--info:#38bdf8;
+  --r:12px;--font:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* Topbar */
+.topbar{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--acc3));border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.logo svg{width:20px;height:20px;fill:white;}
+.topbar h1{font-size:16px;font-weight:700;}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-icon{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;transition:border-color .2s,color .2s;font-family:var(--font);}
+.btn-icon:hover{border-color:var(--accent);color:var(--accent);}
+.btn-icon svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 65px);}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}}
+
+/* Left panel — list */
+.panel-left{background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.panel-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);}
+.panel-header h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+
+/* Date selector */
+.date-row{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.date-row input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 12px;outline:none;}
+.date-row input:focus{border-color:var(--accent);}
+.btn-refresh{background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;cursor:pointer;display:flex;align-items:center;font-family:var(--font);}
+.btn-refresh svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* Stats row */
+.stats-row{display:flex;gap:0;border-bottom:1px solid var(--border);}
+.stat-box{flex:1;padding:12px;text-align:center;border-right:1px solid var(--border);}
+.stat-box:last-child{border-right:none;}
+.stat-num{font-size:20px;font-weight:800;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
+.stat-envio .stat-num{color:var(--success);}
+.stat-pend .stat-num{color:var(--warn);}
+.stat-total .stat-num{color:var(--accent);}
+
+/* Report cards */
+.reports-list{flex:1;overflow-y:auto;padding:10px 10px 20px;}
+.empty-state{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;}
+.report-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .2s,background .15s;position:relative;}
+.report-card:hover{border-color:var(--bh);}
+.report-card.active{border-color:var(--accent);background:rgba(59,130,246,.06);}
+.rc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.rc-name{font-size:13px;font-weight:700;}
+.rc-base{font-size:11px;color:var(--muted);margin-top:2px;}
+.rc-time{font-size:11px;color:var(--muted);}
+.rc-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:.3px;}
+.tag-ok{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.2);}
+.tag-warn{background:rgba(245,158,11,.12);color:#fcd34d;border:1px solid rgba(245,158,11,.2);}
+.tag-danger{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.2);}
+.tag-blue{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.2);}
+.tag-purple{background:rgba(139,92,246,.12);color:#c4b5fd;border:1px solid rgba(139,92,246,.2);}
+.tag-gray{background:rgba(148,163,184,.08);color:var(--muted);border:1px solid var(--border);}
+
+/* Status dot */
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.sd-pendiente{background:var(--warn);}
+.sd-en_revision{background:var(--info);}
+.sd-atendido{background:var(--success);}
+.sd-sin_envio{background:rgba(148,163,184,.3);}
+.sin-reporte{background:rgba(255,255,255,.03);border:1px dashed var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:8px;opacity:.7;}
+.sin-reporte .rc-name{color:var(--muted);}
+
+/* Right panel — detail */
+.panel-right{overflow-y:auto;padding:24px;}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;color:var(--muted);}
+.placeholder svg{width:48px;height:48px;stroke:var(--muted);fill:none;stroke-width:1.5;margin-bottom:16px;}
+.placeholder p{font-size:13px;max-width:280px;line-height:1.6;}
+
+/* Detail */
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.detail-name{font-size:20px;font-weight:800;letter-spacing:-.4px;}
+.detail-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+.status-select{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer;outline:none;}
+
+/* Detail section */
+.ds{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;}
+.ds-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ds-title svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Personal table */
+.p-table{width:100%;border-collapse:collapse;}
+.p-table th{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.p-table td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.p-table tr:last-child td{border-bottom:none;}
+
+/* Incidencia item */
+.inc-item{background:var(--s2);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:8px;}
+.inc-entity{font-size:12px;font-weight:700;color:#fcd34d;}
+.inc-desc{font-size:12px;color:var(--text);margin-top:4px;line-height:1.5;}
+.inc-meta{font-size:11px;color:var(--muted);margin-top:6px;}
+
+/* Equipo item */
+.eq-item{display:flex;align-items:flex-start;gap:12px;background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:6px;}
+.eq-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.25);}
+.eq-text{font-size:12px;flex:1;}
+.eq-unit{font-weight:600;}
+.eq-prob{color:var(--muted);margin-top:2px;}
+
+/* Refaccion item */
+.ref-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.ref-item:last-child{border-bottom:none;}
+
+/* Comentarios */
+.comment-list{margin-bottom:14px;}
+.comment-item{background:var(--s2);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid var(--accent);}
+.comment-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+.comment-who{font-size:11px;font-weight:600;color:var(--accent);}
+.comment-when{font-size:11px;color:var(--muted);}
+.comment-text{font-size:13px;line-height:1.5;}
+.comment-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:6px;display:inline-block;}
+
+/* Comment form */
+.comment-form{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+.comment-form textarea{width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:10px 12px;outline:none;resize:vertical;min-height:80px;margin-bottom:10px;line-height:1.6;}
+.comment-form textarea:focus{border-color:var(--accent);}
+.form-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.status-btns{display:flex;gap:6px;flex:1;flex-wrap:wrap;}
+.st-btn{padding:7px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--s3);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font);transition:all .15s;}
+.st-btn:hover,.st-btn.sel{border-color:currentColor;}
+.st-pendiente{color:var(--warn);}
+.st-pendiente.sel{background:rgba(245,158,11,.12);}
+.st-en_revision{color:var(--info);}
+.st-en_revision.sel{background:rgba(56,189,248,.12);}
+.st-atendido{color:var(--success);}
+.st-atendido.sel{background:rgba(34,197,94,.12);}
+.btn-send-comment{background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;padding:9px 18px;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+.btn-send-comment:hover{opacity:.85;}
+.btn-send-comment:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Long text */
+.ltext{font-size:13px;line-height:1.6;color:var(--text);white-space:pre-wrap;}
+.no-data{font-size:12px;color:var(--muted);font-style:italic;}
+
+/* Spin */
+.spin{animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:999;transform:translateX(120%);transition:transform .3s ease;}
+.toast.show{transform:translateX(0);}
+.toast svg{width:16px;height:16px;flex-shrink:0;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke:currentColor;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">
+  <svg id="toastIcon" viewBox="0 0 24 24"></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+    <div>
+      <h1>Panel de Control Operativo</h1>
+      <div class="topbar-sub" id="topbarSub">Cargando reportes...</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-icon" onclick="loadReports()">
+      <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Actualizar
+    </button>
+    <button class="btn-icon" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="panel-left">
+    <div class="panel-header">
+      <h2>Reportes del día</h2>
+    </div>
+
+    <div class="date-row">
+      <input type="date" id="dateFilter" onchange="loadReports()">
+      <button class="btn-refresh" onclick="loadReports()" title="Actualizar">
+        <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box stat-envio">
+        <div class="stat-num" id="statEnviados">—</div>
+        <div class="stat-lbl">Enviados</div>
+      </div>
+      <div class="stat-box stat-pend">
+        <div class="stat-num" id="statPendientes">—</div>
+        <div class="stat-lbl">Pendientes</div>
+      </div>
+      <div class="stat-box stat-total">
+        <div class="stat-num" id="statTotal">—</div>
+        <div class="stat-lbl">Total bases</div>
+      </div>
+    </div>
+
+    <div class="reports-list" id="reportsList">
+      <div class="empty-state">Cargando reportes...</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right" id="panelRight">
+    <div class="placeholder">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <p>Selecciona un reporte de la lista para ver su detalle y agregar comentarios.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_REPORT = 'https://script.google.com/macros/s/AKfycbzEB5Wz9RB25h3izbdkya1b62Ve2rKvkdlc_ShzQDSBJnJM_tHgP8Oz-BUzbKVRzsJ_/exec'; 
+
+let allReports   = [];
+let selectedId   = null;
+let selectedStatus = 'pendiente';
+
+// ── INIT ─────────────────────────────────────────────────────
+function init() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateFilter').value = today;
+  loadReports();
+  setInterval(loadReports, 60000); // refresh each minute
+}
+
+function todayStr() {
+  return document.getElementById('dateFilter').value;
+}
+
+// ── LOAD REPORTS ─────────────────────────────────────────────
+async function loadReports() {
+  const fecha = todayStr();
+  document.getElementById('topbarSub').textContent = 'Actualizando...';
+  try {
+    const resp = await fetch(`${API_REPORT}?action=getReportes&fecha=${fecha}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error);
+    allReports = data.data || [];
+    renderList();
+    document.getElementById('topbarSub').textContent =
+      `${allReports.length} reporte(s) — ${fecha} — Actualizado ${new Date().toLocaleTimeString('es-MX')}`;
+  } catch(err) {
+    document.getElementById('topbarSub').textContent = 'Error al cargar: ' + err.message;
+    toast('Error al cargar reportes: ' + err.message, 'error');
+  }
+}
+
+// ── RENDER LIST ──────────────────────────────────────────────
+function renderList() {
+  const el      = document.getElementById('reportsList');
+  const enviados = allReports.length;
+  document.getElementById('statEnviados').textContent  = enviados;
+  document.getElementById('statPendientes').textContent = allReports.filter(r => r.status === 'pendiente').length;
+  document.getElementById('statTotal').textContent      = enviados;
+
+  if (!allReports.length) {
+    el.innerHTML = `<div class="empty-state">Sin reportes para esta fecha.<br><small>Selecciona otra fecha o espera a que los coordinadores envíen su reporte.</small></div>`;
+    return;
+  }
+
+  el.innerHTML = allReports.map(r => {
+    const tags = [];
+    if (r.ausentismo === true || r.ausentismo === 'true') tags.push(`<span class="tag tag-danger">Ausentismo</span>`);
+    const pHoy = Array.isArray(r.personal_hoy) ? r.personal_hoy : [];
+    if (pHoy.length) tags.push(`<span class="tag tag-blue">${pHoy.length} personas</span>`);
+    const statusCls = { pendiente:'sd-pendiente', en_revision:'sd-en_revision', atendido:'sd-atendido' }[r.status] || 'sd-pendiente';
+    const statusLbl = { pendiente:'Pendiente', en_revision:'En revisión', atendido:'Atendido' }[r.status] || r.status;
+    return `
+      <div class="report-card ${selectedId === r.id ? 'active' : ''}" onclick="selectReport('${r.id}')">
+        <div class="rc-head">
+          <div>
+            <div class="rc-name">${r.nombre}</div>
+            <div class="rc-base">📍 ${r.base} · ${r.clave}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <div class="rc-time">${r.hora_envio || '--:--'}</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);">
+              <div class="status-dot ${statusCls}"></div>${statusLbl}
+            </div>
+          </div>
+        </div>
+        <div class="rc-tags">${tags.join('')}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── SELECT REPORT ─────────────────────────────────────────────
+async function selectReport(id) {
+  selectedId = id;
+  renderList(); // update active state
+  const panel = document.getElementById('panelRight');
+  panel.innerHTML = `<div class="placeholder"><svg class="spin" viewBox="0 0 24 24" style="width:32px;height:32px;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"/></svg><p>Cargando detalle...</p></div>`;
+
+  try {
+    const resp = await fetch(`${API_REPORT}?action=getReporteDetalle&id=${id}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error);
+    renderDetail(data.data);
+  } catch(err) {
+    panel.innerHTML = `<div class="placeholder"><p style="color:var(--danger);">Error al cargar: ${err.message}</p></div>`;
+  }
+}
+
+// ── RENDER DETAIL ─────────────────────────────────────────────
+function renderDetail(r) {
+  const panel   = document.getElementById('panelRight');
+  const personal= Array.isArray(r.personal_hoy) ? r.personal_hoy : [];
+  const incids  = Array.isArray(r.incidencias)   ? r.incidencias  : [];
+  const equipos = Array.isArray(r.equipos_fuera) ? r.equipos_fuera: [];
+  const refs    = Array.isArray(r.refacciones)   ? r.refacciones  : [];
+  const comms   = Array.isArray(r.comentarios)   ? r.comentarios  : [];
+  const ausencia= Array.isArray(r.ausentismo_detalle) ? r.ausentismo_detalle : [];
+  selectedStatus= r.status || 'pendiente';
+
+  const statusColors={pendiente:'var(--warn)',en_revision:'var(--info)',atendido:'var(--success)'};
+
+  panel.innerHTML = `
+  <div class="detail-header">
+    <div>
+      <div class="detail-name">${r.nombre}</div>
+      <div class="detail-meta">📍 ${r.base} &nbsp;·&nbsp; Clave: ${r.clave} &nbsp;·&nbsp; Enviado: ${r.hora_envio} &nbsp;·&nbsp; Fecha: ${r.fecha}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:${statusColors[r.status]||'var(--warn)'};flex-shrink:0;"></div>
+      <select class="status-select" id="statusSel" onchange="selectedStatus=this.value">
+        <option value="pendiente"   ${r.status==='pendiente'   ?'selected':''}>Pendiente</option>
+        <option value="en_revision" ${r.status==='en_revision' ?'selected':''}>En revisión</option>
+        <option value="atendido"    ${r.status==='atendido'    ?'selected':''}>Atendido</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- PERSONAL -->
+  <div class="ds">
+    <div class="ds-title">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Personal en turno (${personal.length})
+    </div>
+    ${personal.length ? `
+    <table class="p-table">
+      <thead><tr><th>Nombre</th><th>Puesto</th><th>Horario</th><th>Ubicación</th></tr></thead>
+      <tbody>${personal.map(p=>`<tr><td style="font-weight:600;">${p.nombre}</td><td>${p.puesto}</td><td>${p.entrada}–${p.salida}</td><td>${p.ubicacion}</td></tr>`).join('')}</tbody>
+    </table>` : `<div class="no-data">Sin personal registrado</div>`}
+  </div>
+
+  <!-- AUSENTISMO -->
+  ${(r.ausentismo === true || r.ausentismo === 'true') ? `
+  <div class="ds" style="border-left:3px solid var(--danger);">
+    <div class="ds-title" style="color:#fca5a5;">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Ausentismo registrado (${ausencia.length})
+    </div>
+    ${ausencia.map(a=>`
+      <div style="background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:600;">${a.nombre}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">Razón: ${a.razon} ${a.notas?'— '+a.notas:''}</div>
+        ${a.docName?`<div style="font-size:11px;color:var(--accent);margin-top:4px;">📎 ${a.docName}</div>`:''}
+      </div>`).join('')}
+  </div>` : ''}
+
+  <!-- INCIDENCIAS -->
+  <div class="ds">
+    <div class="ds-title">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Incidencias activas (${incids.length})
+    </div>
+    ${incids.length ? incids.map(inc=>`
+      <div class="inc-item">
+        <div class="inc-entity">⚠️ ${inc.entidad}</div>
+        <div class="inc-desc">${inc.descripcion}</div>
+        <div class="inc-meta">Desde: ${inc.desde_fecha} ${inc.desde_hora} &nbsp;·&nbsp; Seguimiento: <strong style="color:var(--text);">${inc.seguimiento_por}</strong></div>
+      </div>`).join('') : `<div class="no-data">Sin incidencias reportadas</div>`}
+  </div>
+
+  <!-- EQUIPOS -->
+  <div class="ds">
+    <div class="ds-title">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Equipos fuera de servicio (${equipos.length})
+    </div>
+    ${equipos.length ? equipos.map(eq=>`
+      <div class="eq-item">
+        <div class="eq-badge">${eq.tipo_equipo}</div>
+        <div class="eq-text">
+          <div class="eq-unit">${eq.unidad}</div>
+          <div class="eq-prob">${eq.descripcion||'Sin descripción'}</div>
+        </div>
+      </div>`).join('') : `<div class="no-data">Sin equipos fuera de servicio</div>`}
+  </div>
+
+  <!-- REFACCIONES -->
+  <div class="ds">
+    <div class="ds-title">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Refacciones / Artículos urgentes (${refs.length})
+    </div>
+    ${refs.length ? `<div style="margin:0;">${refs.map(ref=>`
+      <div class="ref-item">
+        <span class="tag ${ref.urgencia==='critica'?'tag-danger':ref.urgencia==='alta'?'tag-warn':'tag-blue'}">${ref.urgencia||'alta'}</span>
+        <span style="font-size:13px;font-weight:600;flex:1;">${ref.articulo}</span>
+        <span style="font-size:12px;color:var(--muted);">x${ref.cantidad}</span>
+        ${ref.notas?`<span style="font-size:11px;color:var(--muted);">${ref.notas}</span>`:''}
+      </div>`).join('')}</div>` : `<div class="no-data">Sin artículos solicitados</div>`}
+  </div>
+
+  <!-- RIESGO 72H -->
+  ${r.riesgo_72h ? `
+  <div class="ds" style="border-left:3px solid var(--danger);">
+    <div class="ds-title" style="color:#fca5a5;">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Riesgo próximas 72 horas
+    </div>
+    <div class="ltext">${r.riesgo_72h}</div>
+  </div>` : ''}
+
+  <!-- ADICIONAL -->
+  ${r.adicional ? `
+  <div class="ds">
+    <div class="ds-title">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Observaciones adicionales
+    </div>
+    <div class="ltext">${r.adicional}</div>
+  </div>` : ''}
+
+  <!-- COMENTARIOS DEL JEFE -->
+  <div class="ds">
+    <div class="ds-title">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Comentarios y seguimiento
+    </div>
+
+    <div class="comment-list" id="commentList">
+      ${comms.length ? comms.map(c=>`
+        <div class="comment-item">
+          <div class="comment-top">
+            <span class="comment-who">${c.jefe_nombre||'Jefe'}</span>
+            <span class="comment-when">${c.fecha_comentario}</span>
+          </div>
+          <div class="comment-text">${c.comentario}</div>
+          <span class="comment-status tag ${c.status_jefe==='atendido'?'tag-ok':c.status_jefe==='en_revision'?'tag-blue':'tag-warn'}">${c.status_jefe||'pendiente'}</span>
+        </div>`).join('') : `<div class="no-data" style="margin-bottom:12px;">Sin comentarios aún</div>`}
+    </div>
+
+    <div class="comment-form">
+      <textarea id="commentInput" placeholder="Escribe tu comentario, indicación o seguimiento para este reporte..."></textarea>
+      <div class="form-row">
+        <div class="status-btns">
+          <button class="st-btn st-pendiente ${selectedStatus==='pendiente'?'sel':''}" onclick="setStatus('pendiente',this)">⏳ Pendiente</button>
+          <button class="st-btn st-en_revision ${selectedStatus==='en_revision'?'sel':''}" onclick="setStatus('en_revision',this)">👁 En revisión</button>
+          <button class="st-btn st-atendido ${selectedStatus==='atendido'?'sel':''}" onclick="setStatus('atendido',this)">✅ Atendido</button>
+        </div>
+        <button class="btn-send-comment" id="btnComment" onclick="sendComment()">Enviar</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function setStatus(st, btn) {
+  selectedStatus = st;
+  document.querySelectorAll('.st-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  const sel = document.getElementById('statusSel');
+  if (sel) sel.value = st;
+}
+
+// ── SEND COMMENT ──────────────────────────────────────────────
+async function sendComment() {
+  const text = (document.getElementById('commentInput')?.value || '').trim();
+  const status = selectedStatus;
+  if (!text) { toast('Escribe un comentario antes de enviar', 'warn'); return; }
+  if (!selectedId) return;
+
+  const btn = document.getElementById('btnComment');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    const resp = await fetch(API_REPORT, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'saveComentario',
+        id_reporte: selectedId,
+        comentario: text,
+        status_jefe: status,
+        jefe_nombre: 'Jefe Operaciones'
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error);
+    toast('Comentario enviado', 'ok');
+    // Reload detail
+    await selectReport(selectedId);
+    await loadReports();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Enviar';
+  }
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────
+function exportCSV() {
+  if (!allReports.length) { toast('No hay datos para exportar', 'warn'); return; }
+  const rows = [['Clave','Nombre','Base','Fecha','Hora','Status','Ausentismo','Personal']];
+  allReports.forEach(r => {
+    const pHoy = Array.isArray(r.personal_hoy) ? r.personal_hoy.map(p=>p.nombre).join('; ') : '';
+    rows.push([r.clave,r.nombre,r.base,r.fecha,r.hora_envio,r.status,r.ausentismo?'Sí':'No',pHoy]);
+  });
+  const csv  = rows.map(r => r.map(c => `"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `reportes_${todayStr()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  toast('Archivo CSV descargado', 'ok');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const el  = document.getElementById('toast');
+  const ico = document.getElementById('toastIcon');
+  const txt = document.getElementById('toastMsg');
+  const icons = {
+    ok:   `<polyline points="20 6 9 17 4 12" style="stroke:var(--success);"/>`,
+    warn: `<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" style="stroke:var(--warn);"/><line x1="12" y1="9" x2="12" y2="13" style="stroke:var(--warn);"/>`,
+    error:`<circle cx="12" cy="12" r="10" style="stroke:var(--danger);"/><line x1="15" y1="9" x2="9" y2="15" style="stroke:var(--danger);"/><line x1="9" y1="9" x2="15" y2="15" style="stroke:var(--danger);"/>`
+  };
+  ico.innerHTML = icons[type] || icons.ok;
+  txt.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>

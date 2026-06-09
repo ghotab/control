@@ -1,1 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte Diario — Coordinadores</title>
+<style>
+:root {
+  --bg:      #0b0f1a;
+  --s1:      #111827;
+  --s2:      #1a2235;
+  --s3:      #222c42;
+  --border:  rgba(255,255,255,0.08);
+  --bh:      rgba(255,255,255,0.15);
+  --accent:  #3b82f6;
+  --acc2:    #6366f1;
+  --acc3:    #8b5cf6;
+  --text:    #f1f5f9;
+  --muted:   #94a3b8;
+  --danger:  #ef4444;
+  --warn:    #f59e0b;
+  --success: #22c55e;
+  --r:       12px;
+  --font:    'Inter', system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px;}
 
+/* Topbar */
+.topbar{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--acc3));border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.logo svg{width:18px;height:18px;fill:white;}
+.topbar h1{font-size:15px;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 8px;font-size:12px;}
+.user-chip .av{width:24px;height:24px;background:linear-gradient(135deg,var(--accent),var(--acc2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.btn-out{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 12px;cursor:pointer;font-family:var(--font);transition:border-color .2s,color .2s;}
+.btn-out:hover{border-color:var(--danger);color:var(--danger);}
+
+/* Clock badge */
+.clock-badge{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.clock-badge.late{border-color:rgba(239,68,68,.4);color:#fca5a5;background:rgba(239,68,68,.08);}
+
+/* Main layout */
+.main{max-width:860px;margin:0 auto;padding:28px 20px 0;}
+
+/* Progress bar */
+.progress-wrap{margin-bottom:24px;}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+.progress-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--acc2));border-radius:2px;transition:width .4s ease;}
+
+/* Section card */
+.section{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;}
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.section-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-icon svg{width:18px;height:18px;}
+.si-blue{background:rgba(59,130,246,.15);}  .si-blue svg{stroke:#60a5fa;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.si-red{background:rgba(239,68,68,.15);}    .si-red svg{stroke:#f87171;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.si-amber{background:rgba(245,158,11,.15);} .si-amber svg{stroke:#fbbf24;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.si-purple{background:rgba(139,92,246,.15);}.si-purple svg{stroke:#a78bfa;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.si-green{background:rgba(34,197,94,.15);}  .si-green svg{stroke:#4ade80;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.si-teal{background:rgba(20,184,166,.15);}  .si-teal svg{stroke:#2dd4bf;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.section-title{font-size:15px;font-weight:700;letter-spacing:-.2px;}
+.section-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* Field */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px;}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:var(--font);font-size:14px;
+  padding:11px 14px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.field input:focus,.field select,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:calc(100% - 14px) 50%;padding-right:36px;}
+.field select option{background:var(--s1);}
+.field textarea{resize:vertical;min-height:90px;line-height:1.6;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:560px){.grid2{grid-template-columns:1fr;}}
+
+/* Personal tags */
+.tags-input-wrap{display:flex;gap:8px;margin-bottom:10px;}
+.tags-input-wrap input{flex:1;}
+.btn-add{background:var(--s3);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;padding:10px 18px;cursor:pointer;white-space:nowrap;transition:border-color .2s;font-family:var(--font);}
+.btn-add:hover{border-color:var(--accent);}
+.tags-list{display:flex;flex-wrap:wrap;gap:8px;min-height:0;}
+.tag{display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--border);border-radius:20px;padding:5px 10px 5px 12px;font-size:12px;font-weight:500;}
+.tag-rm{background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:0;line-height:1;transition:color .15s;}
+.tag-rm:hover{color:var(--danger);}
+.tag-rm svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;}
+
+/* Personal row card */
+.p-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;position:relative;}
+.p-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.p-card-name{font-size:13px;font-weight:600;}
+.btn-rm-card{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color .15s;}
+.btn-rm-card:hover{color:var(--danger);}
+.btn-rm-card svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* Incidencia / Equipo row */
+.row-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;}
+.row-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.row-num{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;cursor:pointer;}
+.toggle-label{font-size:13px;font-weight:600;}
+.toggle-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.sw{position:relative;width:44px;height:24px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;position:absolute;}
+.sw-track{position:absolute;inset:0;background:var(--s3);border-radius:12px;transition:background .2s;border:1px solid var(--border);}
+.sw input:checked ~ .sw-track{background:var(--accent);}
+.sw-thumb{position:absolute;left:3px;top:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform .2s;pointer-events:none;}
+.sw input:checked ~ .sw-thumb{transform:translateX(20px);}
+
+/* Urgency pills */
+.urgency-group{display:flex;gap:8px;flex-wrap:wrap;}
+.urgency-pill{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--s2);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;user-select:none;}
+.urgency-pill:hover{border-color:var(--bh);}
+.urgency-pill.selected-critical{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.5);color:#fca5a5;}
+.urgency-pill.selected-alta{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.5);color:#fcd34d;}
+.urgency-pill.selected-media{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.5);color:#93c5fd;}
+.dot{width:6px;height:6px;border-radius:50%;}
+.dot-critical{background:#ef4444;}
+.dot-alta{background:#f59e0b;}
+.dot-media{background:#3b82f6;}
+
+/* File upload */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;}
+.upload-zone:hover,.upload-zone.has-file{border-color:var(--accent);}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-icon{font-size:24px;margin-bottom:8px;}
+.upload-text{font-size:13px;color:var(--muted);}
+.upload-name{font-size:12px;font-weight:600;color:var(--accent);margin-top:6px;}
+
+/* Submit area */
+.submit-bar{background:var(--s1);border-top:1px solid var(--border);padding:16px 24px;position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;z-index:100;}
+.submit-info{font-size:12px;color:var(--muted);}
+.btn-submit{background:linear-gradient(135deg,var(--accent),var(--acc2));color:white;border:none;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;padding:13px 32px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity .2s,transform .1s;}
+.btn-submit:hover{opacity:.9;transform:translateY(-1px);}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-submit svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Success screen */
+.success-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px 20px;}
+.success-icon{width:72px;height:72px;background:rgba(34,197,94,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.success-icon svg{width:36px;height:36px;stroke:#4ade80;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.success-screen h2{font-size:24px;font-weight:700;margin-bottom:8px;}
+.success-screen p{color:var(--muted);font-size:14px;line-height:1.6;}
+
+/* Already sent */
+.already-card{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:16px;padding:20px 24px;margin-bottom:16px;display:none;align-items:center;gap:14px;}
+.already-card svg{width:24px;height:24px;stroke:#60a5fa;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+
+/* Chip base label */
+.base-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+
+/* Spinner */
+.spin{animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:999;transform:translateX(120%);transition:transform .3s ease;}
+.toast.show{transform:translateX(0);}
+.toast svg{width:16px;height:16px;flex-shrink:0;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg id="toastIcon" viewBox="0 0 24 24"></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M8 6v6l4 2 4-2V6M4 3h16a1 1 0 011 1v16a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg></div>
+    <div>
+      <h1>Reporte Diario de Operación</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px;" id="fechaHoy"></div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="clock-badge" id="clockBadge">
+      <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="clockTxt">--:--</span>
+    </div>
+    <div class="user-chip">
+      <div class="av" id="userAv">?</div>
+      <span id="userName">Cargando...</span>
+    </div>
+    <button class="btn-out" onclick="logout()">Salir</button>
+  </div>
+</div>
+
+<div class="main" id="mainForm">
+
+  <!-- Base chip & already sent notice -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div class="base-chip" id="baseChip">📍 Base —</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);" id="dateLabel"></div>
+  </div>
+
+  <div class="already-card" id="alreadyCard">
+    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#93c5fd;">Reporte ya enviado hoy</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">Tu reporte de hoy fue registrado a las <strong id="alreadyHora">--:--</strong>. Puedes enviar uno nuevo si necesitas actualizar información.</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-label"><span>Progreso del formulario</span><span id="progressPct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 1. PERSONAL HOY                                        -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-blue">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Personal en turno hoy</div>
+        <div class="section-sub">Indica quién trabaja, su horario y ubicación asignada</div>
+      </div>
+    </div>
+
+    <div id="personalList"></div>
+
+    <!-- Nueva persona -->
+    <div class="row-card" id="addPersonCard">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">➕ Agregar persona</div>
+      <div class="grid2">
+        <div class="field" style="margin:0;"><label>Nombre / Clave</label>
+          <input type="text" id="p_nombre" placeholder="Ej: Juan Pérez / EMP-045"></div>
+        <div class="field" style="margin:0;"><label>Puesto</label>
+          <select id="p_puesto">
+            <option value="">Seleccionar...</option>
+            <option>Operador</option><option>Boletera</option><option>Supervisor</option>
+            <option>Técnico</option><option>Auxiliar</option><option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:10px;">
+        <div class="field" style="margin:0;"><label>Hora entrada</label>
+          <input type="time" id="p_entrada"></div>
+        <div class="field" style="margin:0;"><label>Hora salida</label>
+          <input type="time" id="p_salida"></div>
+      </div>
+      <div class="field" style="margin-top:10px;margin-bottom:10px;"><label>Ubicación</label>
+        <input type="text" id="p_ubicacion" placeholder="Ej: Terminal Norte, Ruta 7, Oficina Central..."></div>
+      <button class="btn-add" onclick="addPersonal()">Agregar al turno</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 2. AUSENTISMO                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-red">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Ausentismo</div>
+        <div class="section-sub">Registra ausencias, razón y documento de justificación</div>
+      </div>
+    </div>
+
+    <label class="toggle-row" onclick="toggleAusentismo()">
+      <div>
+        <div class="toggle-label">¿Hay ausentismo hoy?</div>
+        <div class="toggle-sub">Activa si algún colaborador no se presentó</div>
+      </div>
+      <label class="sw" onclick.stop>
+        <input type="checkbox" id="swAusentismo" onchange="toggleAusentismo()">
+        <div class="sw-track"></div><div class="sw-thumb"></div>
+      </label>
+    </label>
+
+    <div id="ausentismoList" style="display:none;margin-top:4px;"></div>
+    <div id="addAusenCard" style="display:none;">
+      <div class="row-card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">➕ Agregar ausencia</div>
+        <div class="grid2">
+          <div class="field" style="margin:0;"><label>Colaborador / Clave</label>
+            <input type="text" id="a_nombre" placeholder="Nombre o clave"></div>
+          <div class="field" style="margin:0;"><label>Razón de ausencia</label>
+            <select id="a_razon">
+              <option value="">Seleccionar...</option>
+              <option>Enfermedad</option><option>Permiso personal</option>
+              <option>Incapacidad IMSS</option><option>Falta injustificada</option>
+              <option>Accidente</option><option>Asunto familiar</option><option>Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:10px;"><label>Notas adicionales</label>
+          <input type="text" id="a_notas" placeholder="Detalles relevantes de la ausencia..."></div>
+        <div class="field" style="margin-bottom:10px;"><label>Documento justificante (opcional)</label>
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="a_doc" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected(this)">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">Arrastra aquí o haz clic para adjuntar</div>
+            <div class="upload-name" id="uploadName"></div>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addAusencia()">Registrar ausencia</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 3. INCIDENCIAS ACTIVAS                                 -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-amber">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Incidencias activas</div>
+        <div class="section-sub">Solo las que impactan operación actual</div>
+      </div>
+    </div>
+
+    <div id="incidenciasList"></div>
+    <button class="btn-add" onclick="addIncidencia()" style="width:100%;margin-top:0;">+ Nueva incidencia</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 4. EQUIPOS FUERA DE SERVICIO                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-purple">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Equipos fuera de servicio</div>
+        <div class="section-sub">Boleteras, terminales bancarias, SIMs, cámaras, DVR, módems, etc.</div>
+      </div>
+    </div>
+
+    <div id="equiposList"></div>
+    <button class="btn-add" onclick="addEquipo()" style="width:100%;margin-top:0;">+ Agregar equipo</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 5. REFACCIONES / PAPELERÍA / HERRAMIENTA               -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-teal">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Refacciones y artículos urgentes</div>
+        <div class="section-sub">Papelería, herramienta o piezas críticas que se necesitan</div>
+      </div>
+    </div>
+
+    <div id="refaccionesList"></div>
+    <button class="btn-add" onclick="addRefaccion()" style="width:100%;margin-top:0;">+ Agregar artículo</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 6. RIESGO 72H                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-red">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="section-title">¿Qué puede afectar la operación en las próximas 72 horas?</div>
+        <div class="section-sub">Anticipación de riesgos y eventos relevantes</div>
+      </div>
+    </div>
+    <div class="field" style="margin:0;">
+      <textarea id="riesgo72h" placeholder="Describe situaciones, eventos, vencimientos, mantenimientos, condiciones externas o cualquier factor que pueda impactar la operación en los próximos 3 días..." oninput="updateProgress()"></textarea>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 7. OBSERVACIONES ADICIONALES                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-icon si-green">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Observaciones adicionales</div>
+        <div class="section-sub">Cualquier otro comentario o información relevante del día</div>
+      </div>
+    </div>
+    <div class="field" style="margin:0;">
+      <textarea id="adicional" placeholder="Logros del día, felicitaciones al personal, situaciones inusuales, comentarios de usuarios, coordinación con otras áreas..." oninput="updateProgress()" style="min-height:110px;"></textarea>
+    </div>
+  </div>
+
+  <div style="height:80px;"></div>
+</div>
+
+<!-- Success screen -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+  <h2>¡Reporte enviado con éxito!</h2>
+  <p style="max-width:340px;margin:0 auto;">Tu reporte de operación fue registrado correctamente.<br>Tu jefe recibirá notificación en el panel de control.</p>
+  <div style="margin-top:28px;padding:16px 24px;background:var(--s1);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--muted);">
+    Enviado por: <strong id="sUserName" style="color:var(--text);"></strong> &nbsp;|&nbsp; <span id="sBase"></span> &nbsp;|&nbsp; <span id="sHora"></span>
+  </div>
+  <button class="btn-add" style="margin-top:20px;padding:12px 28px;" onclick="location.reload()">Volver al formulario</button>
+</div>
+
+<!-- Submit bar -->
+<div class="submit-bar" id="submitBar">
+  <div class="submit-info" id="submitInfo">Completa el formulario antes de las 10:00 AM</div>
+  <button class="btn-submit" id="btnSubmit" onclick="submitReport()">
+    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    Enviar reporte
+  </button>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const API_REPORT = 'https://script.google.com/macros/s/AKfycbzEB5Wz9RB25h3izbdkya1b62Ve2rKvkdlc_ShzQDSBJnJM_tHgP8Oz-BUzbKVRzsJ_/exec'; 
+
+// ── DATA ────────────────────────────────────────────────────
+let user = null;
+let personalData    = [];
+let ausentismoData  = [];
+let incidenciasData = [];
+let equiposData     = [];
+let refaccionesData = [];
+let ausentismoOn    = false;
+
+// ── INIT ────────────────────────────────────────────────────
+function init() {
+  const raw = sessionStorage.getItem('user');
+  if (!raw) { window.location.href = 'login.html'; return; }
+  try { user = JSON.parse(raw); } catch(_) { window.location.href = 'login.html'; return; }
+  if (!user || (user.rol||'').toLowerCase() !== 'coordinador') { window.location.href = 'login.html'; return; }
+
+  document.getElementById('userName').textContent = user.nombre || user.clave;
+  document.getElementById('userAv').textContent = (user.nombre||'?')[0].toUpperCase();
+  document.getElementById('baseChip').innerHTML = '📍 Base: ' + (user.base || '—');
+
+  const now = new Date();
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('fechaHoy').textContent = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+  document.getElementById('dateLabel').textContent = `Fecha: ${now.toLocaleDateString('es-MX')}`;
+
+  updateClock();
+  setInterval(updateClock, 1000);
+  updateProgress();
+}
+
+function updateClock() {
+  const now  = new Date();
+  const h    = now.getHours().toString().padStart(2,'0');
+  const m    = now.getMinutes().toString().padStart(2,'0');
+  const s    = now.getSeconds().toString().padStart(2,'0');
+  const el   = document.getElementById('clockTxt');
+  const badge= document.getElementById('clockBadge');
+  el.textContent = `${h}:${m}:${s}`;
+  const late = now.getHours() >= 10;
+  badge.classList.toggle('late', late);
+  document.getElementById('submitInfo').textContent = late
+    ? '⚠️ Ya son las ' + h + ':' + m + ' — el reporte debió enviarse antes de las 10:00 AM'
+    : `Formulario del ${now.toLocaleDateString('es-MX')} — enviar antes de las 10:00 AM`;
+}
+
+function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+// ── PROGRESS ────────────────────────────────────────────────
+function updateProgress() {
+  let filled = 0;
+  const total = 5;
+  if (personalData.length > 0) filled++;
+  if (document.getElementById('riesgo72h').value.trim()) filled++;
+  if (document.getElementById('adicional').value.trim()) filled++;
+  if (incidenciasData.length > 0 || true) filled++; // incidencias optional
+  filled++; // siempre al menos 1
+  const pct = Math.min(100, Math.round((personalData.length > 0 ? 20 : 0)
+    + (incidenciasData.length > 0 ? 15 : 0)
+    + (document.getElementById('riesgo72h').value.trim() ? 25 : 0)
+    + (document.getElementById('adicional').value.trim() ? 15 : 0)
+    + (equiposData.length > 0 ? 10 : 0)
+    + (refaccionesData.length > 0 ? 10 : 0)
+    + 5));
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// ── PERSONAL ────────────────────────────────────────────────
+function renderPersonal() {
+  const el = document.getElementById('personalList');
+  el.innerHTML = personalData.map((p,i) => `
+    <div class="p-card">
+      <div class="p-card-head">
+        <div>
+          <div class="p-card-name">${p.nombre}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${p.puesto}</div>
+        </div>
+        <button class="btn-rm-card" onclick="rmPersonal(${i})">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:12px;color:var(--muted);">🕐 ${p.entrada} – ${p.salida}</div>
+        <div style="font-size:12px;color:var(--muted);">📍 ${p.ubicacion}</div>
+      </div>
+    </div>`).join('');
+  updateProgress();
+}
+
+function addPersonal() {
+  const nombre    = document.getElementById('p_nombre').value.trim();
+  const puesto    = document.getElementById('p_puesto').value;
+  const entrada   = document.getElementById('p_entrada').value;
+  const salida    = document.getElementById('p_salida').value;
+  const ubicacion = document.getElementById('p_ubicacion').value.trim();
+  if (!nombre || !puesto || !entrada || !salida || !ubicacion) {
+    toast('Completa todos los campos del personal', 'warn'); return;
+  }
+  personalData.push({ nombre, puesto, entrada, salida, ubicacion });
+  ['p_nombre','p_puesto','p_entrada','p_salida','p_ubicacion'].forEach(id => {
+    const el = document.getElementById(id);
+    el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = '');
+  });
+  renderPersonal();
+  toast('Personal agregado al turno', 'ok');
+}
+
+function rmPersonal(i) { personalData.splice(i,1); renderPersonal(); }
+
+// ── AUSENTISMO ──────────────────────────────────────────────
+function toggleAusentismo() {
+  ausentismoOn = !ausentismoOn;
+  document.getElementById('swAusentismo').checked = ausentismoOn;
+  document.getElementById('ausentismoList').style.display = ausentismoOn ? 'block' : 'none';
+  document.getElementById('addAusenCard').style.display   = ausentismoOn ? 'block' : 'none';
+  if (!ausentismoOn) ausentismoData = [];
+  renderAusentismo();
+}
+
+function renderAusentismo() {
+  const el = document.getElementById('ausentismoList');
+  el.innerHTML = ausentismoData.map((a,i) => `
+    <div class="row-card">
+      <div class="row-card-head">
+        <span class="row-num">Ausencia ${i+1}</span>
+        <button class="btn-rm-card" onclick="rmAusencia(${i})">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="font-size:13px;font-weight:600;">${a.nombre}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Razón: ${a.razon} ${a.notas ? '— ' + a.notas : ''}</div>
+      ${a.docName ? `<div style="font-size:11px;color:var(--accent);margin-top:4px;">📎 ${a.docName}</div>` : ''}
+    </div>`).join('');
+  updateProgress();
+}
+
+function addAusencia() {
+  const nombre = document.getElementById('a_nombre').value.trim();
+  const razon  = document.getElementById('a_razon').value;
+  const notas  = document.getElementById('a_notas').value.trim();
+  const docEl  = document.getElementById('a_doc');
+  const docName= docEl.files[0] ? docEl.files[0].name : '';
+  if (!nombre || !razon) { toast('Indica nombre y razón de la ausencia', 'warn'); return; }
+  ausentismoData.push({ nombre, razon, notas, docName });
+  document.getElementById('a_nombre').value = '';
+  document.getElementById('a_razon').selectedIndex = 0;
+  document.getElementById('a_notas').value = '';
+  docEl.value = '';
+  document.getElementById('uploadName').textContent = '';
+  document.getElementById('uploadZone').classList.remove('has-file');
+  renderAusentismo();
+  toast('Ausencia registrada', 'ok');
+}
+
+function rmAusencia(i) { ausentismoData.splice(i,1); renderAusentismo(); }
+
+function fileSelected(inp) {
+  const name = inp.files[0] ? inp.files[0].name : '';
+  document.getElementById('uploadName').textContent = name;
+  document.getElementById('uploadZone').classList.toggle('has-file', !!name);
+}
+
+// ── INCIDENCIAS ─────────────────────────────────────────────
+function renderIncidencias() {
+  const el = document.getElementById('incidenciasList');
+  el.innerHTML = incidenciasData.map((inc,i) => `
+    <div class="row-card">
+      <div class="row-card-head">
+        <span class="row-num">Incidencia ${i+1}</span>
+        <button class="btn-rm-card" onclick="rmIncidencia(${i})">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="grid2">
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Entidad</label>
+          <input class="field input" value="${inc.entidad}" onchange="incidenciasData[${i}].entidad=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Seguimiento por</label>
+          <input value="${inc.seguimiento_por}" onchange="incidenciasData[${i}].seguimiento_por=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+      </div>
+      <div style="margin-top:8px;"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Descripción</label>
+        <textarea onchange="incidenciasData[${i}].descripcion=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;resize:vertical;min-height:64px;">${inc.descripcion}</textarea>
+      </div>
+      <div class="grid2" style="margin-top:8px;">
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Desde fecha</label>
+          <input type="date" value="${inc.desde_fecha}" onchange="incidenciasData[${i}].desde_fecha=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Desde hora</label>
+          <input type="time" value="${inc.desde_hora}" onchange="incidenciasData[${i}].desde_hora=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+      </div>
+    </div>`).join('');
+  updateProgress();
+}
+
+function addIncidencia() {
+  const today = new Date().toISOString().split('T')[0];
+  const now   = new Date().toTimeString().slice(0,5);
+  incidenciasData.push({ entidad:'', descripcion:'', desde_fecha: today, desde_hora: now, seguimiento_por:'' });
+  renderIncidencias();
+  updateProgress();
+}
+
+function rmIncidencia(i) { incidenciasData.splice(i,1); renderIncidencias(); }
+
+// ── EQUIPOS ─────────────────────────────────────────────────
+const TIPO_EQUIPOS = ['Boletera','Terminal bancaria','SIM / Chip','Cámara','DVR','Módem','GPS','Pantalla','Impresora','Otro'];
+
+function renderEquipos() {
+  const el = document.getElementById('equiposList');
+  el.innerHTML = equiposData.map((eq,i) => `
+    <div class="row-card">
+      <div class="row-card-head">
+        <span class="row-num">Equipo ${i+1}</span>
+        <button class="btn-rm-card" onclick="rmEquipo(${i})">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="grid2">
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Unidad / No. económico</label>
+          <input value="${eq.unidad}" onchange="equiposData[${i}].unidad=this.value" placeholder="Ej: Unidad 042" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Tipo de equipo</label>
+          <select onchange="equiposData[${i}].tipo_equipo=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;appearance:none;">
+            ${TIPO_EQUIPOS.map(t=>`<option value="${t}" ${eq.tipo_equipo===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:8px;"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Descripción del problema</label>
+        <input value="${eq.descripcion}" onchange="equiposData[${i}].descripcion=this.value" placeholder="Qué falla, síntoma observado..." style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+    </div>`).join('');
+  updateProgress();
+}
+
+function addEquipo() {
+  equiposData.push({ unidad:'', tipo_equipo:'Boletera', descripcion:'' });
+  renderEquipos();
+}
+
+function rmEquipo(i) { equiposData.splice(i,1); renderEquipos(); }
+
+// ── REFACCIONES ─────────────────────────────────────────────
+function renderRefacciones() {
+  const el = document.getElementById('refaccionesList');
+  el.innerHTML = refaccionesData.map((r,i) => `
+    <div class="row-card">
+      <div class="row-card-head">
+        <span class="row-num">Artículo ${i+1}</span>
+        <button class="btn-rm-card" onclick="rmRefaccion(${i})">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="grid2">
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Artículo / Refacción</label>
+          <input value="${r.articulo}" onchange="refaccionesData[${i}].articulo=this.value" placeholder="Nombre del artículo" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+        <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Cantidad</label>
+          <input type="number" min="1" value="${r.cantidad||1}" onchange="refaccionesData[${i}].cantidad=this.value" style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Urgencia</label>
+        <div class="urgency-group">
+          ${['critica','alta','media'].map(u => `
+            <div class="urgency-pill ${r.urgencia===u?'selected-'+u:''}" onclick="setUrgencia(${i},'${u}')">
+              <div class="dot dot-${u==='critica'?'critical':u}"></div>${u.charAt(0).toUpperCase()+u.slice(1)}
+            </div>`).join('')}
+        </div>
+      </div>
+      <div style="margin-top:8px;"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Notas</label>
+        <input value="${r.notas||''}" onchange="refaccionesData[${i}].notas=this.value" placeholder="Detalles, modelo, especificaciones..." style="margin-top:4px;width:100%;background:var(--s3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;"></div>
+    </div>`).join('');
+  updateProgress();
+}
+
+function addRefaccion() {
+  refaccionesData.push({ articulo:'', urgencia:'alta', cantidad:1, notas:'' });
+  renderRefacciones();
+}
+
+function rmRefaccion(i) { refaccionesData.splice(i,1); renderRefacciones(); }
+
+function setUrgencia(i, u) {
+  refaccionesData[i].urgencia = u;
+  renderRefacciones();
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────
+async function submitReport() {
+  if (personalData.length === 0) {
+    toast('Agrega al menos una persona en turno', 'warn'); return;
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="spin" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Enviando...`;
+
+  const now   = new Date();
+  const fecha = now.toISOString().split('T')[0];
+
+  const payload = {
+    action: 'saveReporte',
+    clave:  user.clave,
+    nombre: user.nombre,
+    base:   user.base,
+    fecha,
+    personal_hoy:       personalData,
+    horarios:           personalData.map(p => ({ nombre: p.nombre, entrada: p.entrada, salida: p.salida })),
+    ubicaciones:        personalData.map(p => ({ nombre: p.nombre, ubicacion: p.ubicacion })),
+    ausentismo:         ausentismoOn,
+    ausentismo_detalle: ausentismoData,
+    incidencias:        incidenciasData,
+    equipos_fuera:      equiposData,
+    refacciones:        refaccionesData,
+    riesgo_72h:         document.getElementById('riesgo72h').value.trim(),
+    adicional:          document.getElementById('adicional').value.trim()
+  };
+
+  try {
+    const resp = await fetch(API_REPORT, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await resp.json();
+
+    if (data.ok) {
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('submitBar').style.display = 'none';
+      const s = document.getElementById('successScreen');
+      s.style.display = 'flex';
+      document.getElementById('sUserName').textContent = user.nombre;
+      document.getElementById('sBase').textContent = 'Base: ' + user.base;
+      document.getElementById('sHora').textContent = now.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'});
+    } else {
+      throw new Error(data.error || 'Error desconocido');
+    }
+  } catch(err) {
+    toast('Error al enviar: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar reporte`;
+  }
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const el  = document.getElementById('toast');
+  const ico = document.getElementById('toastIcon');
+  const txt = document.getElementById('toastMsg');
+  const icons = {
+    ok:   `<polyline points="20 6 9 17 4 12" style="stroke:var(--success);"/>`,
+    warn: `<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" style="stroke:var(--warn);"/><line x1="12" y1="9" x2="12" y2="13" style="stroke:var(--warn);"/><line x1="12" y1="17" x2="12.01" y2="17" style="stroke:var(--warn);"/>`,
+    error:`<circle cx="12" cy="12" r="10" style="stroke:var(--danger);"/><line x1="15" y1="9" x2="9" y2="15" style="stroke:var(--danger);"/><line x1="9" y1="9" x2="15" y2="15" style="stroke:var(--danger);"/>`
+  };
+  ico.innerHTML = icons[type] || icons.ok;
+  ico.style.strokeWidth = '2';
+  ico.style.fill = 'none';
+  ico.style.strokeLinecap = 'round';
+  txt.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
