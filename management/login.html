@@ -6,18 +6,25 @@
 <title>Acceso — Sistema de Reportes Operativos</title>
 <style>
   :root {
-    --bg:       #0b0f1a;
-    --surface:  #111827;
-    --surface2: #1a2235;
-    --border:   rgba(255,255,255,0.08);
-    --accent:   #3b82f6;
-    --accent2:  #6366f1;
-    --text:     #f1f5f9;
-    --muted:    #94a3b8;
-    --danger:   #ef4444;
-    --success:  #22c55e;
-    --radius:   14px;
-    --font:     'Inter', system-ui, sans-serif;
+    --bg:       #f5f5f7;
+    --surface:  #ffffff;
+    --surface2: #f5f5f7;
+    --border:   rgba(0, 0, 0, 0.06);
+    --accent:   #0071e3;
+    --accent2:  #147efb;
+    --text:     #1d1d1f;
+    --muted:    #6f6f77;
+    --danger:   #ff3b2f;
+    --success:  #34c759;
+    --radius:   10px;
+    --font:     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  }
+
+  html, body {
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,106 +33,111 @@
     font-family: var(--font);
     background: var(--bg);
     min-height: 100vh;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text);
     position: relative;
     overflow: hidden;
+    letter-spacing: -0.3px;
   }
 
-  /* Fondo con patrón de red de transporte */
+  /* Fondo con patrón sutil */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-      radial-gradient(circle at 20% 50%, rgba(59,130,246,0.07) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(99,102,241,0.07) 0%, transparent 50%);
+      radial-gradient(circle at 20% 50%, rgba(0, 113, 227, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(20, 126, 251, 0.04) 0%, transparent 50%);
     pointer-events: none;
   }
 
-  /* Líneas de ruta animadas */
   .bg-lines {
     position: fixed;
     inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
     pointer-events: none;
-    opacity: 0.04;
   }
 
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 16px;
     width: 100%;
-    max-width: 420px;
-    padding: 44px 40px 40px;
+    max-width: 400px;
+    padding: 40px 36px;
     position: relative;
     z-index: 1;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   .brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .brand-icon {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.15);
   }
 
-  .brand-icon svg { width: 22px; height: 22px; fill: white; }
+  .brand-icon svg { width: 20px; height: 20px; fill: white; }
 
   .brand-text h1 {
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.3px;
     color: var(--text);
   }
 
   .brand-text p {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
-    margin-top: 1px;
-    letter-spacing: 0.5px;
+    margin-top: 2px;
+    letter-spacing: 0.3px;
     text-transform: uppercase;
+    font-weight: 500;
   }
 
   h2 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
     margin-bottom: 6px;
   }
 
   .subtitle {
     font-size: 13px;
     color: var(--muted);
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     line-height: 1.5;
   }
 
   .field {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .field label {
     display: block;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--muted);
-    letter-spacing: 0.6px;
+    letter-spacing: 0.3px;
     text-transform: uppercase;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
   }
 
   .input-wrap {
@@ -134,7 +146,7 @@
 
   .input-wrap svg {
     position: absolute;
-    left: 14px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
     width: 16px;
@@ -150,24 +162,24 @@
   .input-wrap input {
     width: 100%;
     background: var(--surface2);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 10px;
     color: var(--text);
     font-family: var(--font);
     font-size: 14px;
-    padding: 12px 14px 12px 42px;
+    padding: 10px 12px 10px 40px;
     outline: none;
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
   .input-wrap input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
   }
 
   .toggle-pw {
     position: absolute;
-    right: 12px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -177,6 +189,11 @@
     color: var(--muted);
     display: flex;
     align-items: center;
+    transition: color 0.2s;
+  }
+
+  .toggle-pw:hover {
+    color: var(--accent);
   }
 
   .toggle-pw svg {
@@ -194,35 +211,35 @@
 
   .btn-login {
     width: 100%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    background: var(--accent);
     color: white;
     border: none;
     border-radius: 10px;
     font-family: var(--font);
     font-size: 14px;
     font-weight: 600;
-    padding: 13px;
+    padding: 11px;
     cursor: pointer;
     margin-top: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: opacity .2s, transform .1s;
+    transition: opacity 0.2s, transform 0.1s;
     position: relative;
     overflow: hidden;
   }
 
-  .btn-login:hover { opacity: .92; transform: translateY(-1px); }
+  .btn-login:hover { opacity: 0.85; transform: translateY(-1px); }
   .btn-login:active { transform: translateY(0); }
-  .btn-login:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
   .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: white;
     border-radius: 50%;
-    animation: spin .7s linear infinite;
+    animation: spin 0.7s linear infinite;
     display: none;
   }
 
@@ -232,7 +249,7 @@
     border-radius: 10px;
     padding: 12px 14px;
     font-size: 13px;
-    margin-top: 14px;
+    margin-top: 12px;
     display: none;
     align-items: flex-start;
     gap: 10px;
@@ -240,15 +257,15 @@
   }
 
   .alert-error {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.25);
-    color: #fca5a5;
+    background: rgba(255, 59, 47, 0.1);
+    border: 1px solid rgba(255, 59, 47, 0.2);
+    color: #ff3b2f;
   }
 
   .alert-warn {
-    background: rgba(251,191,36,0.1);
-    border: 1px solid rgba(251,191,36,0.25);
-    color: #fcd34d;
+    background: rgba(245, 110, 0, 0.1);
+    border: 1px solid rgba(245, 110, 0, 0.2);
+    color: #f56e00;
   }
 
   .alert svg {
@@ -265,7 +282,7 @@
   .divider {
     height: 1px;
     background: var(--border);
-    margin: 24px 0;
+    margin: 20px 0;
   }
 
   .footer-note {
@@ -273,23 +290,245 @@
     font-size: 11px;
     color: var(--muted);
     line-height: 1.5;
+    font-weight: 500;
   }
 
   .badge-rol {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: rgba(59,130,246,0.12);
-    border: 1px solid rgba(59,130,246,0.25);
-    color: #93c5fd;
+    background: rgba(0, 113, 227, 0.1);
+    border: 1px solid rgba(0, 113, 227, 0.2);
+    color: #0071e3;
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 3px 8px;
-    border-radius: 20px;
+    letter-spacing: 0.3px;
+    padding: 4px 8px;
+    border-radius: 6px;
     text-transform: uppercase;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     display: inline-flex;
+  }
+
+  /* ═══════════════════════════════════════════════════════ */
+  /* MEDIA QUERIES - RESPONSIVE DESIGN                       */
+  /* ═══════════════════════════════════════════════════════ */
+
+  /* Small phones (max 480px) */
+  @media (max-width: 480px) {
+    body {
+      padding: 16px;
+    }
+
+    .card {
+      max-width: 100%;
+      padding: 28px 20px 24px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .brand {
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .brand-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 14px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      margin-bottom: 18px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .input-wrap input {
+      font-size: 15px;
+      padding: 10px 12px 10px 38px;
+      min-height: 44px;
+    }
+
+    .input-wrap svg {
+      left: 10px;
+      width: 15px;
+      height: 15px;
+    }
+
+    .toggle-pw {
+      right: 8px;
+    }
+
+    .toggle-pw svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .btn-login {
+      padding: 12px;
+      font-size: 13px;
+      margin-top: 8px;
+      min-height: 44px;
+    }
+
+    .alert {
+      font-size: 12px;
+      padding: 10px 12px;
+    }
+
+    .divider {
+      margin: 16px 0;
+    }
+
+    .footer-note {
+      font-size: 10px;
+    }
+
+    .badge-rol {
+      font-size: 9px;
+      padding: 3px 6px;
+      margin-bottom: 14px;
+    }
+  }
+
+  /* Medium phones (481px - 640px) */
+  @media (max-width: 640px) and (min-width: 481px) {
+    body {
+      padding: 20px;
+    }
+
+    .card {
+      max-width: 100%;
+      padding: 32px 24px 28px;
+      border-radius: 14px;
+    }
+
+    .brand {
+      margin-bottom: 24px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+    }
+
+    h2 {
+      font-size: 19px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .field input {
+      min-height: 42px;
+      font-size: 15px;
+    }
+
+    .btn-login {
+      padding: 11px;
+      min-height: 42px;
+    }
+  }
+
+  /* Tablets (641px - 900px) */
+  @media (max-width: 900px) and (min-width: 641px) {
+    body {
+      padding: 24px;
+    }
+
+    .card {
+      max-width: 420px;
+      padding: 40px 36px;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    .input-wrap input {
+      font-size: 14px;
+      min-height: 40px;
+    }
+
+    .btn-login {
+      min-height: 40px;
+    }
+  }
+
+  /* Desktop (900px+) */
+  @media (min-width: 901px) {
+    /* Original desktop styles preserved */
+  }
+
+  /* Landscape mode adjustments */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .card {
+      padding: 24px 32px 20px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 3px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .input-wrap input {
+      padding: 8px 12px 8px 36px;
+      min-height: 36px;
+    }
+
+    .btn-login {
+      padding: 9px 16px;
+      font-size: 13px;
+    }
+
+    .divider {
+      margin: 12px 0;
+    }
+  }
+
+  /* High DPI devices */
+  @media (min-device-pixel-ratio: 2) {
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
   }
 </style>
 </head>
@@ -323,7 +562,7 @@
     <svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;" viewBox="0 0 24 24">
       <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
     </svg>
-    Solo Coordinadores
+    Acceso Restringido
   </span>
 
   <h2>Bienvenido</h2>
@@ -422,27 +661,22 @@ async function doLogin() {
   setLoading(true);
 
   try {
-    const url  = `${API_USERS}?clave=${encodeURIComponent(clave)}&password=${encodeURIComponent(pass)}`;
+    const url  = `${API_USERS}?accion=login&clave=${encodeURIComponent(clave)}&password=${encodeURIComponent(pass)}`;
     const resp = await fetch(url);
     const data = await resp.json();
 
-    // La API devuelve un objeto con campos: clave, nombre, rol, base, password, activo
-    if (!data || data.error || !data.clave) {
-      showError('Credenciales incorrectas. Verifica tu clave y contraseña.');
-      setLoading(false);
-      return;
-    }
-
-    if (data.activo === false || data.activo === 'false' || data.activo === 0) {
-      showWarn('Tu cuenta está inactiva. Contacta al administrador.');
+    // La API devuelve { ok: true, ... } para login; en caso de fallo { ok: false, error: '...' }
+    if (!data || data.ok !== true) {
+      const msg = (data && (data.error || data.mensaje)) ? (data.error || data.mensaje) : 'Credenciales incorrectas. Verifica tu clave y contraseña.';
+      showError(msg);
       setLoading(false);
       return;
     }
 
     const rol = (data.rol || '').toLowerCase().trim();
 
-    if (rol !== 'coordinador') {
-      showWarn(`Tu rol (${data.rol}) no tiene acceso a este módulo. Solo coordinadores pueden ingresar.`);
+    if (rol !== 'coordinador' && rol !== 'jefe') {
+      showWarn(`Tu rol (${data.rol}) no tiene acceso a este módulo. Solo coordinadores o jefes pueden ingresar.`);
       setLoading(false);
       return;
     }
@@ -455,8 +689,8 @@ async function doLogin() {
       base:   data.base
     }));
 
-    // Redirigir
-    window.location.href = 'index.html';
+    // Redirigir según rol
+    window.location.href = rol === 'jefe' ? 'dashboard.html' : 'index.html';
 
   } catch (err) {
     showError('Error de conexión. Intenta de nuevo en un momento.');
@@ -475,7 +709,10 @@ async function doLogin() {
 if (sessionStorage.getItem('user')) {
   try {
     const u = JSON.parse(sessionStorage.getItem('user'));
-    if (u && (u.rol||'').toLowerCase() === 'coordinador') {
+    const rol = (u && (u.rol||'').toLowerCase().trim()) || '';
+    if (rol === 'jefe') {
+      window.location.href = 'dashboard.html';
+    } else if (rol === 'coordinador') {
       window.location.href = 'index.html';
     }
   } catch(_) {}
