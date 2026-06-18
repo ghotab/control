@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandejas — Control de Préstamos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a6bcc;--blue-light:#e8f1fb;--blue-dark:#0d4a99;
+  --green:#15803d;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fef2f2;
+  --amber:#b45309;--amber-light:#fef3c7;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
+  --gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;
+  --gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;
+  --white:#fff;--radius:10px;--radius-sm:7px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 12px rgba(0,0,0,.10);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:#f0f4f8;color:var(--gray-800);font-size:14px;min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* LAYOUT */
+.shell{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--gray-800)}
+.topbar-logo span{width:32px;height:32px;background:var(--blue);border-radius:8px;display:grid;place-items:center}
+.topbar-logo svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-500)}
+.topbar-user strong{color:var(--gray-800)}
+.topbar-base-badge{background:var(--blue-light);color:var(--blue-dark);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+
+.main{display:grid;grid-template-columns:220px 1fr;flex:1;gap:0}
+.sidebar{background:var(--white);border-right:1px solid var(--gray-200);padding:16px 0;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;border-radius:0;color:var(--gray-600);font-size:13.5px;font-weight:500;transition:background .1s,color .1s;border-left:3px solid transparent;margin:1px 0}
+.nav-item svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nav-item:hover{background:var(--gray-50);color:var(--gray-800)}
+.nav-item.active{background:var(--blue-light);color:var(--blue);border-left-color:var(--blue)}
+.nav-section{padding:16px 20px 6px;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase}
+.badge-count{margin-left:auto;background:var(--blue);color:#fff;border-radius:20px;font-size:11px;font-weight:600;padding:1px 7px;min-width:20px;text-align:center}
+.badge-count.warn{background:var(--amber)}
+
+.content{padding:24px;overflow-y:auto}
+.page{display:none}
+.page.active{display:block}
+
+/* CARDS */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);padding:16px;box-shadow:var(--shadow)}
+.stat-card .label{font-size:11.5px;color:var(--gray-500);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.stat-card .value{font-size:26px;font-weight:600;line-height:1}
+.stat-card .sub{font-size:12px;color:var(--gray-500);margin-top:4px}
+.stat-card.urgent .value{color:var(--red)}
+.stat-card.warn .value{color:var(--amber)}
+.stat-card.ok .value{color:var(--green)}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:16px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-outline{background:var(--white);color:var(--gray-700);border:1px solid var(--gray-300)}
+.btn-outline:hover{background:var(--gray-50)}
+.btn-sm{padding:5px 12px;font-size:12.5px}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fca5a5}
+.btn-danger:hover{background:#fee2e2}
+.btn-success{background:var(--green-light);color:var(--green);border:1px solid #86efac}
+.btn-success:hover{background:#bbf7d0}
+
+/* TABLE */
+.card-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+table th{font-size:11.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em;padding:10px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);white-space:nowrap;text-align:left}
+table td{padding:11px 14px;border-bottom:1px solid var(--gray-100);vertical-align:middle;font-size:13.5px}
+table tr:last-child td{border-bottom:none}
+table tr:hover td{background:var(--gray-50)}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill-red{background:var(--red-light);color:var(--red)}
+.pill-amber{background:var(--amber-light);color:var(--amber)}
+.pill-green{background:var(--green-light);color:var(--green)}
+.pill-blue{background:var(--blue-light);color:var(--blue-dark)}
+.pill-gray{background:var(--gray-100);color:var(--gray-600)}
+.days-critical{color:var(--red);font-weight:600}
+.days-warning{color:var(--amber);font-weight:600}
+.days-ok{color:var(--gray-600)}
+.code-bandeja{font-family:monospace;font-size:13px;background:var(--gray-100);padding:2px 7px;border-radius:4px;color:var(--gray-800)}
+.empty-state{text-align:center;padding:48px 24px;color:var(--gray-400)}
+.empty-state svg{width:44px;height:44px;margin:0 auto 12px;opacity:.4;display:block}
+.empty-state p{font-size:14px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:14px;box-shadow:var(--shadow-md);width:100%;max-width:580px;max-height:90vh;overflow-y:auto;flex-shrink:0}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+.modal-header h2{font-size:17px;font-weight:600}
+.modal-close{background:var(--gray-100);border:none;cursor:pointer;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--gray-600);flex-shrink:0}
+.modal-close:hover{background:var(--gray-200)}
+.modal-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.modal-body{padding:20px 24px 24px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12.5px;font-weight:600;color:var(--gray-600);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.form-label .req{color:var(--red);margin-left:2px}
+.form-control{width:100%;padding:9px 12px;border:1px solid var(--gray-300);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--white);color:var(--gray-800);transition:border-color .15s,box-shadow .15s;outline:none}
+.form-control:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,107,204,.12)}
+.form-control:disabled{background:var(--gray-100);color:var(--gray-500)}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath stroke='%236b7280' stroke-width='2' stroke-linecap='round' fill='none' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-hint{font-size:12px;color:var(--gray-400);margin-top:4px}
+.form-error{font-size:12px;color:var(--red);margin-top:4px;display:none}
+.form-error.show{display:block}
+
+/* SCAN AREA */
+.scan-area{border:2px dashed var(--gray-300);border-radius:var(--radius);padding:16px;text-align:center;background:var(--gray-50);cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+.scan-area:hover{border-color:var(--blue);background:var(--blue-light)}
+.scan-area svg{width:28px;height:28px;stroke:var(--gray-400);fill:none;stroke-width:1.5;stroke-linecap:round;margin-bottom:6px}
+.scan-area p{font-size:13px;color:var(--gray-500)}
+.scan-area input[type=text]{position:absolute;opacity:0;width:1px;height:1px}
+.scan-result{display:flex;align-items:center;gap:8px;background:var(--green-light);border:1px solid #86efac;border-radius:var(--radius-sm);padding:10px 14px;margin-top:10px}
+.scan-result svg{width:18px;height:18px;stroke:var(--green);fill:none;stroke-width:2;flex-shrink:0}
+.scan-result span{font-family:monospace;font-size:14px;font-weight:600;color:var(--green)}
+.scan-result.hidden{display:none}
+
+/* SWITCH */
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm)}
+.switch-label{font-size:13.5px;color:var(--gray-700)}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-track{position:absolute;inset:0;background:var(--gray-300);border-radius:12px;transition:.2s;cursor:pointer}
+.switch input:checked+.switch-track{background:var(--blue)}
+.switch-track:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked+.switch-track:before{transform:translateX(20px)}
+
+/* CHECKLIST */
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--gray-200);background:var(--white);margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.check-item.checked{border-color:var(--green);background:var(--green-light)}
+.check-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--green);flex-shrink:0;margin-top:1px;cursor:pointer}
+.check-item-label{font-size:13.5px;color:var(--gray-700);line-height:1.4}
+.check-explain{margin-top:8px;display:none}
+.check-explain.show{display:block}
+
+/* CAMERA MODAL */
+.camera-wrap{border-radius:var(--radius);overflow:hidden;background:#000;width:100%;aspect-ratio:4/3;position:relative}
+.camera-wrap video{width:100%;height:100%;object-fit:cover}
+.camera-crosshair{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.camera-crosshair::before,.camera-crosshair::after{content:'';position:absolute;border:2px solid rgba(255,255,255,.7)}
+.camera-crosshair::before{width:160px;height:160px;border-radius:8px}
+
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:0 24px 24px}
+.divider{border:none;border-top:1px solid var(--gray-100);margin:14px 0}
+
+/* FILTER BAR */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar select,.filter-bar input{padding:7px 12px;border:1px solid var(--gray-300);border-radius:var(--radius-sm);font-size:13px;background:var(--white);color:var(--gray-700);outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--blue)}
+.filter-sep{flex:1}
+
+/* TOAST */
+.toast-stack{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999}
+.toast{background:var(--gray-800);color:#fff;padding:12px 16px;border-radius:var(--radius-sm);font-size:13.5px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:8px;animation:toast-in .25s ease;min-width:280px}
+.toast svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;flex-shrink:0}
+.toast.success{background:#14532d}
+.toast.error{background:#7f1d1d}
+@keyframes toast-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.toast.out{animation:toast-out .25s ease forwards}
+@keyframes toast-out{to{opacity:0;transform:translateY(10px)}}
+
+/* LOADING */
+.loading{text-align:center;padding:48px;color:var(--gray-400)}
+.spinner{width:28px;height:28px;border:2.5px solid var(--gray-200);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .main{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .mobile-nav{display:flex!important}
+}
+.mobile-nav{display:none;background:var(--white);border-top:1px solid var(--gray-200);padding:6px;position:sticky;bottom:0;z-index:100;justify-content:space-around}
+.mob-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;color:var(--gray-400);font-size:11px;font-weight:500}
+.mob-nav-item svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mob-nav-item.active{color:var(--blue);background:var(--blue-light)}
+
+.clave-chip{display:inline-flex;align-items:center;gap:6px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:20px;padding:4px 12px;font-size:13px}
+.clave-chip span{font-weight:600;color:var(--gray-800)}
+.table-actions{display:flex;gap:6px}
+
+/* INFO PANEL dentro del form */
+.info-banner{background:var(--blue-light);border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;color:var(--blue-dark);display:flex;align-items:flex-start;gap:8px;margin-bottom:16px}
+.info-banner svg{width:16px;height:16px;stroke:var(--blue);fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+.required-msg{font-size:12px;color:var(--gray-400);margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <span>
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+    </span>
+    Bandejas — Control de Préstamos
+  </div>
+  <div class="topbar-user">
+    <div id="hdr-clave" class="clave-chip"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--gray-500);fill:none;stroke-width:2;stroke-linecap:round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>—</span></div>
+    <div id="hdr-base" class="topbar-base-badge">—</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+      <span id="sidebar-pendiente" class="badge-count warn" style="display:none">0</span>
+    </div>
+    <div class="nav-section">Acciones</div>
+    <div class="nav-item" data-page="prestamo">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
+      Registrar préstamo
+    </div>
+    <div class="nav-item" data-page="devolucion">
+      <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      Registrar devolución
+    </div>
+    <div class="nav-section">Configuración</div>
+    <div class="nav-item" data-page="config">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configuración
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ======= DASHBOARD ======= -->
+    <div class="page active" id="page-dashboard">
+      <div class="section-header" style="margin-bottom:18px">
+        <div>
+          <h1 style="font-size:20px;font-weight:600;margin-bottom:2px">Préstamos activos</h1>
+          <p style="font-size:13px;color:var(--gray-500)">Bandejas actualmente fuera de la base, ordenadas por antigüedad</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-prestamo')">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
+          Nuevo préstamo
+        </button>
+      </div>
+
+      <div class="stat-row" id="stat-row">
+        <div class="stat-card"><div class="label">Total activos</div><div class="value" id="stat-total">—</div><div class="sub">préstamos abiertos</div></div>
+        <div class="stat-card urgent"><div class="label">Crítico (&gt;5 días)</div><div class="value" id="stat-critico">—</div><div class="sub">requieren atención</div></div>
+        <div class="stat-card warn"><div class="label">Alerta (2–4 días)</div><div class="value" id="stat-alerta">—</div><div class="sub">en seguimiento</div></div>
+        <div class="stat-card ok"><div class="label">Recientes (&lt;2 días)</div><div class="value" id="stat-reciente">—</div><div class="sub">dentro de plazo</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="filter-base" onchange="filterTable()">
+          <option value="">Todas las bases</option>
+          <option value="ACAP">Acapulco</option>
+          <option value="ATLA">Atlacomulco</option>
+          <option value="COLI">Colima</option>
+          <option value="GDLJ">Guadalajara</option>
+          <option value="GUZM">Ciudad Guzmán</option>
+          <option value="JILO">Jilotepec</option>
+          <option value="MORE">Morelia</option>
+          <option value="OFOC">Occidente</option>
+          <option value="JRIO">San Juan del Río</option>
+          <option value="TSAT">Saturno</option>
+          <option value="TOLU">Toluca</option>
+        </select>
+        <select id="filter-area" onchange="filterTable()">
+          <option value="">Todas las áreas</option>
+          <option value="Análisis Estadístico Boletera">Análisis Estadístico</option>
+          <option value="Tecnología a Bordo">Tecnología a Bordo</option>
+          <option value="Evidencia Digital">Evidencia Digital</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="Buscar bandeja o responsable…" oninput="filterTable()" style="min-width:220px">
+        <div class="filter-sep"></div>
+        <button class="btn btn-outline btn-sm" onclick="loadPrestamos()">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Actualizar
+        </button>
+      </div>
+
+      <div class="card-wrap">
+        <div id="dash-loading" class="loading"><div class="spinner"></div><p>Cargando préstamos…</p></div>
+        <table id="dash-table" style="display:none">
+          <thead>
+            <tr>
+              <th style="width:40px">#</th>
+              <th>Bandeja</th>
+              <th>Área</th>
+              <th>Responsable</th>
+              <th>Base</th>
+              <th>Motivo</th>
+              <th>Fecha préstamo</th>
+              <th>Días</th>
+              <th>Se regresa</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="dash-tbody"></tbody>
+        </table>
+        <div id="dash-empty" class="empty-state" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <p>No hay préstamos activos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= PRESTAMO PAGE ======= -->
+    <div class="page" id="page-prestamo">
+      <div style="max-width:560px">
+        <div style="margin-bottom:20px">
+          <h1 style="font-size:20px;font-weight:600;margin-bottom:2px">Registrar préstamo</h1>
+          <p style="font-size:13px;color:var(--gray-500)">Escanea la bandeja y completa los datos del préstamo</p>
+        </div>
+        <div class="card-wrap" style="padding:24px">
+          <div id="form-prestamo-inner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= DEVOLUCION PAGE ======= -->
+    <div class="page" id="page-devolucion">
+      <div style="max-width:560px">
+        <div style="margin-bottom:20px">
+          <h1 style="font-size:20px;font-weight:600;margin-bottom:2px">Registrar devolución</h1>
+          <p style="font-size:13px;color:var(--gray-500)">Escanea la bandeja recibida y confirma su estado</p>
+        </div>
+        <div class="card-wrap" style="padding:24px">
+          <div id="form-devolucion-inner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= CONFIG ======= -->
+    <div class="page" id="page-config">
+      <div style="max-width:440px">
+        <div style="margin-bottom:20px">
+          <h1 style="font-size:20px;font-weight:600;margin-bottom:2px">Configuración</h1>
+          <p style="font-size:13px;color:var(--gray-500)">Datos del colaborador guardados localmente</p>
+        </div>
+        <div class="card-wrap" style="padding:24px">
+          <div class="form-group">
+            <label class="form-label">Clave de colaborador <span class="req">*</span></label>
+            <input type="text" id="cfg-clave" class="form-control" placeholder="Ej. 1234567" maxlength="8">
+            <div class="form-hint">7 u 8 dígitos numéricos</div>
+            <div class="form-error" id="cfg-clave-err">Ingresa una clave válida de 7 u 8 dígitos</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Base de operación <span class="req">*</span></label>
+            <select id="cfg-base" class="form-control">
+              <option value="">Seleccionar base…</option>
+              <option value="ACAP">Acapulco</option>
+              <option value="ATLA">Atlacomulco</option>
+              <option value="COLI">Colima</option>
+              <option value="GDLJ">Guadalajara</option>
+              <option value="GUZM">Ciudad Guzmán</option>
+              <option value="JILO">Jilotepec</option>
+              <option value="MORE">Morelia</option>
+              <option value="OFOC">Occidente</option>
+              <option value="JRIO">San Juan del Río</option>
+              <option value="TSAT">Saturno</option>
+              <option value="TOLU">Toluca</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mob-nav-item active" data-page="dashboard">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </div>
+  <div class="mob-nav-item" data-page="prestamo">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
+    Préstamo
+  </div>
+  <div class="mob-nav-item" data-page="devolucion">
+    <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    Devolución
+  </div>
+  <div class="mob-nav-item" data-page="config">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    Config
+  </div>
+</nav>
+
+</div><!-- .shell -->
+
+<!-- MODAL PRÉSTAMO (desde dashboard) -->
+<div class="modal-overlay" id="modal-prestamo">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nuevo préstamo</h2>
+      <button class="modal-close" onclick="closeModal('modal-prestamo')">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-prestamo-body"></div>
+  </div>
+</div>
+
+<!-- MODAL DEVOLUCIÓN (desde dashboard) -->
+<div class="modal-overlay" id="modal-devolucion">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Registrar devolución</h2>
+      <button class="modal-close" onclick="closeModal('modal-devolucion')">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-devolucion-body"></div>
+  </div>
+</div>
+
+<!-- MODAL CÁMARA -->
+<div class="modal-overlay" id="modal-camera">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h2>Escanear código QR</h2>
+      <button class="modal-close" onclick="stopCamera()">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="camera-wrap">
+        <video id="camera-video" autoplay playsinline muted></video>
+        <div class="camera-crosshair"></div>
+      </div>
+      <p style="font-size:12.5px;color:var(--gray-500);margin-top:10px;text-align:center">Apunta al código QR de la bandeja</p>
+      <div id="camera-result" style="margin-top:10px;display:none">
+        <div class="scan-result">
+          <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+          <span id="camera-result-text"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="stopCamera()">Cancelar</button>
+      <button class="btn btn-primary" id="camera-confirm" style="display:none" onclick="confirmCameraScan()">Usar este código</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST STACK -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+// ===== CONFIGURATION =====
+const API_URL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec";
+const SHEET_PRESTAMOS = "Prestamos"; // Sheet name for loans
+
+const BASE_NAMES = {
+  ACAP:'Acapulco',ATLA:'Atlacomulco',COLI:'Colima',GDLJ:'Guadalajara',
+  GUZM:'Ciudad Guzmán',JILO:'Jilotepec',MORE:'Morelia',OFOC:'Occidente',
+  JRIO:'San Juan del Río',TSAT:'Saturno',TOLU:'Toluca'
+};
+
+// ===== STATE =====
+let allPrestamos = [];
+let cameraStream = null;
+let cameraScanCallback = null;
+let cameraCanvasCtx = null;
+let cameraCanvas = null;
+let cameraActive = false;
+let scanInterval = null;
+let pendingCameraCode = null;
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  loadLocalConfig();
+  setupNavigation();
+  loadPrestamos();
+  renderFormPrestamo('form-prestamo-inner', false);
+  renderFormDevolucion('form-devolucion-inner', false);
+});
+
+function loadLocalConfig() {
+  const clave = localStorage.getItem('bp_clave') || '';
+  const base = localStorage.getItem('bp_base') || '';
+  document.getElementById('hdr-clave').querySelector('span').textContent = clave || '—';
+  document.getElementById('hdr-base').textContent = BASE_NAMES[base] || base || '—';
+  const cfgClave = document.getElementById('cfg-clave');
+  const cfgBase = document.getElementById('cfg-base');
+  if (cfgClave) cfgClave.value = clave;
+  if (cfgBase) cfgBase.value = base;
+}
+
+function saveConfig() {
+  const clave = document.getElementById('cfg-clave').value.trim();
+  const base = document.getElementById('cfg-base').value;
+  const err = document.getElementById('cfg-clave-err');
+  if (!/^\d{7,8}$/.test(clave)) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  if (!base) { showToast('Selecciona una base','error'); return; }
+  localStorage.setItem('bp_clave', clave);
+  localStorage.setItem('bp_base', base);
+  loadLocalConfig();
+  showToast('Configuración guardada','success');
+}
+
+// ===== NAVIGATION =====
+function setupNavigation() {
+  document.querySelectorAll('[data-page]').forEach(el => {
+    el.addEventListener('click', () => navigate(el.dataset.page));
+  });
+}
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('[data-page="' + page + '"]').forEach(n => n.classList.add('active'));
+  if (page === 'prestamo') {
+    renderFormPrestamo('form-prestamo-inner', false);
+  }
+  if (page === 'devolucion') {
+    renderFormDevolucion('form-devolucion-inner', false);
+  }
+}
+
+// ===== MODALS =====
+function openModal(id) {
+  const overlay = document.getElementById(id);
+  overlay.classList.add('open');
+  if (id === 'modal-prestamo') renderFormPrestamo('modal-prestamo-body', true);
+  if (id === 'modal-devolucion') renderFormDevolucion('modal-devolucion-body', true);
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ===== SCAN HELPERS =====
+function isMobile() {
+  return /Mobi|Android/i.test(navigator.userAgent);
+}
+
+function makeScanArea(targetInputId, scanBtnId, resultId) {
+  return `
+    <div class="scan-area" id="scan-area-${targetInputId}" onclick="triggerScan('${targetInputId}','${resultId}')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><path d="M21 16h-3v3M21 19v2M16 21h2M8 3H3v2M3 7v2M8 21H5M3 17v2M13 3v2M11 5h2M13 21v-2M11 19h2M21 11V9M19 11h2M3 11v2M5 11H3"/></svg>
+      <p>${isMobile() ? 'Toca para escanear con la cámara' : 'Escanea con lector QR o haz clic para usar cámara'}</p>
+      <input type="text" id="${targetInputId}" autocomplete="off" onkeydown="handleScanInput(event,'${targetInputId}','${resultId}')">
+    </div>
+    <div class="scan-result hidden" id="${resultId}">
+      <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+      <span id="${resultId}-text"></span>
+      <button onclick="clearScan('${targetInputId}','${resultId}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--red);font-size:12px">Limpiar</button>
+    </div>
+  `;
+}
+
+function triggerScan(inputId, resultId) {
+  if (isMobile()) {
+    openCameraModal(inputId, resultId);
+  } else {
+    document.getElementById(inputId).focus();
+  }
+}
+
+function handleScanInput(e, inputId, resultId) {
+  if (e.key === 'Enter' || e.key === 'Tab') {
+    const val = document.getElementById(inputId).value.trim().toUpperCase();
+    if (val) applyScannedCode(inputId, resultId, val);
+  }
+}
+
+function applyScannedCode(inputId, resultId, code) {
+  // Validate format AAAA-00000-Dx
+  const valid = /^[A-Z]{4}-\d{5}-D\d+$/i.test(code);
+  if (!valid) { showToast('Código QR no reconocido: ' + code, 'error'); return; }
+  document.getElementById(inputId).value = code;
+  const rEl = document.getElementById(resultId);
+  rEl.classList.remove('hidden');
+  document.getElementById(resultId + '-text').textContent = code;
+  showToast('Bandeja escaneada: ' + code, 'success');
+}
+
+function clearScan(inputId, resultId) {
+  document.getElementById(inputId).value = '';
+  document.getElementById(resultId).classList.add('hidden');
+  document.getElementById(resultId + '-text').textContent = '';
+}
+
+// ===== CAMERA =====
+function openCameraModal(inputId, resultId) {
+  cameraScanCallback = (code) => applyScannedCode(inputId, resultId, code);
+  pendingCameraCode = null;
+  document.getElementById('camera-result').style.display = 'none';
+  document.getElementById('camera-confirm').style.display = 'none';
+  document.getElementById('modal-camera').classList.add('open');
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      cameraStream = stream;
+      const video = document.getElementById('camera-video');
+      video.srcObject = stream;
+      video.play();
+      cameraCanvas = document.createElement('canvas');
+      cameraCanvasCtx = cameraCanvas.getContext('2d');
+      cameraActive = true;
+      scanQRFrame();
+    })
+    .catch(() => {
+      showToast('No se pudo acceder a la cámara', 'error');
+      document.getElementById('modal-camera').classList.remove('open');
+    });
+}
+
+function scanQRFrame() {
+  if (!cameraActive) return;
+  const video = document.getElementById('camera-video');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    cameraCanvas.height = video.videoHeight;
+    cameraCanvas.width = video.videoWidth;
+    cameraCanvasCtx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
+    const imageData = cameraCanvasCtx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (code) {
+      pendingCameraCode = code.data.trim().toUpperCase();
+      document.getElementById('camera-result-text').textContent = pendingCameraCode;
+      document.getElementById('camera-result').style.display = 'block';
+      document.getElementById('camera-confirm').style.display = 'inline-flex';
+      cameraActive = false;
+      return;
+    }
+  }
+  requestAnimationFrame(scanQRFrame);
+}
+
+function confirmCameraScan() {
+  if (pendingCameraCode && cameraScanCallback) {
+    cameraScanCallback(pendingCameraCode);
+  }
+  stopCamera();
+}
+
+function stopCamera() {
+  cameraActive = false;
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('modal-camera').classList.remove('open');
+  pendingCameraCode = null;
+}
+
+// ===== FORM PRÉSTAMO =====
+function renderFormPrestamo(containerId, isModal) {
+  const clave = localStorage.getItem('bp_clave') || '';
+  const base = localStorage.getItem('bp_base') || '';
+  const container = document.getElementById(containerId);
+
+  container.innerHTML = `
+    ${!clave ? `<div class="info-banner"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>No hay clave configurada. Ingresa tu clave para continuar.</div>` : ''}
+    <p class="required-msg">Los campos con <span style="color:var(--red)">*</span> son obligatorios</p>
+
+    <div class="form-group">
+      <label class="form-label">Bandeja a prestar <span class="req">*</span></label>
+      ${makeScanArea('scan-in-' + containerId, 'scan-btn-' + containerId, 'scan-res-' + containerId)}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Área destino <span class="req">*</span></label>
+        <select class="form-control" id="p-area-${containerId}">
+          <option value="">Seleccionar…</option>
+          <option value="Análisis Estadístico Boletera">Análisis Estadístico Boletera</option>
+          <option value="Tecnología a Bordo">Tecnología a Bordo</option>
+          <option value="Evidencia Digital">Evidencia Digital</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Responsable <span class="req">*</span></label>
+        <input type="text" class="form-control" id="p-resp-${containerId}" placeholder="Ej. Jaime Rodríguez">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Base <span class="req">*</span></label>
+        <select class="form-control" id="p-base-${containerId}">
+          <option value="">Seleccionar…</option>
+          <option value="ACAP">Acapulco</option>
+          <option value="ATLA">Atlacomulco</option>
+          <option value="COLI">Colima</option>
+          <option value="GDLJ">Guadalajara</option>
+          <option value="GUZM">Ciudad Guzmán</option>
+          <option value="JILO">Jilotepec</option>
+          <option value="MORE">Morelia</option>
+          <option value="OFOC">Occidente</option>
+          <option value="JRIO">San Juan del Río</option>
+          <option value="TSAT">Saturno</option>
+          <option value="TOLU">Toluca</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motivo <span class="req">*</span></label>
+        <select class="form-control" id="p-motivo-${containerId}" onchange="toggleMotivoOtro('${containerId}')">
+          <option value="">Seleccionar…</option>
+          <option value="Solicitud de Análisis">Solicitud de Análisis</option>
+          <option value="Apoyo de Cambio">Apoyo de Cambio</option>
+          <option value="Grabación de Siniestro">Grabación de Siniestro</option>
+          <option value="Resguardo">Resguardo</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" id="p-motivo-otro-wrap-${containerId}" style="display:none">
+      <label class="form-label">Especifica el motivo <span class="req">*</span></label>
+      <input type="text" class="form-control" id="p-motivo-otro-${containerId}" placeholder="Describe el motivo del préstamo…">
+    </div>
+
+    <div class="form-group">
+      <div class="switch-row">
+        <span class="switch-label">Se espera la misma bandeja de regreso</span>
+        <label class="switch">
+          <input type="checkbox" id="p-retorno-${containerId}" checked onchange="toggleRetorno('${containerId}')">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group" id="p-retorno-razon-wrap-${containerId}" style="display:none">
+      <label class="form-label">Razón de retiro definitivo <span class="req">*</span></label>
+      <textarea class="form-control" id="p-retorno-razon-${containerId}" rows="2" placeholder="Explique por qué no regresará la misma bandeja…"></textarea>
+    </div>
+
+    ${!clave ? `
+    <div class="form-group">
+      <label class="form-label">Clave colaborador <span class="req">*</span></label>
+      <input type="text" class="form-control" id="p-clave-${containerId}" placeholder="7 u 8 dígitos" maxlength="8">
+      <div class="form-hint">Esta clave se guardará para futuras sesiones</div>
+    </div>` : `<input type="hidden" id="p-clave-${containerId}" value="${clave}">`}
+
+    <hr class="divider">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      ${isModal ? `<button class="btn btn-outline" onclick="closeModal('modal-prestamo')">Cancelar</button>` : ''}
+      <button class="btn btn-primary" onclick="submitPrestamo('${containerId}')">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar préstamo
+      </button>
+    </div>
+  `;
+
+  // Set default base
+  const baseEl = document.getElementById('p-base-' + containerId);
+  if (base && baseEl) baseEl.value = base;
+}
+
+function toggleMotivoOtro(cid) {
+  const val = document.getElementById('p-motivo-' + cid).value;
+  document.getElementById('p-motivo-otro-wrap-' + cid).style.display = val === 'Otro' ? 'block' : 'none';
+}
+
+function toggleRetorno(cid) {
+  const checked = document.getElementById('p-retorno-' + cid).checked;
+  document.getElementById('p-retorno-razon-wrap-' + cid).style.display = checked ? 'none' : 'block';
+}
+
+function submitPrestamo(cid) {
+  const bandeja = document.getElementById('scan-in-' + cid).value.trim().toUpperCase();
+  const area = document.getElementById('p-area-' + cid).value;
+  const resp = document.getElementById('p-resp-' + cid).value.trim();
+  const base = document.getElementById('p-base-' + cid).value;
+  const motivoSel = document.getElementById('p-motivo-' + cid).value;
+  const motivoOtro = document.getElementById('p-motivo-otro-' + cid) ? document.getElementById('p-motivo-otro-' + cid).value.trim() : '';
+  const motivo = motivoSel === 'Otro' ? motivoOtro : motivoSel;
+  const retorno = document.getElementById('p-retorno-' + cid).checked;
+  const retornoRazon = retorno ? '' : (document.getElementById('p-retorno-razon-' + cid) ? document.getElementById('p-retorno-razon-' + cid).value.trim() : '');
+  const claveInput = document.getElementById('p-clave-' + cid);
+  const clave = claveInput ? claveInput.value.trim() : '';
+
+  if (!bandeja) { showToast('Escanea una bandeja primero','error'); return; }
+  if (!area) { showToast('Selecciona el área destino','error'); return; }
+  if (!resp) { showToast('Ingresa el nombre del responsable','error'); return; }
+  if (!base) { showToast('Selecciona la base','error'); return; }
+  if (!motivoSel) { showToast('Selecciona el motivo','error'); return; }
+  if (motivoSel === 'Otro' && !motivoOtro) { showToast('Especifica el motivo','error'); return; }
+  if (!retorno && !retornoRazon) { showToast('Explica la razón de retiro definitivo','error'); return; }
+  if (!/^\d{7,8}$/.test(clave)) { showToast('Ingresa una clave de colaborador válida (7-8 dígitos)','error'); return; }
+
+  if (clave) { localStorage.setItem('bp_clave', clave); localStorage.setItem('bp_base', base); loadLocalConfig(); }
+
+  const payload = {
+    accion: 'registrarPrestamo',
+    bandeja, area, responsable: resp, base, motivo,
+    seRegresa: retorno,
+    razonRetiro: retornoRazon,
+    clave,
+    fecha: new Date().toISOString()
+  };
+
+  const btn = document.querySelector(`[onclick="submitPrestamo('${cid}')"]`);
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.text())
+  .then(() => {
+    showToast('Préstamo registrado correctamente','success');
+    closeModal('modal-prestamo');
+    renderFormPrestamo(cid, cid.includes('modal'));
+    loadPrestamos();
+  })
+  .catch(() => {
+    showToast('Error al guardar. Verifica tu conexión','error');
+    btn.disabled = false;
+    btn.textContent = 'Guardar préstamo';
+  });
+}
+
+// ===== FORM DEVOLUCIÓN =====
+function renderFormDevolucion(containerId, isModal, prefilledBandeja) {
+  const clave = localStorage.getItem('bp_clave') || '';
+  const container = document.getElementById(containerId);
+  const bandejaPre = prefilledBandeja || '';
+
+  container.innerHTML = `
+    ${!clave ? `<div class="info-banner"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>No hay clave configurada. Ingresa tu clave para continuar.</div>` : ''}
+    <p class="required-msg">Los campos con <span style="color:var(--red)">*</span> son obligatorios</p>
+
+    <div class="form-group">
+      <label class="form-label">Bandeja recibida <span class="req">*</span></label>
+      ${makeScanArea('scan-dev-' + containerId, 'scan-dbtn-' + containerId, 'scan-dres-' + containerId)}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" style="margin-bottom:10px">Checklist de recepción <span class="req">*</span></label>
+      ${makeCheckItem('chk-win-' + containerId, 'Detecta Windows correctamente y sin mensajes de error', containerId)}
+      ${makeCheckItem('chk-ceiba-' + containerId, 'Se puede acceder al contenido mediante CEIBA', containerId)}
+      ${makeCheckItem('chk-repro-' + containerId, 'Se pueden reproducir las grabaciones', containerId)}
+      ${makeCheckItem('chk-fisico-' + containerId, 'Sin daños físicos visibles en la bandeja', containerId)}
+    </div>
+
+    ${!clave ? `
+    <div class="form-group">
+      <label class="form-label">Clave colaborador (quien recibe) <span class="req">*</span></label>
+      <input type="text" class="form-control" id="d-clave-${containerId}" placeholder="7 u 8 dígitos" maxlength="8">
+    </div>` : `<input type="hidden" id="d-clave-${containerId}" value="${clave}">`}
+
+    <hr class="divider">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      ${isModal ? `<button class="btn btn-outline" onclick="closeModal('modal-devolucion')">Cancelar</button>` : ''}
+      <button class="btn btn-success" onclick="submitDevolucion('${containerId}')">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round"><path d="M20 6 9 17l-5-5"/></svg>
+        Confirmar devolución
+      </button>
+    </div>
+  `;
+
+  if (bandejaPre) {
+    setTimeout(() => applyScannedCode('scan-dev-' + containerId, 'scan-dres-' + containerId, bandejaPre), 100);
+  }
+}
+
+function makeCheckItem(id, label, cid) {
+  const explainId = id + '-explain';
+  return `
+    <div class="check-item" id="${id}-wrap" onclick="toggleCheck('${id}','${cid}')">
+      <input type="checkbox" id="${id}" onclick="event.stopPropagation();toggleCheck('${id}','${cid}')">
+      <div style="flex:1">
+        <div class="check-item-label">${label}</div>
+        <div class="check-explain" id="${explainId}">
+          <textarea class="form-control" style="margin-top:8px" rows="2"
+            placeholder="Explica por qué no se cumple esta condición… (obligatorio)"
+            id="${explainId}-text" onclick="event.stopPropagation()"></textarea>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleCheck(id, cid) {
+  const chk = document.getElementById(id);
+  chk.checked = !chk.checked;
+  const wrap = document.getElementById(id + '-wrap');
+  const explain = document.getElementById(id + '-explain');
+  if (chk.checked) {
+    wrap.classList.add('checked');
+    explain.classList.remove('show');
+  } else {
+    wrap.classList.remove('checked');
+    explain.classList.add('show');
+  }
+}
+
+function submitDevolucion(cid) {
+  const bandeja = document.getElementById('scan-dev-' + cid).value.trim().toUpperCase();
+  const claveInput = document.getElementById('d-clave-' + cid);
+  const clave = claveInput ? claveInput.value.trim() : '';
+
+  const checks = [
+    { id: 'chk-win-' + cid, label: 'Detecta Windows' },
+    { id: 'chk-ceiba-' + cid, label: 'Acceso CEIBA' },
+    { id: 'chk-repro-' + cid, label: 'Reproducción de grabaciones' },
+    { id: 'chk-fisico-' + cid, label: 'Sin daños físicos' }
+  ];
+
+  if (!bandeja) { showToast('Escanea la bandeja recibida','error'); return; }
+  if (!/^\d{7,8}$/.test(clave)) { showToast('Ingresa una clave de colaborador válida (7-8 dígitos)','error'); return; }
+
+  let checkResults = [];
+  let valid = true;
+  for (const c of checks) {
+    const checked = document.getElementById(c.id).checked;
+    const explainText = document.getElementById(c.id + '-explain-text') ? document.getElementById(c.id + '-explain-text').value.trim() : '';
+    if (!checked && !explainText) {
+      showToast(`Explica por qué no cumple: "${c.label}"`, 'error');
+      valid = false;
+      break;
+    }
+    checkResults.push({ check: c.label, ok: checked, nota: checked ? '' : explainText });
+  }
+  if (!valid) return;
+
+  if (clave) { localStorage.setItem('bp_clave', clave); loadLocalConfig(); }
+
+  const payload = {
+    accion: 'registrarDevolucion',
+    bandeja,
+    clave,
+    checklist: checkResults,
+    fecha: new Date().toISOString()
+  };
+
+  const btn = document.querySelector(`[onclick="submitDevolucion('${cid}')"]`);
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.text())
+  .then(() => {
+    showToast('Devolución registrada correctamente','success');
+    closeModal('modal-devolucion');
+    renderFormDevolucion(cid, cid.includes('modal'));
+    loadPrestamos();
+  })
+  .catch(() => {
+    showToast('Error al guardar. Verifica tu conexión','error');
+    btn.disabled = false;
+    btn.textContent = 'Confirmar devolución';
+  });
+}
+
+// ===== DASHBOARD DATA =====
+function loadPrestamos() {
+  const loading = document.getElementById('dash-loading');
+  const table = document.getElementById('dash-table');
+  const empty = document.getElementById('dash-empty');
+  loading.style.display = 'block';
+  table.style.display = 'none';
+  empty.style.display = 'none';
+
+  fetch(API_URL + '?accion=getPrestamosActivos')
+    .then(r => r.json())
+    .then(data => {
+      loading.style.display = 'none';
+      if (!Array.isArray(data) || data.length === 0) {
+        allPrestamos = [];
+        updateStats([]);
+        empty.style.display = 'block';
+        updateSidebarBadge(0);
+        return;
+      }
+      // Sort by date ascending (oldest first)
+      data.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+      allPrestamos = data;
+      updateStats(data);
+      renderTable(data);
+      table.style.display = 'table';
+      updateSidebarBadge(data.length);
+    })
+    .catch(() => {
+      loading.style.display = 'none';
+      // Demo data when API not yet configured
+      const demo = generateDemoData();
+      allPrestamos = demo;
+      updateStats(demo);
+      renderTable(demo);
+      table.style.display = 'table';
+      updateSidebarBadge(demo.length);
+    });
+}
+
+function generateDemoData() {
+  const now = Date.now();
+  const d = (days) => new Date(now - days * 864e5).toISOString();
+  return [
+    [d(12), 'GDLJ', 'Análisis Estadístico Boletera', 'Luis Herrera', 'CARP-00341-D1', 'Solicitud de Análisis', true, '', 'EVR123456'],
+    [d(9),  'TOLU', 'Evidencia Digital', 'Paola Torres', 'CARP-00198-D2', 'Grabación de Siniestro', true, '', 'EVR234567'],
+    [d(5),  'MORE', 'Tecnología a Bordo', 'Marco Juárez', 'CARP-00422-D1', 'Apoyo de Cambio', false, 'Bandeja dañada, se queda para revisión', 'EVR345678'],
+    [d(3),  'GDLJ', 'Análisis Estadístico Boletera', 'Ana Méndez', 'CARP-00512-D3', 'Solicitud de Análisis', true, '', 'EVR456789'],
+    [d(1),  'ATLA', 'Otro', 'Roberto Lima', 'CARP-00105-D1', 'Resguardo', true, '', 'EVR567890'],
+  ];
+}
+
+function updateStats(data) {
+  const now = Date.now();
+  let critico = 0, alerta = 0, reciente = 0;
+  data.forEach(row => {
+    const days = Math.floor((now - new Date(row[0])) / 864e5);
+    if (days > 4) critico++;
+    else if (days >= 2) alerta++;
+    else reciente++;
+  });
+  document.getElementById('stat-total').textContent = data.length;
+  document.getElementById('stat-critico').textContent = critico;
+  document.getElementById('stat-alerta').textContent = alerta;
+  document.getElementById('stat-reciente').textContent = reciente;
+}
+
+function updateSidebarBadge(n) {
+  const badge = document.getElementById('sidebar-pendiente');
+  if (n > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = n;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('dash-tbody');
+  const now = Date.now();
+  tbody.innerHTML = data.map((row, i) => {
+    // row: [0:fecha, 1:base, 2:area, 3:responsable, 4:bandeja, 5:motivo, 6:seRegresa, 7:razonRetiro, 8:clave]
+    const fecha = new Date(row[0]);
+    const days = Math.floor((now - fecha) / 864e5);
+    const daysClass = days > 7 ? 'days-critical' : days >= 3 ? 'days-warning' : 'days-ok';
+    const daysPill = days > 7 ? 'pill-red' : days >= 3 ? 'pill-amber' : 'pill-green';
+    const dateStr = fecha.toLocaleDateString('es-MX', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const base = row[1] || '—';
+    const area = row[2] || '—';
+    const resp = row[3] || '—';
+    const bandeja = row[4] || '—';
+    const motivo = row[5] || '—';
+    const seRegresa = row[6];
+    const retornoLabel = seRegresa === false || row[6] === false ? `<span class="pill pill-red">Retiro definitivo</span>` : `<span class="pill pill-green">Sí regresa</span>`;
+    return `<tr>
+      <td style="color:var(--gray-400);font-size:12px">${i+1}</td>
+      <td><span class="code-bandeja">${bandeja}</span></td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${area}">${area}</td>
+      <td>${resp}</td>
+      <td><span class="pill pill-blue">${base}</span></td>
+      <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${motivo}">${motivo}</td>
+      <td style="font-size:12.5px;color:var(--gray-500)">${dateStr}</td>
+      <td><span class="pill ${daysPill}">${days === 0 ? 'Hoy' : days + 'd'}</span></td>
+      <td>${retornoLabel}</td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-success btn-sm" onclick="iniciarDevolucion('${bandeja}')">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round"><path d="M20 6 9 17l-5-5"/></svg>
+            Devolver
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable() {
+  const base = document.getElementById('filter-base').value;
+  const area = document.getElementById('filter-area').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+
+  const filtered = allPrestamos.filter(row => {
+    const matchBase = !base || row[1] === base;
+    const matchArea = !area || row[2] === area;
+    const matchSearch = !search || (row[4] || '').toLowerCase().includes(search) || (row[3] || '').toLowerCase().includes(search);
+    return matchBase && matchArea && matchSearch;
+  });
+
+  const table = document.getElementById('dash-table');
+  const empty = document.getElementById('dash-empty');
+  if (filtered.length === 0) { table.style.display = 'none'; empty.style.display = 'block'; }
+  else { table.style.display = 'table'; empty.style.display = 'none'; renderTable(filtered); }
+}
+
+function iniciarDevolucion(bandeja) {
+  openModal('modal-devolucion');
+  // Pre-fill bandeja after render
+  setTimeout(() => {
+    applyScannedCode('scan-dev-modal-devolucion-body', 'scan-dres-modal-devolucion-body', bandeja);
+  }, 200);
+}
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  const stack = document.getElementById('toast-stack');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type === 'success' ? ' success' : type === 'error' ? ' error' : '');
+  const icon = type === 'success'
+    ? '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>'
+    : type === 'error'
+    ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>'
+    : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
+  t.innerHTML = icon + msg;
+  stack.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('out');
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
+}
+</script>
+</body>
+</html>
