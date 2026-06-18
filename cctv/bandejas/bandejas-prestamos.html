@@ -577,7 +577,7 @@ function handleScanInput(e, inputId, resultId) {
 
 function applyScannedCode(inputId, resultId, code) {
   // Validate format AAAA-00000-Dx
-  const valid = /^[A-Z]{4}-\d{5}-D\d+$/i.test(code);
+  const valid = /^[A-Z]{4}-([A-Z]{3}|\d{5})-D\d+$/i.test(code);
   if (!valid) { showToast('Código QR no reconocido: ' + code, 'error'); return; }
   document.getElementById(inputId).value = code;
   const rEl = document.getElementById(resultId);
@@ -610,21 +610,27 @@ function openCameraModal(inputId, resultId) {
     { facingMode: 'environment' },
     config,
     (decodedText) => {
-      pendingCameraCode = decodedText.trim().toUpperCase();
-      document.getElementById('camera-result-text').textContent = pendingCameraCode;
-      document.getElementById('camera-result').style.display = 'block';
-      document.getElementById('camera-confirm').style.display = 'inline-flex';
-      html5QrCode.pause(true);
+      const code = decodedText.trim().toUpperCase();
+      const valid = /^[A-Z]{4}-([A-Z]{3}|\d{5})-D\d+$/i.test(code);
+
+      if (!valid) {
+        // No es un código válido para esta bandeja: ignora y sigue escaneando
+        return;
+      }
+
+      pendingCameraCode = code;
+      cameraScanCallback(pendingCameraCode);
+      stopCamera();
     },
     () => {
-      // se llama constantemente mientras no detecta nada; no requiere acción
+      // se llama constantemente mientras no detecta nada; sigue escaneando sin interrupción
     }
   ).catch(err => {
     showToast('No se pudo acceder a la cámara', 'error');
     console.error(err);
   });
 }
-
+  
 function confirmCameraScan() {
   if (pendingCameraCode && cameraScanCallback) {
     cameraScanCallback(pendingCameraCode);
