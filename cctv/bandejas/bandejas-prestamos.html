@@ -608,43 +608,86 @@ function openCameraModal(inputId, resultId) {
   document.getElementById('camera-result').style.display = 'none';
   document.getElementById('camera-confirm').style.display = 'none';
   document.getElementById('modal-camera').classList.add('open');
+  setCameraDebug('Solicitando cámara…');
 
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+  const constraints = {
+    video: {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    }
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
     .then(stream => {
       cameraStream = stream;
       const video = document.getElementById('camera-video');
       video.srcObject = stream;
-      video.play();
-      cameraCanvas = document.createElement('canvas');
-      cameraCanvasCtx = cameraCanvas.getContext('2d');
-      cameraActive = true;
-      scanQRFrame();
+      video.setAttribute('playsinline', true);
+
+      video.onloadedmetadata = () => {
+        video.play();
+        cameraCanvas = document.createElement('canvas');
+        cameraCanvasCtx = cameraCanvas.getContext('2d', { willReadFrequently: true });
+        cameraActive = true;
+        setCameraDebug('Cámara activa, buscando QR…');
+        scanQRFrame();
+      };
     })
-    .catch(() => {
+    .catch(err => {
+      setCameraDebug('Error de cámara: ' + err.name + ' — ' + err.message);
       showToast('No se pudo acceder a la cámara', 'error');
-      document.getElementById('modal-camera').classList.remove('open');
     });
 }
 
+let frameCount = 0;
 function scanQRFrame() {
   if (!cameraActive) return;
   const video = document.getElementById('camera-video');
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    cameraCanvas.height = video.videoHeight;
+
+  if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
     cameraCanvas.width = video.videoWidth;
+    cameraCanvas.height = video.videoHeight;
     cameraCanvasCtx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
     const imageData = cameraCanvasCtx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+
+    let code = null;
+    try {
+      code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+    } catch (e) {
+      setCameraDebug('Error jsQR: ' + e.message);
+    }
+
+    frameCount++;
+    if (frameCount % 15 === 0) {
+      setCameraDebug(`Buscando… (${video.videoWidth}x${video.videoHeight}, frame ${frameCount})`);
+    }
+
     if (code) {
       pendingCameraCode = code.data.trim().toUpperCase();
       document.getElementById('camera-result-text').textContent = pendingCameraCode;
       document.getElementById('camera-result').style.display = 'block';
       document.getElementById('camera-confirm').style.display = 'inline-flex';
+      setCameraDebug('¡Código detectado!');
       cameraActive = false;
       return;
     }
+  } else {
+    setCameraDebug('Esperando datos de video… readyState=' + video.readyState);
   }
   requestAnimationFrame(scanQRFrame);
+}
+
+function setCameraDebug(msg) {
+  let el = document.getElementById('camera-debug');
+  if (!el) {
+    el = document.createElement('p');
+    el.id = 'camera-debug';
+    el.style.cssText = 'font-size:11px;color:var(--gray-400);text-align:center;margin-top:6px;font-family:monospace';
+    document.querySelector('#modal-camera .modal-body').appendChild(el);
+  }
+  el.textContent = msg;
 }
 
 function confirmCameraScan() {
@@ -656,12 +699,15 @@ function confirmCameraScan() {
 
 function stopCamera() {
   cameraActive = false;
+  frameCount = 0;
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
   }
   document.getElementById('modal-camera').classList.remove('open');
   pendingCameraCode = null;
+  const dbg = document.getElementById('camera-debug');
+  if (dbg) dbg.remove();
 }
 
 // ===== FORM PRÉSTAMO =====
