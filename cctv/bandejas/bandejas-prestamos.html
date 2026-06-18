@@ -6,7 +6,7 @@
 <title>Bandejas — Control de Préstamos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -442,10 +442,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </button>
     </div>
     <div class="modal-body">
-      <div class="camera-wrap">
-        <video id="camera-video" autoplay playsinline muted></video>
-        <div class="camera-crosshair"></div>
-      </div>
+      <div id="qr-reader" style="width:100%;border-radius:var(--radius);overflow:hidden"></div>
       <p style="font-size:12.5px;color:var(--gray-500);margin-top:10px;text-align:center">Apunta al código QR de la bandeja</p>
       <div id="camera-result" style="margin-top:10px;display:none">
         <div class="scan-result">
@@ -460,7 +457,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     </div>
   </div>
 </div>
-
+  
 <!-- TOAST STACK -->
 <div class="toast-stack" id="toast-stack"></div>
 <script>
@@ -476,12 +473,7 @@ const BASE_NAMES = {
 
 // ===== STATE =====
 let allPrestamos = [];
-let cameraStream = null;
 let cameraScanCallback = null;
-let cameraCanvasCtx = null;
-let cameraCanvas = null;
-let cameraActive = false;
-let scanInterval = null;
 let pendingCameraCode = null;
 
 // ===== INIT =====
@@ -601,92 +593,36 @@ function clearScan(inputId, resultId) {
 }
 
 // ===== CAMERA =====
+let html5QrCode = null;
+
 function openCameraModal(inputId, resultId) {
   cameraScanCallback = (code) => applyScannedCode(inputId, resultId, code);
   pendingCameraCode = null;
   document.getElementById('camera-result').style.display = 'none';
   document.getElementById('camera-confirm').style.display = 'none';
   document.getElementById('modal-camera').classList.add('open');
-  setCameraDebug('Solicitando cámara…');
 
-  const constraints = {
-    video: {
-      facingMode: { ideal: 'environment' },
-      width: { ideal: 1280 },
-      height: { ideal: 720 }
-    }
-  };
+  html5QrCode = new Html5Qrcode('qr-reader');
 
-  navigator.mediaDevices.getUserMedia(constraints)
-    .then(stream => {
-      cameraStream = stream;
-      const video = document.getElementById('camera-video');
-      video.srcObject = stream;
-      video.setAttribute('playsinline', true);
+  const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
-      video.onloadedmetadata = () => {
-        video.play();
-        cameraCanvas = document.createElement('canvas');
-        cameraCanvasCtx = cameraCanvas.getContext('2d', { willReadFrequently: true });
-        cameraActive = true;
-        setCameraDebug('Cámara activa, buscando QR…');
-        scanQRFrame();
-      };
-    })
-    .catch(err => {
-      setCameraDebug('Error de cámara: ' + err.name + ' — ' + err.message);
-      showToast('No se pudo acceder a la cámara', 'error');
-    });
-}
-
-let frameCount = 0;
-function scanQRFrame() {
-  if (!cameraActive) return;
-  const video = document.getElementById('camera-video');
-
-  if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-    cameraCanvas.width = video.videoWidth;
-    cameraCanvas.height = video.videoHeight;
-    cameraCanvasCtx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
-
-    const imageData = cameraCanvasCtx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
-
-    let code = null;
-    try {
-      code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
-    } catch (e) {
-      setCameraDebug('Error jsQR: ' + e.message);
-    }
-
-    frameCount++;
-    if (frameCount % 15 === 0) {
-      setCameraDebug(`Buscando… (${video.videoWidth}x${video.videoHeight}, frame ${frameCount})`);
-    }
-
-    if (code) {
-      pendingCameraCode = code.data.trim().toUpperCase();
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    config,
+    (decodedText) => {
+      pendingCameraCode = decodedText.trim().toUpperCase();
       document.getElementById('camera-result-text').textContent = pendingCameraCode;
       document.getElementById('camera-result').style.display = 'block';
       document.getElementById('camera-confirm').style.display = 'inline-flex';
-      setCameraDebug('¡Código detectado!');
-      cameraActive = false;
-      return;
+      html5QrCode.pause(true);
+    },
+    () => {
+      // se llama constantemente mientras no detecta nada; no requiere acción
     }
-  } else {
-    setCameraDebug('Esperando datos de video… readyState=' + video.readyState);
-  }
-  requestAnimationFrame(scanQRFrame);
-}
-
-function setCameraDebug(msg) {
-  let el = document.getElementById('camera-debug');
-  if (!el) {
-    el = document.createElement('p');
-    el.id = 'camera-debug';
-    el.style.cssText = 'font-size:11px;color:var(--gray-400);text-align:center;margin-top:6px;font-family:monospace';
-    document.querySelector('#modal-camera .modal-body').appendChild(el);
-  }
-  el.textContent = msg;
+  ).catch(err => {
+    showToast('No se pudo acceder a la cámara', 'error');
+    console.error(err);
+  });
 }
 
 function confirmCameraScan() {
@@ -697,18 +633,19 @@ function confirmCameraScan() {
 }
 
 function stopCamera() {
-  cameraActive = false;
-  frameCount = 0;
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-    cameraStream = null;
-  }
-  document.getElementById('modal-camera').classList.remove('open');
   pendingCameraCode = null;
-  const dbg = document.getElementById('camera-debug');
-  if (dbg) dbg.remove();
+  document.getElementById('modal-camera').classList.remove('open');
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      html5QrCode = null;
+    }).catch(() => {
+      html5QrCode = null;
+    });
+  }
 }
 
+  
 // ===== FORM PRÉSTAMO =====
 function renderFormPrestamo(containerId, isModal) {
   const clave = localStorage.getItem('bp_clave') || '';
