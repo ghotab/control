@@ -576,7 +576,7 @@ function handleScanInput(e, inputId, resultId) {
 }
 
 function applyScannedCode(inputId, resultId, code) {
-  // Validate format AAAA-00000-Dx
+  // Validate format AAAA-ABC-Dx o AAAA-00000-Dx
   const valid = /^[A-Z]{4}-([A-Z]{3}|\d{5})-D\d+$/i.test(code);
   if (!valid) { showToast('Código QR no reconocido: ' + code, 'error'); return; }
   document.getElementById(inputId).value = code;
@@ -804,20 +804,29 @@ function submitPrestamo(cid) {
   btn.disabled = true;
   btn.textContent = 'Guardando…';
 
-fetch(API_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-  body: JSON.stringify(payload)
-})
-  .then(r => r.text())
-  .then(() => {
+  console.log('=== DEBUG PRÉSTAMO ===');
+  console.log('URL:', API_URL);
+  console.log('Payload:', payload);
+
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(r => {
+    console.log('HTTP status:', r.status, r.statusText, 'ok:', r.ok);
+    return r.text();
+  })
+  .then((resp) => {
+    console.log('Respuesta texto del servidor:', resp);
     showToast('Préstamo registrado correctamente','success');
     closeModal('modal-prestamo');
     renderFormPrestamo(cid, cid.includes('modal'));
     loadPrestamos();
   })
-  .catch(() => {
-    showToast('Error al guardar. Verifica tu conexión','error');
+  .catch((err) => {
+    console.error('ERROR REAL CAPTURADO:', err);
+    console.error('Tipo de error:', err.name, '| Mensaje:', err.message);
+    showToast('Error: ' + err.message, 'error');
     btn.disabled = false;
     btn.textContent = 'Guardar préstamo';
   });
@@ -941,19 +950,27 @@ function submitDevolucion(cid) {
   btn.disabled = true;
   btn.textContent = 'Guardando…';
 
+  console.log('=== DEBUG DEVOLUCIÓN ===');
+  console.log('Payload:', payload);
+
   fetch(API_URL, {
     method: 'POST',
     body: JSON.stringify(payload)
   })
-  .then(r => r.text())
-  .then(() => {
+  .then(r => {
+    console.log('HTTP status:', r.status, r.statusText, 'ok:', r.ok);
+    return r.text();
+  })
+  .then((resp) => {
+    console.log('Respuesta texto del servidor:', resp);
     showToast('Devolución registrada correctamente','success');
     closeModal('modal-devolucion');
     renderFormDevolucion(cid, cid.includes('modal'));
     loadPrestamos();
   })
-  .catch(() => {
-    showToast('Error al guardar. Verifica tu conexión','error');
+  .catch((err) => {
+    console.error('ERROR REAL CAPTURADO:', err);
+    showToast('Error: ' + err.message, 'error');
     btn.disabled = false;
     btn.textContent = 'Confirmar devolución';
   });
@@ -987,7 +1004,8 @@ function loadPrestamos() {
       table.style.display = 'table';
       updateSidebarBadge(data.length);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error('Error cargando préstamos:', err);
       loading.style.display = 'none';
       // Demo data when API not yet configured
       const demo = generateDemoData();
@@ -1121,3 +1139,4 @@ function showToast(msg, type) {
 </script>
 </body>
 </html>
+Listo
