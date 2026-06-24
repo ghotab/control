@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #f2f2f7;
+            --bg-color: #f4f6f9;
             --card-bg: #ffffff;
             --accent: #007aff;
-            --text-main: #000000;
+            --text-main: #1c1c1e;
             --text-sec: #8e8e93;
             --border: #e5e5ea;
             --success: #34c759;
@@ -22,141 +22,100 @@
             font-family: '-apple-system', 'SF Pro Display', sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 20px;
+            padding: 24px;
             color: var(--text-main);
         }
 
+        /* DISEÑO DE DASHBOARD DE ANCHO COMPLETO */
         .container {
-            max-width: 500px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        /* HEADER ESTILO IOS */
         .header {
             margin-bottom: 25px;
-            padding: 10px 5px;
-        }
-
-        .header h1 {
-            font-size: 34px;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: -1px;
-        }
-
-        .sync-info {
-            font-size: 13px;
-            color: var(--text-sec);
-            margin-top: 5px;
-        }
-
-        /* GRUPO DE AJUSTES/FILTROS */
-        .settings-group {
-            background: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-
-        .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .setting-item:last-child { border-bottom: none; }
+        .header h1 {
+            font-size: 30px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
 
-        .setting-item label {
+        .sync-info {
+            font-size: 14px;
+            background: #e3e3e8;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: #48484a;
             font-weight: 500;
-            font-size: 16px;
         }
 
-        .setting-item select, .setting-item input {
-            border: none;
-            background: none;
-            color: var(--accent);
-            font-size: 16px;
-            font-weight: 500;
-            text-align: right;
-            outline: none;
-            width: 50%;
+        /* SECCIÓN DE TARJETAS KPI */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
         }
 
-        /* SEPARADORES DE FECHA */
-        .date-divider {
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .kpi-data h3 {
+            margin: 0;
             font-size: 13px;
-            font-weight: 600;
             color: var(--text-sec);
-            margin: 25px 0 10px 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        /* TARJETAS DE HISTORIAL */
-        .history-card {
-            background: var(--card-bg);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: transform 0.2s;
-        }
-
-        .history-card:active { transform: scale(0.98); }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .unit-eco {
-            font-size: 18px;
+        .kpi-data p {
+            margin: 5px 0 0 0;
+            font-size: 28px;
             font-weight: 700;
-            margin: 0;
         }
 
-        .status-badge {
-            font-size: 10px;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
-
-        .card-body p {
-            font-size: 14px;
-            margin: 4px 0;
-            color: #3a3a3c;
-            line-height: 1.4;
-        }
-
-        .card-footer {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid #f2f2f7;
-            font-size: 11px;
-            color: var(--text-sec);
+        .kpi-icon {
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CONTROLES Y FILTROS EN LÍNEA */
+        .controls-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 16px;
+            margin-bottom: 25px;
+            align-items: center;
         }
 
         .segmented-control {
             display: flex;
             background: #e3e3e8;
             border-radius: 10px;
-            padding: 2px;
-            margin-bottom: 20px;
-            position: relative;
+            padding: 3px;
         }
         
-        .segmented-control input {
-            display: none;
-        }
+        .segmented-control input { display: none; }
         
         .segmented-control label {
             flex: 1;
@@ -167,60 +126,132 @@
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.2s;
-            z-index: 1;
         }
         
         .segmented-control input:checked + label {
             background: white;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
         }
 
-        /* Estilo para el indicador de boletos manuales */
-        .material-tag {
-            display: inline-flex;
+        .settings-group {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .setting-item {
+            display: flex;
             align-items: center;
-            gap: 4px;
-            background: #f2f2f7;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #555;
-            margin-top: 5px;
+            padding: 10px 16px;
         }
-        .ticket-active {
-            background: #fff9e6;
-            color: #d97706;
-            border: 1px solid #fbbf24;
-        }
-        
-        .timeline-info {
-            font-size: 11px;
-            color: #8e8e93;
-            margin-top: 8px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
 
-        /* BOTÓN VER MÁS */
+        .setting-item label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 15px;
+            white-space: nowrap;
+        }
+
+        .setting-item select, .setting-item input {
+            border: 1px solid var(--border);
+            background: #f2f2f7;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        /* CUADRÍCULA DE TARJETAS (HISTORIAL) */
+        .grid-historial {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .date-divider {
+            grid-column: 1 / -1;
+            font-size: 14px;
+            font-weight: 700;
+            color: #48484a;
+            margin: 20px 0 5px 0;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 6px;
+        }
+
+        .history-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .unit-eco {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .card-body p {
+            font-size: 14px;
+            margin: 6px 0;
+            color: #2c2c2e;
+            line-height: 1.4;
+        }
+
+        .card-footer {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #f2f2f7;
+            font-size: 12px;
+            color: var(--text-sec);
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+        }
+
+        /* BOTÓN DE CARGA */
         .btn-more {
             width: 100%;
+            max-width: 300px;
             background: var(--card-bg);
             color: var(--accent);
             border: 1px solid var(--border);
-            padding: 16px;
+            padding: 14px;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            margin: 20px 0 40px 0;
+            margin: 30px auto;
+            display: none;
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
+        .btn-more:hover { background: #f9f9f9; }
 
-        .btn-more:active { background: #f9f9f9; }
-
-        /* ESTADOS DE ESTATUS */
+        /* COLORES SEMÁFORO */
         .st-pendiente { color: var(--danger); background: #ffebeb; }
         .st-esperando { color: var(--warning); background: #fff5e6; }
         .st-finalizado { color: var(--success); background: #e8f9ee; }
@@ -229,45 +260,76 @@
 <body>
 
 <div class="container">
+    
+    <!-- ENCABEZADO -->
     <div class="header">
-        <h1>Historial</h1>
+        <h1>Historial de Mantenimiento</h1>
         <div id="sync-info" class="sync-info">Sincronizando con base de datos...</div>
     </div>
 
-    <div class="segmented-control">
-        <input type="radio" name="tipoFiltro" id="btnBase" value="base" checked onchange="switchFiltro()">
-        <label for="btnBase">Base</label>
-        
-        <input type="radio" name="tipoFiltro" id="btnBus" value="bus" onchange="switchFiltro()">
-        <label for="btnBus">Autobús</label>
-    </div>
-    
-    <div class="settings-group">
-        <div id="wrapperBase" class="setting-item">
-            <label>Seleccionar Base</label>
-            <select id="filtroBase" onchange="reiniciarPaginacion()">
-                <option value="TODAS">Todas las Bases</option>
-                <option value="ATLA">Atlacomulco</option>
-                <option value="COLI">Colima</option>
-                <option value="GUZM">Ciudad Guzmán</option>
-                <option value="GDLJ">Guadalajara</option>
-                <option value="JILO">Jilotepec</option>
-                <option value="MORE">Morelia</option>
-                <option value="OFOC">Occidente</option>
-                <option value="TSAT">Saturno</option>
-                <option value="TOLU">Toluca</option>
-            </select>
+    <!-- SECCIÓN DE MÉTRICAS (KPIs) -->
+    <div class="kpi-container">
+        <div class="kpi-card">
+            <div class="kpi-data">
+                <h3>Reportes</h3>
+                <p id="kpi-total">0</p>
+            </div>
+            <div class="kpi-icon" style="background: #e3f2fd; color: #2196f3;"><i class="fa-solid fa-bus"></i></div>
         </div>
-        
-        <div id="wrapperEco" class="setting-item" style="display: none;">
-            <label>Número Económico</label>
-            <input type="number" id="inputEco" placeholder="5 dígitos" oninput="evaluarBusquedaEco()">
+        <div class="kpi-card">
+            <div class="kpi-data">
+                <h3>Pendientes / Espera</h3>
+                <p id="kpi-pendientes">0</p>
+            </div>
+            <div class="kpi-icon" style="background: #ffebeb; color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-data">
+                <h3>Finalizados</h3>
+                <p id="kpi-finalizados">0</p>
+            </div>
+            <div class="kpi-icon" style="background: #e8f9ee; color: var(--success);"><i class="fa-solid fa-circle-check"></i></div>
         </div>
     </div>
 
-    <div id="historialList"></div>
+    <!-- CONTROLES Y FILTROS -->
+    <div class="controls-row">
+        <div class="segmented-control">
+            <input type="radio" name="tipoFiltro" id="btnBase" value="base" checked onchange="switchFiltro()">
+            <label for="btnBase">Base</label>
+            
+            <input type="radio" name="tipoFiltro" id="btnBus" value="bus" onchange="switchFiltro()">
+            <label for="btnBus">Autobús</label>
+        </div>
+        
+        <div class="settings-group">
+            <div id="wrapperBase" class="setting-item">
+                <label>Seleccionar Base</label>
+                <select id="filtroBase" onchange="reiniciarPaginacion()">
+                    <option value="TODAS">Todas las Bases</option>
+                    <option value="ATLA">Atlacomulco</option>
+                    <option value="COLI">Colima</option>
+                    <option value="GUZM">Ciudad Guzmán</option>
+                    <option value="GDLJ">Guadalajara</option>
+                    <option value="JILO">Jilotepec</option>
+                    <option value="MORE">Morelia</option>
+                    <option value="OFOC">Occidente</option>
+                    <option value="TSAT">Saturno</option>
+                    <option value="TOLU">Toluca</option>
+                </select>
+            </div>
+            
+            <div id="wrapperEco" class="setting-item" style="display: none;">
+                <label>Número Económico</label>
+                <input type="number" id="inputEco" placeholder="Escribe 5 dígitos..." oninput="evaluarBusquedaEco()">
+            </div>
+        </div>
+    </div>
 
-    <button id="btnCargarMas" class="btn-more" onclick="cargarMas()" style="display:none;">Ver más registros</button>
+    <!-- CONTENEDOR PRINCIPAL DEL HISTORIAL -->
+    <div id="historialList" class="grid-historial"></div>
+
+    <button id="btnCargarMas" class="btn-more" onclick="cargarMas()">Ver más registros</button>
 </div>
 
 <script>
@@ -276,7 +338,6 @@
     let registrosFiltrados = [];
     let cantidadMostrada = 20;
 
-    // 1. CARGA INICIAL
     async function init() {
         try {
             const response = await fetch(`${scriptURL}?accion=leerHistorial`);
@@ -295,17 +356,15 @@
         if (esBase) {
             wBase.style.display = 'flex';
             wEco.style.display = 'none';
-            document.getElementById('inputEco').value = ""; // Limpiamos búsqueda
+            document.getElementById('inputEco').value = "";
         } else {
             wBase.style.display = 'none';
             wEco.style.display = 'flex';
-            document.getElementById('filtroBase').value = "TODAS"; // Reset base
+            document.getElementById('filtroBase').value = "TODAS";
         }
         reiniciarPaginacion();
     }
     
-
-    // 2. LÓGICA DE FILTROS
     function evaluarBusquedaEco() {
         const eco = document.getElementById('inputEco').value;
         if (eco.length === 5 || eco.length === 0) {
@@ -328,30 +387,71 @@
             return matchBase && matchEco;
         });
 
+        actualizarKPIs();
         renderizar();
     }
 
-    // 3. RENDERIZADO ESTILO IPHONE
+    // CALCULAR KPIS EN TIEMPO REAL
+    function actualizarKPIs() {
+        const total = registrosFiltrados.length;
+        let pendientes = 0;
+        let finalizados = 0;
+
+        registrosFiltrados.forEach(r => {
+            const estatus = r[6].toString().trim().toUpperCase();
+            if (estatus === "FINALIZADO") {
+                finalizados++;
+            } else {
+                pendientes++; // Cuenta "PENDIENTE" y "ESPERANDO_FIRMA"
+            }
+        });
+
+        document.getElementById('kpi-total').innerText = total;
+        document.getElementById('kpi-pendientes').innerText = pendientes;
+        document.getElementById('kpi-finalizados').innerText = finalizados;
+    }
+
+    // FORMATEO DE FECHA EN FORMATO MEXICANO (24 HORAS NATURAL)
+    function formatearFechaMexicana(fechaRaw) {
+        if (!fechaRaw || fechaRaw.toString().trim() === "" || fechaRaw.toString().includes("---")) {
+            return "---";
+        }
+        try {
+            const fecha = new Date(fechaRaw);
+            if (isNaN(fecha.getTime())) return fechaRaw; // Salvaguarda por si no es un string ISO válido
+
+            const opciones = {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            };
+            return fecha.toLocaleDateString('es-MX', opciones).replace(',', ' a las') + ' hrs';
+        } catch (e) {
+            return fechaRaw;
+        }
+    }
+
     function renderizar() {
         const lista = document.getElementById('historialList');
         const btn = document.getElementById('btnCargarMas');
-        // Eliminamos la restricción de ecoBuscado para que siempre muestre fechas
         lista.innerHTML = "";
     
         const subset = registrosFiltrados.slice(0, cantidadMostrada);
         let ultimaFecha = "";
     
         subset.forEach(r => {
-            const fechaReporteRaw = r[1].toString().split('T')[0]; // Columna B
+            const fechaReporteRaw = r[1].toString().split('T')[0]; 
             const estatus = r[6].toString().trim().toUpperCase();
-            const tecnico = r[8] || 'Pendiente'; // Columna J
+            const tecnico = r[8] || 'Pendiente'; 
             const correctivo = r[11] || '<em>Sin reporte aún</em>'; 
             const cortoBoleto = r[9]; 
-            const fechaAtencion = r[7] || '---'; 
+            const fechaAtencionRaw = r[7]; 
             
-            // El separador de fecha ahora aparece SIEMPRE para dar orden al historial
             if (fechaReporteRaw !== ultimaFecha) {
-                lista.innerHTML += `<div class="date-divider"><i class="fa-regular fa-calendar-check"></i> ${formatearFecha(fechaReporteRaw)}</div>`;
+                lista.innerHTML += `<div class="date-divider"><i class="fa-regular fa-calendar-check"></i> ${formatearFechaSeparador(fechaReporteRaw)}</div>`;
                 ultimaFecha = fechaReporteRaw;
             }
     
@@ -361,58 +461,61 @@
     
             lista.innerHTML += `
                 <div class="history-card">
-                    <div class="card-header">
-                        <h2 class="unit-eco">Unidad ${r[3]}</h2>
-                        <span class="status-badge ${claseEstatus}">${estatus.replace('_', ' ')}</span>
-                    </div>
-                    
-                    <div class="card-body">
-                        <p><b>Falla:</b> ${r[5]}</p>
-                        <p><b>Correctivo:</b> ${correctivo}</p>
+                    <div>
+                        <div class="card-header">
+                            <h2 class="unit-eco">Unidad ${r[3]}</h2>
+                            <span class="status-badge ${claseEstatus}">${estatus.replace('_', ' ')}</span>
+                        </div>
                         
-                        ${(cortoBoleto === "SI" || cortoBoleto === "SÍ" || cortoBoleto === true) ? `
-                            <div style="display: inline-flex; align-items: center; gap: 5px; background: #fff9e6; color: #d97706; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-top: 8px; border: 1px solid #fbbf24;">
-                                <i class="fa-solid fa-scissors"></i> BOLETO DE TIJERA CORTADO
+                        <div class="card-body">
+                            <p><b>Falla:</b> ${r[5]}</p>
+                            <p><b>Correctivo:</b> ${correctivo}</p>
+                            
+                            ${(cortoBoleto === "SI" || cortoBoleto === "SÍ" || cortoBoleto === true) ? `
+                                <div style="display: inline-flex; align-items: center; gap: 5px; background: #fff9e6; color: #d97706; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-top: 8px; border: 1px solid #fbbf24;">
+                                    <i class="fa-solid fa-scissors"></i> BOLETO DE TIJERA CORTADO
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+    
+                    <div>
+                        <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #f2f2f7; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="font-size: 11px; color: #3a3a3c;">
+                                <span style="color: #8e8e93; text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px;">Atendió</span>
+                                <i class="fa-solid fa-user-gear" style="color: #007aff;"></i> ${tecnico}
                             </div>
-                        ` : ''}
-                    </div>
-    
-                    <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #f2f2f7; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div style="font-size: 11px; color: #3a3a3c;">
-                            <span style="color: #8e8e93; text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px;">Atendió</span>
-                            <i class="fa-solid fa-user-gear" style="color: #007aff;"></i> ${tecnico}
+                            <div style="font-size: 11px; color: #3a3a3c;">
+                                <span style="color: #8e8e93; text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px;">Finalizado</span>
+                                <i class="fa-solid fa-clock" style="color: ${estatus === "FINALIZADO" ? 'var(--success)' : 'var(--text-sec)'};"></i> 
+                                ${formatearFechaMexicana(fechaAtencionRaw)}
+                            </div>
                         </div>
-                        <div style="font-size: 11px; color: #3a3a3c;">
-                            <span style="color: #8e8e93; text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px;">Finalizado</span>
-                            <i class="fa-solid fa-clock-check" style="color: #34c759;"></i> ${fechaAtencion}
+        
+                        <div class="card-footer">
+                            <span>ID: ${r[0]}</span>
+                            <span><i class="fa-solid fa-location-dot"></i> ${r[2]}</span>
                         </div>
-                    </div>
-    
-                    <div class="card-footer" style="margin-top: 10px;">
-                        <span>ID: ${r[0]}</span>
-                        <span><i class="fa-solid fa-location-dot"></i> ${r[2]}</span>
                     </div>
                 </div>
             `;
         });
     
         btn.style.display = (cantidadMostrada < registrosFiltrados.length) ? "block" : "none";
-        document.getElementById('sync-info').innerText = `${registrosFiltrados.length} registros encontrados`;
+        document.getElementById('sync-info').innerText = `${registrosFiltrados.length} registros`;
     }
 
-    
     function cargarMas() {
         cantidadMostrada += 20;
         renderizar();
     }
 
-    function formatearFecha(f) {
+    function formatearFechaSeparador(f) {
         const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const fecha = new Date(f + "T12:00:00");
-        return fecha.toLocaleDateString('es-ES', opciones);
+        return fecha.toLocaleDateString('es-MX', opciones);
     }
 
-    // Iniciar app
     init();
 </script>
 
