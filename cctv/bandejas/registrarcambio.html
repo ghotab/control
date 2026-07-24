@@ -307,7 +307,7 @@
         const html5QrCode = new Html5Qrcode("reader");
         const supabaseUrl = "https://zygisljwmxoqdplsuzjw.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const db = window.supabase.createClient(supabaseUrl, supabaseKey);
         let discoActualBD = "";
 
         // Al cargar la página, recuperamos Base y Técnico, pero NO habilitamos nada aún
@@ -445,11 +445,11 @@
             btn.style.opacity = "0.5";
 
             try {
-                const { error } = await supabase.from('tbl_CambioBandeja').insert({
+                const { error } = await db.from('tbl_CambioBandeja').insert({
                     base: datos.base,
                     clave_colaborador: datos.tecnico,
                     numero_economico: datos.eco,
-                    bandeja_sube: datos.bandejSube,
+                    bandeja_sube: datos.bandejaSube,
                     bandeja_baja: datos.bandejaBaja,
                     formateado: datos.formateo === "SI",
                     motivo_formateo: datos.motivoFormateo,
