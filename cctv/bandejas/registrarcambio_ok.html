@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cambio de Bandejas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --ios-blue: #007aff;
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-text: #000000;
+            --ios-label: #8e8e93;
+            --ios-border: #d1d1d6;
+            --ios-red: #ff3b30;
+            --ios-green: #34c759;
+            --ios-orange: #ff9500;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 1000;
+            padding: 15px 20px;
+            border-bottom: 0.5px solid var(--ios-border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; display: flex; align-items: center; gap: 5px; }
+        h1 { font-size: 17px; font-weight: 600; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
+
+        .form-container { max-width: 500px; margin: 20px auto; padding: 0 16px 120px 16px; }
+
+        .ios-group-title { font-size: 13px; color: var(--ios-label); text-transform: uppercase; margin: 0 0 8px 16px; letter-spacing: 0.3px; }
+
+        .ios-group { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 25px; border: 0.5px solid var(--ios-border); }
+
+        .ios-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-border); min-height: 44px; }
+        .ios-row:last-child { border-bottom: none; }
+
+        .ios-label { font-size: 16px; width: 130px; flex-shrink: 0; }
+        input, select { flex: 1; border: none; font-size: 16px; background: transparent; outline: none; color: var(--ios-text); text-align: right; }
+
+        .scan-container { flex-direction: column; align-items: stretch; padding: 16px; }
+        .scan-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+        .btn-scan-ios {
+            background: #e9e9eb; color: var(--ios-blue); border: none;
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+
+        #reader { width: 100% !important; border-radius: 12px; overflow: hidden; margin: 10px 0; border: 1px solid var(--ios-border); display: none; }
+
+        #bannerInconsistencia {
+            background: #fff2f2; border: 1px solid #ffcfcf; padding: 15px;
+            border-radius: 12px; margin: -10px 0 20px 0; display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #bannerErrorConexion {
+            background: #fff2f2; border: 1px solid #ffcfcf; padding: 12px 16px;
+            border-radius: 12px; margin: -10px 0 20px 0; display: none;
+            font-size: 13px; color: var(--ios-red); font-weight: 600; text-align: center;
+        }
+
+        .btn-save {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 40px); max-width: 460px;
+            background-color: var(--ios-blue); color: white; border: none;
+            padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+            cursor: pointer;
+        }
+        .btn-save:disabled { background-color: #d1d1d6; box-shadow: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> </a>
+        <h1>Registro</h1>
+        <div style="width: 50px;"></div>
+    </div>
+
+    <div class="form-container">
+        <p class="ios-group-title">
+            General
+            <span onclick="borrarSesion()" style="float:right; color:var(--ios-blue); font-size:11px; text-transform:none; cursor:pointer; font-weight:400;">Cambiar Usuario</span>
+        </p>
+
+        <div id="bannerErrorConexion">⚠️ No se pudo conectar con la base de datos. Verifica tu conexión a internet.</div>
+
+        <div class="ios-group">
+            <div class="ios-row">
+                <span class="ios-label">Ubicación</span>
+                <select id="base" onchange="guardarPreferencia('base', this.value)">
+                    <option value="">Seleccionar...</option>
+                    <option value="ATLA">Atlacomulco</option>
+                    <option value="COLI">Colima</option>
+                    <option value="GDLJ">Guadalajara</option>
+                    <option value="GUZM">Ciudad Guzmán</option>
+                    <option value="JILO">Jilotepec</option>
+                    <option value="MORE">Morelia</option>
+                    <option value="OFOC">Occidente</option>
+                    <option value="TOLU">Toluca</option>
+                    <option value="TSAT">Saturno</option>
+                </select>
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">Colaborador</span>
+                <input type="number" id="tecnico" placeholder="Clave" oninput="guardarPreferencia('tecnico', this.value)">
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">Autobús</span>
+                <input type="number" id="eco" placeholder="Económico" oninput="consultarUltimoDisco()">
+            </div>
+        </div>
+
+        <div id="reader"></div>
+
+        <div id="seccionEscaneo" style="opacity: 0.3; pointer-events: none; transition: 0.3s;">
+            <p class="ios-group-title">Bandejas</p>
+            <div class="ios-group">
+                <div class="ios-row scan-container">
+                    <div class="scan-action">
+                        <span class="ios-label">Bandeja que Subes</span>
+                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
+                    </div>
+                    <input type="text" id="bandejaSube" readonly placeholder="Escanear entrada">
+                </div>
+
+                <div class="ios-row scan-container">
+                    <div class="scan-action">
+                        <span class="ios-label">Bandeja que Bajas</span>
+                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
+                    </div>
+                    <input type="text" id="bandejaBaja" readonly placeholder="Escanear salida">
+                </div>
+            </div>
+
+            <div id="bannerInconsistencia">
+                <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE AL REGISTRO</p>
+                <div class="ios-group" style="margin-bottom: 0; border: 1px solid #ffcfcf;">
+                    <div class="ios-row">
+                        <input type="text" id="justificacionInconsistencia" placeholder="Explicar motivo de discrepancia" style="text-align: left; width: 100%;">
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: var(--ios-label); margin: 8px 0 0 5px;">
+                    Esperabamos bajar el disco: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">Ninguno</span>
+                </p>
+            </div>
+        </div>
+
+        <p class="ios-group-title">Diagnóstico</p>
+        <div class="ios-group">
+            <div class="ios-row">
+                <span class="ios-label">¿Formateado?</span>
+                <select id="formateo" onchange="document.getElementById('divMotivo').style.display = (this.value=='SI'?'flex':'none')">
+                    <option value="NO">No</option>
+                    <option value="SI">Sí</option>
+                </select>
+            </div>
+            <div class="ios-row" id="divMotivo" style="display:none;">
+                <input type="text" id="motivoFormateo" placeholder="Razón del formateo" style="text-align: left;">
+            </div>
+            <div class="ios-row">
+                <span class="ios-label">LED</span>
+                <select id="ledStatus" style="color: var(--ios-blue); font-weight: 600;">
+                    <option value="OK">🟢 Grabando</option>
+                    <option value="FALLA">🔴 Falla</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="btnEnviar" class="btn-save" onclick="enviar()">Guardar Registro</button>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONEXIÓN A SUPABASE
+        // Nota: la variable se llama "db" a propósito, NO "supabase" —
+        // la librería ya usa ese nombre internamente (window.supabase),
+        // y reutilizarlo tumba TODO el script con un SyntaxError.
+        // ============================================================
+        const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
+
+        let db = null;
+        try {
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.error("No se pudo inicializar Supabase:", e);
+            document.getElementById('bannerErrorConexion').style.display = 'block';
+        }
+
+        const html5QrCode = new Html5Qrcode("reader");
+        let discoActualBD = "";
+
+        window.onload = function () {
+            const baseGuardada = localStorage.getItem('base');
+            const tecnicoGuardado = localStorage.getItem('tecnico');
+
+            if (baseGuardada) document.getElementById('base').value = baseGuardada;
+            if (tecnicoGuardado) document.getElementById('tecnico').value = tecnicoGuardado;
+
+            validarProgreso();
+        };
+
+        function guardarPreferencia(id, valor) {
+            localStorage.setItem(id, valor);
+            validarProgreso();
+        }
+
+        function borrarSesion() {
+            if (confirm("¿Quieres cambiar de Base o de Clave de Colaborador?")) {
+                localStorage.removeItem('base');
+                localStorage.removeItem('tecnico');
+                location.reload();
+            }
+        }
+
+        // Consulta a Supabase: ¿cuál fue el último disco registrado para este autobús?
+        async function consultarUltimoDisco() {
+            const eco = document.getElementById('eco').value.trim();
+            validarProgreso();
+
+            if (eco.length === 5 && db) {
+                try {
+                    const { data, error } = await db
+                        .from('tbl_CambioBandeja')
+                        .select('bandeja_sube')
+                        .eq('numero_economico', eco)
+                        .order('fecha_hora', { ascending: false })
+                        .limit(1);
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0 && data[0].bandeja_sube) {
+                        discoActualBD = data[0].bandeja_sube.toString().trim().toUpperCase();
+                        document.getElementById('discoEsperado').innerText = discoActualBD;
+                    } else {
+                        discoActualBD = "VACÍO";
+                        document.getElementById('discoEsperado').innerText = "Sin registro previo";
+                    }
+                    validarInconsistencia();
+                } catch (e) {
+                    console.error("Error consultando último disco:", e);
+                }
+            }
+        }
+
+        function iniciarEscaneo(id) {
+            document.getElementById('reader').style.display = 'block';
+            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
+                const valor = text.trim().toUpperCase();
+                document.getElementById(id).value = valor;
+
+                html5QrCode.stop().then(() => {
+                    document.getElementById('reader').style.display = 'none';
+                    validarInconsistencia();
+                });
+            });
+        }
+
+        function validarInconsistencia() {
+            const baja = document.getElementById('bandejaBaja').value.trim().toUpperCase();
+            const banner = document.getElementById('bannerInconsistencia');
+
+            if (baja && discoActualBD && discoActualBD !== "VACÍO") {
+                if (baja !== discoActualBD) {
+                    banner.style.display = "block";
+                } else {
+                    banner.style.display = "none";
+                }
+            }
+        }
+
+        function validarProgreso() {
+            const tecnico = document.getElementById('tecnico').value;
+            const eco = document.getElementById('eco').value;
+            const base = document.getElementById('base').value;
+            const seccion = document.getElementById('seccionEscaneo');
+
+            if (base !== "" && tecnico.length >= 7 && eco.length === 5) {
+                seccion.style.opacity = "1";
+                seccion.style.pointerEvents = "auto";
+            } else {
+                seccion.style.opacity = "0.3";
+                seccion.style.pointerEvents = "none";
+            }
+        }
+
+        // Guarda el registro directamente en Supabase
+        async function enviar() {
+            if (!db) {
+                alert("❌ No hay conexión con la base de datos. Recarga la página e intenta de nuevo.");
+                return;
+            }
+
+            const bannerVisible = document.getElementById('bannerInconsistencia').style.display === "block";
+            const justificacion = document.getElementById('justificacionInconsistencia').value.trim();
+            const btn = document.getElementById('btnEnviar');
+
+            if (bannerVisible && !justificacion) {
+                alert("⚠️ Por favor, justifica por qué el disco no coincide.");
+                return;
+            }
+
+            const datos = {
+                base: document.getElementById('base').value,
+                tecnico: document.getElementById('tecnico').value,
+                eco: document.getElementById('eco').value,
+                bandejaSube: document.getElementById('bandejaSube').value,
+                bandejaBaja: document.getElementById('bandejaBaja').value,
+                formateo: document.getElementById('formateo').value,
+                motivoFormateo: document.getElementById('motivoFormateo').value || "N/A",
+                ledStatus: document.getElementById('ledStatus').value,
+                justificacionCruce: justificacion
+            };
+
+            if (!datos.base || !datos.tecnico || !datos.eco || !datos.bandejaSube) {
+                alert("⚠️ Faltan campos obligatorios (Base, Técnico, Eco o Disco Sube)");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Sincronizando...";
+            btn.style.opacity = "0.5";
+
+            try {
+                const { error } = await db.from('tbl_CambioBandeja').insert({
+                    base: datos.base,
+                    clave_colaborador: datos.tecnico,
+                    numero_economico: datos.eco,
+                    bandeja_sube: datos.bandejaSube,
+                    bandeja_baja: datos.bandejaBaja,
+                    formateado: datos.formateo === "SI",
+                    motivo_formateo: datos.motivoFormateo,
+                    led_status: datos.ledStatus,
+                    justificacion_discrepancia: datos.justificacionCruce
+                });
+
+                if (error) throw error;
+
+                alert("✅ Registro guardado correctamente.");
+                location.reload();
+            } catch (e) {
+                console.error("Error al enviar:", e);
+                alert("❌ Error al guardar: " + (e.message || "verifica tu conexión."));
+                btn.disabled = false;
+                btn.innerText = "Guardar Registro";
+                btn.style.opacity = "1";
+            }
+        }
+    </script>
+</body>
+</html>
