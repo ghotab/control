@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -32,63 +33,180 @@
             background-color: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            position: sticky; top: 0; z-index: 1000;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
             padding: 15px 20px;
             border-bottom: 0.5px solid var(--ios-border);
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .btn-back { color: var(--ios-blue); text-decoration: none; font-size: 17px; display: flex; align-items: center; gap: 5px; }
-        h1 { font-size: 17px; font-weight: 600; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
+        .btn-back {
+            color: var(--ios-blue);
+            text-decoration: none;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-        .form-container { max-width: 500px; margin: 20px auto; padding: 0 16px 120px 16px; }
+        h1 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
-        .ios-group-title { font-size: 13px; color: var(--ios-label); text-transform: uppercase; margin: 0 0 8px 16px; letter-spacing: 0.3px; }
+        .form-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 0 16px 120px 16px;
+        }
 
-        .ios-group { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 25px; border: 0.5px solid var(--ios-border); }
+        .ios-group-title {
+            font-size: 13px;
+            color: var(--ios-label);
+            text-transform: uppercase;
+            margin: 0 0 8px 16px;
+            letter-spacing: 0.3px;
+        }
 
-        .ios-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-border); min-height: 44px; }
-        .ios-row:last-child { border-bottom: none; }
+        .ios-group {
+            background: var(--ios-card);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            border: 0.5px solid var(--ios-border);
+        }
 
-        .ios-label { font-size: 16px; width: 130px; flex-shrink: 0; }
-        input, select { flex: 1; border: none; font-size: 16px; background: transparent; outline: none; color: var(--ios-text); text-align: right; }
+        .ios-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 0.5px solid var(--ios-border);
+            min-height: 44px;
+        }
 
-        .scan-container { flex-direction: column; align-items: stretch; padding: 16px; }
-        .scan-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        .ios-label {
+            font-size: 16px;
+            width: 130px;
+            flex-shrink: 0;
+        }
+
+        input,
+        select {
+            flex: 1;
+            border: none;
+            font-size: 16px;
+            background: transparent;
+            outline: none;
+            color: var(--ios-text);
+            text-align: right;
+        }
+
+        .scan-container {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px;
+        }
+
+        .scan-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
 
         .btn-scan-ios {
-            background: #e9e9eb; color: var(--ios-blue); border: none;
-            width: 36px; height: 36px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            background: #e9e9eb;
+            color: var(--ios-blue);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
         }
 
-        #reader { width: 100% !important; border-radius: 12px; overflow: hidden; margin: 10px 0; border: 1px solid var(--ios-border); display: none; }
+        #reader {
+            width: 100% !important;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+            border: 1px solid var(--ios-border);
+            display: none;
+        }
 
         #bannerInconsistencia {
-            background: #fff2f2; border: 1px solid #ffcfcf; padding: 15px;
-            border-radius: 12px; margin: -10px 0 20px 0; display: none;
+            background: #fff2f2;
+            border: 1px solid #ffcfcf;
+            padding: 15px;
+            border-radius: 12px;
+            margin: -10px 0 20px 0;
+            display: none;
             animation: slideDown 0.3s ease;
         }
 
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         #bannerErrorConexion {
-            background: #fff2f2; border: 1px solid #ffcfcf; padding: 12px 16px;
-            border-radius: 12px; margin: -10px 0 20px 0; display: none;
-            font-size: 13px; color: var(--ios-red); font-weight: 600; text-align: center;
+            background: #fff2f2;
+            border: 1px solid #ffcfcf;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin: -10px 0 20px 0;
+            display: none;
+            font-size: 13px;
+            color: var(--ios-red);
+            font-weight: 600;
+            text-align: center;
         }
 
         .btn-save {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: calc(100% - 40px); max-width: 460px;
-            background-color: var(--ios-blue); color: white; border: none;
-            padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 460px;
+            background-color: var(--ios-blue);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
             cursor: pointer;
         }
-        .btn-save:disabled { background-color: #d1d1d6; box-shadow: none; }
+
+        .btn-save:disabled {
+            background-color: #d1d1d6;
+            box-shadow: none;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="header">
@@ -100,13 +218,18 @@
     <div class="form-container">
         <p class="ios-group-title">
             General
-            <span onclick="borrarSesion()" style="float:right; color:var(--ios-blue); font-size:11px; text-transform:none; cursor:pointer; font-weight:400;">Cambiar Usuario</span>
+            <span onclick="borrarSesion()"
+                style="float:right; color:var(--ios-blue); font-size:11px; text-transform:none; cursor:pointer; font-weight:400;">Cambiar
+                Usuario</span>
         </p>
 
-        <div id="bannerErrorConexion">⚠️ No se pudo conectar con la base de datos. Verifica tu conexión a internet.</div>
+        <div id="bannerErrorConexion">⚠️ No se pudo conectar con la base de datos. Verifica tu conexión a internet.
+        </div>
 
         <div style="text-align:center; margin-bottom: 15px;">
-            <span onclick="probarConexion()" style="color: var(--ios-blue); font-size: 13px; text-decoration: underline;">Probar conexión con la base de datos</span>
+            <span onclick="probarConexion()"
+                style="color: var(--ios-blue); font-size: 13px; text-decoration: underline;">Probar conexión con la base
+                de datos</span>
         </div>
 
         <div class="ios-group">
@@ -127,7 +250,8 @@
             </div>
             <div class="ios-row">
                 <span class="ios-label">Colaborador</span>
-                <input type="number" id="tecnico" placeholder="Clave" oninput="guardarPreferencia('tecnico', this.value)">
+                <input type="number" id="tecnico" placeholder="Clave"
+                    oninput="guardarPreferencia('tecnico', this.value)">
             </div>
             <div class="ios-row">
                 <span class="ios-label">Autobús</span>
@@ -143,7 +267,8 @@
                 <div class="ios-row scan-container">
                     <div class="scan-action">
                         <span class="ios-label">Bandeja que Subes</span>
-                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
+                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaSube')"><i
+                                class="fa-solid fa-qrcode"></i></button>
                     </div>
                     <input type="text" id="bandejaSube" readonly placeholder="Escanear entrada">
                 </div>
@@ -151,21 +276,25 @@
                 <div class="ios-row scan-container">
                     <div class="scan-action">
                         <span class="ios-label">Bandeja que Bajas</span>
-                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
+                        <button class="btn-scan-ios" onclick="iniciarEscaneo('bandejaBaja')"><i
+                                class="fa-solid fa-qrcode"></i></button>
                     </div>
                     <input type="text" id="bandejaBaja" readonly placeholder="Escanear salida">
                 </div>
             </div>
 
             <div id="bannerInconsistencia">
-                <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">⚠️ DISCO NO CORRESPONDE AL REGISTRO</p>
+                <p style="color: var(--ios-red); font-size: 13px; font-weight: 700; margin: 0 0 10px 0;">⚠️ DISCO NO
+                    CORRESPONDE AL REGISTRO</p>
                 <div class="ios-group" style="margin-bottom: 0; border: 1px solid #ffcfcf;">
                     <div class="ios-row">
-                        <input type="text" id="justificacionInconsistencia" placeholder="Explicar motivo de discrepancia" style="text-align: left; width: 100%;">
+                        <input type="text" id="justificacionInconsistencia"
+                            placeholder="Explicar motivo de discrepancia" style="text-align: left; width: 100%;">
                     </div>
                 </div>
                 <p style="font-size: 11px; color: var(--ios-label); margin: 8px 0 0 5px;">
-                    Esperabamos bajar el disco: <span id="discoEsperado" style="color: var(--ios-text); font-weight: bold;">Ninguno</span>
+                    Esperabamos bajar el disco: <span id="discoEsperado"
+                        style="color: var(--ios-text); font-weight: bold;">Ninguno</span>
                 </p>
             </div>
         </div>
@@ -174,7 +303,8 @@
         <div class="ios-group">
             <div class="ios-row">
                 <span class="ios-label">¿Formateado?</span>
-                <select id="formateo" onchange="document.getElementById('divMotivo').style.display = (this.value=='SI'?'flex':'none')">
+                <select id="formateo"
+                    onchange="document.getElementById('divMotivo').style.display = (this.value=='SI'?'flex':'none')">
                     <option value="NO">No</option>
                     <option value="SI">Sí</option>
                 </select>
@@ -207,6 +337,7 @@
         let db = null;
         try {
             db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log(window.supabase);
         } catch (e) {
             console.error("No se pudo inicializar Supabase:", e);
             document.getElementById('bannerErrorConexion').style.display = 'block';
@@ -231,37 +362,57 @@
         }
 
         // Prueba de conexión visible en pantalla (para diagnosticar desde el celular, sin computadora)
-        async function probarConexion() {
-            alert("URL configurada:\n" + SUPABASE_URL + "\n\nProbando conexión...");
+        // async function probarConexion() {
+        //     alert("URL configurada:\n" + SUPABASE_URL + "\n\nProbando conexión...");
 
-            if (!db) {
-                alert("❌ El cliente de Supabase nunca se inicializó. Revisa que la librería @supabase/supabase-js haya cargado (puede ser bloqueo de red).");
-                return;
-            }
+        //     if (!db) {
+        //         alert("❌ El cliente de la base de datos nunca se inicializó. Revisa que la librería @supabase/supabase-js haya cargado (puede ser bloqueo de red).");
+        //         return;
+        //     }
+
+        //     try {
+        //         const { data, error } = await db
+        //             .from('tbl_cambiobandeja')
+        //             .select('id_cambio')
+        //             .limit(1);
+
+        //         if (error) {
+        //             alert("⚠️ Conectó al servidor, pero Supabase respondió con error:\n\n" +
+        //                   "Código: " + (error.code || "N/A") + "\n" +
+        //                   "Mensaje: " + error.message + "\n" +
+        //                   "Detalle: " + (error.details || "N/A") + "\n" +
+        //                   "Hint: " + (error.hint || "N/A"));
+        //         } else {
+        //             alert("✅ Conexión exitosa. Se pudo leer la tabla tbl_CambioBandeja sin problema.");
+        //         }
+        //     } catch (e) {
+        //         alert("❌ FALLO DE RED (failed to fetch):\n\n" + e.message +
+        //               "\n\nEsto normalmente significa:\n" +
+        //               "1) No hay internet en este momento, o\n" +
+        //               "2) La red (WiFi de la base) está bloqueando supabase.co, o\n" +
+        //               "3) El proyecto de Supabase está pausado.\n\n" +
+        //               "Prueba cambiando a datos móviles y vuelve a tocar este link.");
+        //     }
+        // }
+
+        async function probarConexion() {
 
             try {
-                const { data, error } = await db
-                    .from('tbl_CambioBandeja')
-                    .select('id_cambio')
-                    .limit(1);
 
-                if (error) {
-                    alert("⚠️ Conectó al servidor, pero Supabase respondió con error:\n\n" +
-                          "Código: " + (error.code || "N/A") + "\n" +
-                          "Mensaje: " + error.message + "\n" +
-                          "Detalle: " + (error.details || "N/A") + "\n" +
-                          "Hint: " + (error.hint || "N/A"));
-                } else {
-                    alert("✅ Conexión exitosa. Se pudo leer la tabla tbl_CambioBandeja sin problema.");
-                }
+                const respuesta = await fetch(
+                    "https://zygisljwmxoqdplsuzjw.supabase.co/rest/v1/"
+                );
+
+                alert(
+                    "Status: " + respuesta.status
+                );
+
             } catch (e) {
-                alert("❌ FALLO DE RED (failed to fetch):\n\n" + e.message +
-                      "\n\nEsto normalmente significa:\n" +
-                      "1) No hay internet en este momento, o\n" +
-                      "2) La red (WiFi de la base) está bloqueando supabase.co, o\n" +
-                      "3) El proyecto de Supabase está pausado.\n\n" +
-                      "Prueba cambiando a datos móviles y vuelve a tocar este link.");
+
+                alert(e.message);
+
             }
+
         }
 
         function borrarSesion() {
@@ -381,7 +532,7 @@
             btn.style.opacity = "0.5";
 
             try {
-                const { error } = await db.from('tbl_CambioBandeja').insert({
+                const { error } = await db.from('tbl_cambiobandeja').insert({
                     base: datos.base,
                     clave_colaborador: datos.tecnico,
                     numero_economico: datos.eco,
@@ -407,4 +558,5 @@
         }
     </script>
 </body>
+
 </html>
