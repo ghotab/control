@@ -428,6 +428,13 @@
         }
 
         function iniciarEscaneo(id) {
+            const eco = document.getElementById("eco").value.trim();
+
+            if (eco.length !== 5) {
+                alert("⚠️ Primero captura el número económico de la unidad.");
+                return;
+            }
+
             document.getElementById('reader').style.display = 'block';
             html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
                 const valor = text.trim().toUpperCase();
@@ -527,7 +534,11 @@
                 document.getElementById("justificacionInconsistencia").value = "";
 
                 discoActualBD = "";
+                // Volver a bloquear el escaneo
+                validarProgreso();
+
                 alert("✅ Registro guardado correctamente.");
+                document.getElementById("eco").focus();
 
             } catch (e) {
 
