@@ -105,6 +105,10 @@
 
         <div id="bannerErrorConexion">⚠️ No se pudo conectar con la base de datos. Verifica tu conexión a internet.</div>
 
+        <div style="text-align:center; margin-bottom: 15px;">
+            <span onclick="probarConexion()" style="color: var(--ios-blue); font-size: 13px; text-decoration: underline;">Probar conexión con la base de datos</span>
+        </div>
+
         <div class="ios-group">
             <div class="ios-row">
                 <span class="ios-label">Ubicación</span>
@@ -224,6 +228,40 @@
         function guardarPreferencia(id, valor) {
             localStorage.setItem(id, valor);
             validarProgreso();
+        }
+
+        // Prueba de conexión visible en pantalla (para diagnosticar desde el celular, sin computadora)
+        async function probarConexion() {
+            alert("URL configurada:\n" + SUPABASE_URL + "\n\nProbando conexión...");
+
+            if (!db) {
+                alert("❌ El cliente de Supabase nunca se inicializó. Revisa que la librería @supabase/supabase-js haya cargado (puede ser bloqueo de red).");
+                return;
+            }
+
+            try {
+                const { data, error } = await db
+                    .from('tbl_CambioBandeja')
+                    .select('id_cambio')
+                    .limit(1);
+
+                if (error) {
+                    alert("⚠️ Conectó al servidor, pero Supabase respondió con error:\n\n" +
+                          "Código: " + (error.code || "N/A") + "\n" +
+                          "Mensaje: " + error.message + "\n" +
+                          "Detalle: " + (error.details || "N/A") + "\n" +
+                          "Hint: " + (error.hint || "N/A"));
+                } else {
+                    alert("✅ Conexión exitosa. Se pudo leer la tabla tbl_CambioBandeja sin problema.");
+                }
+            } catch (e) {
+                alert("❌ FALLO DE RED (failed to fetch):\n\n" + e.message +
+                      "\n\nEsto normalmente significa:\n" +
+                      "1) No hay internet en este momento, o\n" +
+                      "2) La red (WiFi de la base) está bloqueando supabase.co, o\n" +
+                      "3) El proyecto de Supabase está pausado.\n\n" +
+                      "Prueba cambiando a datos móviles y vuelve a tocar este link.");
+            }
         }
 
         function borrarSesion() {
