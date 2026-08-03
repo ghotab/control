@@ -7,445 +7,392 @@
     <title>Movimientos CCTV - Live Dashboard</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --finder-top: linear-gradient(to bottom, #4d4d4d, #2d2d2d);
-            --mac-bg: #ececec;
-            --ios-blue: #007aff;
-            --ios-bg: #f2f2f7;
-            --glass: rgba(255, 255, 255, 0.9);
-            --border: #c6c6c8;
-            --success: #34c759;
+            --ink: #16202b;
+            --ink-soft: #3a4552;
+            --paper: #eef0f3;
+            --surface: #ffffff;
+            --rule: #d3d8de;
+            --amber: #e2900f;
+            --amber-tint: #fbf1de;
+            --teal: #0f6f66;
+            --teal-tint: #e3efee;
+            --rust: #b33f2e;
+            --rust-tint: #f8e8e4;
+            --blue: #2b6cb0;
+            --blue-tint: #e8f0f8;
+            --cranberry: #a32638;
+            --cranberry-tint: #f6e6e9;
+            --font-display: 'IBM Plex Sans Condensed', sans-serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, system-ui, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--mac-bg);
+            font-family: var(--font-body);
+            background: var(--ink);
             height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            color: var(--ink);
         }
 
-        /* --- HEADERS --- */
-        .mac-header {
-            background: var(--finder-top);
-            height: 45px;
+        :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+        /* ===================== LAYOUT ===================== */
+        .app { display: flex; height: 100vh; width: 100%; }
+
+        /* --- RAIL DE CONTROL --- */
+        .rail {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--ink);
+            color: var(--paper);
+            display: flex;
+            flex-direction: column;
+            padding: 26px 20px;
+            overflow-y: auto;
+        }
+
+        .rail-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8b99;
+            margin-bottom: 4px;
+        }
+
+        .rail-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 24px;
+            letter-spacing: -0.01em;
+            margin-bottom: 24px;
+        }
+
+        .rail-nav-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8b99;
+            margin-bottom: 8px;
+            margin-top: 22px;
+        }
+
+        .rail-tabs { display: flex; flex-direction: column; gap: 1px; }
+
+        .side-item {
             display: flex;
             align-items: center;
-            padding: 0 15px;
-            border-bottom: 1px solid #1a1a1a;
-            z-index: 1000;
-            color: #fff;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #b9c2cc;
+            cursor: pointer;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: background 0.15s ease, color 0.15s ease;
         }
+
+        .side-item.active {
+            background: rgba(226, 144, 15, 0.12);
+            color: var(--paper);
+            border-left-color: var(--amber);
+            font-weight: 600;
+        }
+
+        #periodo-desktop {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #2c3644;
+            background: #1c2733;
+            color: var(--paper);
+            font-family: var(--font-body);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .rail-status {
+            margin-top: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #7d8b99;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid #29323d;
+        }
+
+        .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); animation: blink 2s infinite; flex-shrink: 0; }
+        .pulse-mini { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); display: inline-block; animation: blink 2s infinite; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+        /* --- ÁREA DE TRABAJO --- */
+        .workspace { flex: 1; display: flex; flex-direction: column; background: var(--paper); min-width: 0; overflow: hidden; }
 
         .mobile-status-bar {
             display: none;
-            position: sticky;
-            top: 0;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 12px 16px;
-            border-bottom: 0.5px solid var(--border);
+            position: sticky; top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--rule);
             z-index: 1500;
             justify-content: space-between;
             align-items: center;
         }
 
-        .traffic-lights {
+        .mobile-status-bar h1 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--ink); }
+        .mobile-status-bar .sub { font-size: 11px; color: var(--ink-soft); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+        .mobile-status-bar #mobile-base-indicator { font-family: var(--font-mono); color: var(--amber); font-size: 12px; font-weight: 700; }
+
+        .results-view { flex: 1; overflow-y: auto; padding: 24px 28px 40px 28px; }
+
+        /* ===================== TABLA DE ESCRITORIO ===================== */
+        .ledger-table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--rule); }
+
+        .ledger-table th {
+            position: sticky; top: 0;
+            background: #f6f7f9;
+            padding: 12px 14px;
+            text-align: left;
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .ledger-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #eef0f3;
+            font-size: 13.5px;
+            color: var(--ink);
+        }
+
+        .ledger-table tr:last-child td { border-bottom: none; }
+        .ledger-table tr:hover td { background: #fafbfc; }
+
+        .mono-tag { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; }
+        .tag-up { color: var(--blue); }
+        .tag-down { color: var(--cranberry); }
+        .eco-cell { font-family: var(--font-mono); font-weight: 700; }
+
+        .btn-export {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 10px 12px; margin-top: 16px;
+            border-radius: 8px; border: 1px solid #2c3644;
+            background: transparent; color: var(--paper);
+            font-family: var(--font-body); font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .btn-export:hover { background: rgba(226, 144, 15, 0.1); border-color: var(--amber); }
+        .btn-export i { color: var(--amber); }
+
+        /* ===================== TICKETS (móvil) ===================== */
+        .mobile-list { display: none; flex-direction: column; gap: 14px; padding-bottom: 100px; }
+
+        .ticket {
             display: flex;
-            gap: 8px;
-            margin-right: 20px;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .red {
-            background: #ff5f56;
-        }
-
-        .yellow {
-            background: #ffbd2e;
-        }
-
-        .green {
-            background: #27c93f;
-        }
-
-        .live-indicator {
-            margin-left: auto;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .pulse,
-        .pulse-mini {
-            background: var(--success);
-            border-radius: 50%;
-            animation: blink 2s infinite;
-        }
-
-        .pulse {
-            width: 8px;
-            height: 8px;
-        }
-
-        .pulse-mini {
-            width: 6px;
-            height: 6px;
-            display: inline-block;
-        }
-
-        /* --- LAYOUT & SIDEBAR --- */
-        .wrapper {
-            flex: 1;
-            display: flex;
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid var(--rule);
+            box-shadow: 0 2px 8px rgba(22, 32, 43, 0.05);
             overflow: hidden;
         }
 
-        .sidebar {
-            width: 250px;
-            background: rgba(235, 235, 235, 0.8);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
+        .ticket-stub {
+            width: 52px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            border-right: 2px dashed var(--rule);
+        }
+        .ticket-stub::before, .ticket-stub::after {
+            content: ''; position: absolute; right: -8px; width: 16px; height: 16px;
+            border-radius: 50%; background: var(--paper);
+        }
+        .ticket-stub::before { top: -8px; }
+        .ticket-stub::after { bottom: -8px; }
+
+        .stub-id {
+            font-family: var(--font-mono); font-weight: 700; font-size: 12.5px;
+            writing-mode: vertical-rl; transform: rotate(180deg); color: var(--ink-soft);
         }
 
-        .side-group-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #8e8e93;
-            padding: 10px 20px;
-            text-transform: uppercase;
-        }
+        .ticket-body { flex: 1; padding: 16px 18px; min-width: 0; }
 
-        .side-item {
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #333;
-            text-decoration: none;
-            font-size: 14px;
-            transition: 0.2s;
-        }
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .ticket-eco { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
+        .ticket-date { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
 
-        .side-item.active {
-            background: var(--ios-blue);
-            color: white;
-            border-radius: 0 20px 20px 0;
-            margin-right: 10px;
-        }
+        .tray-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .tray-box { background: var(--paper); border-radius: 8px; padding: 8px 10px; flex: 1; }
+        .tray-box small { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; font-weight: 700; }
+        .tray-box b { font-family: var(--font-mono); font-size: 13px; display: block; margin-top: 2px; color: var(--ink); }
 
-        #periodo-desktop {
-            width: calc(100% - 40px);
-            margin: 0 20px;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background-color: #fff;
-            font-size: 13px;
-            cursor: pointer;
-        }
+        .ticket-footer { font-size: 11.5px; color: var(--ink-soft); border-top: 1px dashed var(--rule); padding-top: 10px; }
 
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #fff;
-        }
-
-        /* --- VIEWS --- */
-        .desktop-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .desktop-table th {
-            position: sticky;
-            top: 0;
-            background: #f5f5f7;
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            color: #666;
-        }
-
-        .desktop-table td {
-            padding: 12px;
-            border-bottom: 0.5px solid #eee;
-        }
-
-        .mobile-list {
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 15px;
-            border: 0.5px solid var(--border);
-        }
-
-        .card-eco {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--ios-blue);
-        }
-
-        .tray-box {
-            background: #f2f2f7;
-            padding: 8px;
-            border-radius: 6px;
-            flex: 1;
-        }
-
-        /* --- NAVIGATION & MODAL --- */
+        /* ===================== BOTTOM NAV & FILTER SHEET ===================== */
         .bottom-nav {
             display: none;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 80px;
-            background: #fff;
-            border-top: 0.5px solid var(--border);
-            justify-content: space-around;
-            align-items: center;
-            padding-bottom: 20px;
-            z-index: 2000;
+            position: fixed; bottom: 0; width: 100%; height: 78px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--rule);
+            justify-content: space-around; align-items: center;
+            padding-bottom: 18px; z-index: 2000;
         }
 
         .nav-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #8e8e93;
-            font-size: 10px;
-            gap: 5px;
-            background: none;
-            border: none;
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--ink-soft); font-size: 10px; gap: 5px;
+            background: none; border: none; font-family: var(--font-body);
         }
-
-        .nav-btn.active {
-            color: var(--ios-blue);
-        }
-
-        .nav-btn i {
-            font-size: 22px;
-        }
+        .nav-btn i { font-size: 20px; }
+        .nav-btn.active { color: var(--amber); }
 
         #mobile-filter-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 3000;
-            display: none;
-            justify-content: flex-end;
-            flex-direction: column;
+            position: fixed; inset: 0;
+            background: rgba(22, 32, 43, 0.45);
+            z-index: 3000; display: none;
+            justify-content: flex-end; flex-direction: column;
         }
 
         .filter-sheet {
-            background: var(--ios-bg);
+            background: var(--paper);
             border-radius: 20px 20px 0 0;
-            padding: 25px 20px 40px;
-            animation: slideUp 0.3s ease-out;
+            padding: 24px 20px 40px;
+            animation: slideUp 0.25s ease-out;
         }
 
+        .filter-sheet h2 { font-family: var(--font-display); text-align: center; margin-bottom: 20px; font-size: 19px; color: var(--ink); }
+        .filter-label { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); }
+
         select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            font-size: 16px;
-            background: white;
+            width: 100%; padding: 12px; border-radius: 10px;
+            border: 1px solid var(--rule); font-size: 16px;
+            background: var(--surface); font-family: var(--font-body); color: var(--ink);
+            margin-top: 6px; margin-bottom: 18px;
         }
 
         .btn-apply {
-            background: var(--ios-blue);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 600;
-            margin-top: 10px;
+            background: var(--ink); color: var(--paper);
+            border: none; width: 100%; padding: 15px;
+            border-radius: 12px; font-size: 16px; font-weight: 600;
+            font-family: var(--font-body); margin-top: 4px;
         }
 
-        /* --- RESPONSIVE --- */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* ===================== RESPONSIVE ===================== */
         @media (max-width: 850px) {
-
-            .sidebar,
-            .mac-header,
-            .desktop-table {
-                display: none;
-            }
-
-            .mobile-status-bar {
-                display: flex;
-            }
-
-            .mobile-list {
-                display: flex;
-                padding-bottom: 100px;
-            }
-
-            .bottom-nav {
-                display: flex;
-            }
-
-            .main-content {
-                background: transparent;
-                padding: 10px 15px;
-            }
-
-            body {
-                background: var(--ios-bg);
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-
-            to {
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes blink {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.3;
-            }
-
-            100% {
-                opacity: 1;
-            }
+            .rail, .ledger-table { display: none; }
+            .mobile-status-bar { display: flex; }
+            .mobile-list { display: flex; }
+            .bottom-nav { display: flex; }
+            .results-view { padding: 14px 16px 100px 16px; }
+            .app { background: var(--paper); }
+            .workspace { background: var(--paper); }
         }
     </style>
 </head>
 
 <body>
 
-    <header class="mac-header">
-        <div class="traffic-lights">
-            <div class="dot red"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-        </div>
-        <span>Historial de Movimientos</span>
-        <div class="live-indicator">
-            <div class="pulse"></div>
-            <span class="refresh-status-label">Sincronizado</span>
-        </div>
-    </header>
-
     <header class="mobile-status-bar">
-        <div style="display: flex; flex-direction: column;">
-            <h1 style="font-size: 17px; font-weight: 700;">Historial de Movimientos</h1>
-            <div style="font-size: 11px; color: #8e8e93; display: flex; align-items: center; gap: 4px;">
-                <span class="pulse-mini"></span>
-                <span class="refresh-status-label">Cargando...</span>
-            </div>
+        <div>
+            <h1>Movimientos</h1>
+            <div class="sub"><span class="pulse-mini"></span><span class="refresh-status-label">Cargando...</span></div>
         </div>
-        <div style="color: var(--ios-blue); font-size: 12px; font-weight: 600;" id="mobile-base-indicator">TODAS</div>
+        <div id="mobile-base-indicator">TODAS</div>
     </header>
 
-    <div class="wrapper">
-        <aside class="sidebar">
-            <p class="side-group-title">Base Operativa</p>
-            <nav id="base-filters">
-                <a href="javascript:void(0)" class="side-item active"
-                    onclick="updateFilters('TODAS', null, this)">Todas</a>
+    <div class="app">
+        <aside class="rail">
+            <div class="rail-eyebrow">GHO · TECNOLOGÍA A BORDO</div>
+            <div class="rail-title">Movimientos</div>
+
+            <div class="rail-nav-label">Base operativa</div>
+            <nav class="rail-tabs" id="base-filters">
+                <a href="javascript:void(0)" class="side-item active" onclick="updateFilters('TODAS', null, this)">Todas</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('ACAP', null, this)">Acapulco</a>
-                <a href="javascript:void(0)" class="side-item"
-                    onclick="updateFilters('ATLA', null, this)">Atlacomulco</a>
+                <a href="javascript:void(0)" class="side-item" onclick="updateFilters('ATLA', null, this)">Atlacomulco</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('COLI', null, this)">Colima</a>
-                <a href="javascript:void(0)" class="side-item"
-                    onclick="updateFilters('GDLJ', null, this)">Guadalajara</a>
-                <a href="javascript:void(0)" class="side-item" onclick="updateFilters('GUZM', null, this)">Ciudad
-                    Guzmán</a>
+                <a href="javascript:void(0)" class="side-item" onclick="updateFilters('GDLJ', null, this)">Guadalajara</a>
+                <a href="javascript:void(0)" class="side-item" onclick="updateFilters('GUZM', null, this)">Ciudad Guzmán</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('JILO', null, this)">Jilotepec</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('MORE', null, this)">Morelia</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('OFOC', null, this)">Occidente</a>
-                <a href="javascript:void(0)" class="side-item" onclick="updateFilters('JRIO', null, this)">San Juan del
-                    Río</a>
+                <a href="javascript:void(0)" class="side-item" onclick="updateFilters('JRIO', null, this)">San Juan del Río</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('TSAT', null, this)">Saturno</a>
                 <a href="javascript:void(0)" class="side-item" onclick="updateFilters('TOLU', null, this)">Toluca</a>
             </nav>
-            <p class="side-group-title">Periodo de Tiempo</p>
+
+            <div class="rail-nav-label">Periodo de tiempo</div>
             <select id="periodo-desktop" onchange="updateFilters(null, this.value)">
                 <option value="HOY" selected>Hoy</option>
                 <option value="AYER">Ayer</option>
                 <option value="SEMANA">Esta Semana</option>
                 <option value="MES">Este mes</option>
             </select>
+
+            <button class="btn-export" onclick="exportarCSV()"><i class="fa-solid fa-download"></i> Exportar CSV</button>
+
+            <div class="rail-status">
+                <span class="pulse"></span>
+                <span class="refresh-status-label">Sincronizado</span>
+            </div>
         </aside>
 
-        <main class="main-content">
-            <table class="desktop-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Eco</th>
-                        <th>Base</th>
-                        <th>Sube</th>
-                        <th>Baja</th>
-                        <th>Técnico</th>
-                    </tr>
-                </thead>
-                <tbody id="data-body-desktop"></tbody>
-            </table>
-            <div class="mobile-list" id="data-body-mobile"></div>
-        </main>
+        <div class="workspace">
+            <main class="results-view">
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Eco</th>
+                            <th>Base</th>
+                            <th>Sube</th>
+                            <th>Baja</th>
+                            <th>Técnico</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-body-desktop"></tbody>
+                </table>
+                <div class="mobile-list" id="data-body-mobile"></div>
+            </main>
+        </div>
     </div>
 
     <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="loadData()"><i
-                class="fa-solid fa-house"></i><span>Inicio</span></button>
-        <button class="nav-btn" onclick="toggleFilterModal()"><i
-                class="fa-solid fa-sliders"></i><span>Filtros</span></button>
-        <button class="nav-btn" onclick="window.location.reload()"><i
-                class="fa-solid fa-rotate"></i><span>Refrescar</span></button>
+        <button class="nav-btn active" onclick="loadData()"><i class="fa-solid fa-house"></i><span>Inicio</span></button>
+        <button class="nav-btn" onclick="toggleFilterModal()"><i class="fa-solid fa-sliders"></i><span>Filtros</span></button>
+        <button class="nav-btn" onclick="exportarCSV()"><i class="fa-solid fa-download"></i><span>Exportar</span></button>
+        <button class="nav-btn" onclick="window.location.reload()"><i class="fa-solid fa-rotate"></i><span>Refrescar</span></button>
     </nav>
 
     <div id="mobile-filter-modal" onclick="if(event.target==this) toggleFilterModal()">
         <div class="filter-sheet" onclick="event.stopPropagation()">
-            <h2 style="text-align:center; margin-bottom:20px;">Filtros</h2>
-            <div style="margin-bottom:20px;">
-                <span style="font-size:12px; color:#8e8e93; text-transform:uppercase;">Base</span>
+            <h2>Filtros</h2>
+            <div>
+                <span class="filter-label">Base</span>
                 <select id="mobile-base">
                     <option value="TODAS">Todas las Bases</option>
                     <option value="ACAP">Acapulco</option>
@@ -461,8 +408,8 @@
                     <option value="TOLU">Toluca</option>
                 </select>
             </div>
-            <div style="margin-bottom:20px;">
-                <span style="font-size:12px; color:#8e8e93; text-transform:uppercase;">Periodo</span>
+            <div>
+                <span class="filter-label">Periodo</span>
                 <select id="mobile-periodo">
                     <option value="HOY" selected>Hoy</option>
                     <option value="AYER">Ayer</option>
@@ -478,13 +425,11 @@
         const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
 
-        const db = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_ANON_KEY
-        );
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentBase = "TODAS";
         let currentPeriodo = "SEMANA";
+        let datosActuales = [];
 
         function updateFilters(base, periodo, el) {
             if (base) currentBase = base;
@@ -515,11 +460,9 @@
                 String(fecha.getHours()).padStart(2, "0") + ":" +
                 String(fecha.getMinutes()).padStart(2, "0") + ":" +
                 String(fecha.getSeconds()).padStart(2, "0");
-
         }
 
         async function loadData() {
-
             const statusLabels = document.querySelectorAll('.refresh-status-label');
             const mobileBaseIndicator = document.getElementById('mobile-base-indicator');
 
@@ -527,11 +470,7 @@
             mobileBaseIndicator.innerText = currentBase;
 
             try {
-
-                let consulta = db
-                    .from("tbl_cambiobandeja")
-                    .select("*");
-
+                let consulta = db.from("tbl_cambiobandeja").select("*");
 
                 if (currentBase !== "TODAS") {
                     consulta = consulta.eq("base", currentBase);
@@ -541,121 +480,52 @@
                 let fechaInicio = null;
 
                 switch (currentPeriodo) {
-
                     case "HOY":
-                        fechaInicio = new Date(
-                            ahora.getFullYear(),
-                            ahora.getMonth(),
-                            ahora.getDate()
-                        );
+                        fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
                         break;
-
                     case "AYER":
-
-                        const inicioAyer = new Date(
-                            ahora.getFullYear(),
-                            ahora.getMonth(),
-                            ahora.getDate() - 1
-                        );
-
-                        const inicioHoy = new Date(
-                            ahora.getFullYear(),
-                            ahora.getMonth(),
-                            ahora.getDate()
-                        );
-
-                        consulta = consulta
-                            .gte("fecha_hora", fechaSQL(inicioAyer))
-                            .lt("fecha_hora", fechaSQL(inicioHoy));
-
-                        fechaInicio = null; // Ya quedó filtrado
-
+                        const inicioAyer = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() - 1);
+                        const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+                        consulta = consulta.gte("fecha_hora", fechaSQL(inicioAyer)).lt("fecha_hora", fechaSQL(inicioHoy));
+                        fechaInicio = null;
                         break;
-
                     case "SEMANA":
-                        fechaInicio = new Date(
-                            ahora.getFullYear(),
-                            ahora.getMonth(),
-                            ahora.getDate() - 7
-                        );
+                        fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() - 7);
                         break;
-
                     case "MES":
-                        fechaInicio = new Date(
-                            ahora.getFullYear(),
-                            ahora.getMonth() - 1,
-                            ahora.getDate()
-                        );
+                        fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth() - 1, ahora.getDate());
                         break;
-
                 }
-
 
                 if (fechaInicio) {
-                    consulta = consulta.gte(
-                        "fecha_hora",
-                        fechaSQL(fechaInicio)
-                    );
-
+                    consulta = consulta.gte("fecha_hora", fechaSQL(fechaInicio));
                 }
 
-                consulta = consulta.order(
-                    "fecha_hora",
-                    { ascending: false }
-                );
+                consulta = consulta.order("fecha_hora", { ascending: false });
 
                 const { data, error } = await consulta;
 
                 if (error) throw error;
 
+                datosActuales = data;
                 renderData(data);
 
-                const hora = new Date().toLocaleTimeString(
-                    [],
-                    {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }
-                );
+                const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                statusLabels.forEach(el => el.innerText = `Sincronizado: ${hora}`);
 
-                statusLabels.forEach(el =>
-                    el.innerText = `Sincronizado: ${hora}`
-                );
-
-            }
-            catch (e) {
-
+            } catch (e) {
                 console.error(e);
-
-                alert(
-                    JSON.stringify(e, null, 2)
-                );
-
-                statusLabels.forEach(el =>
-                    el.innerText = "Error"
-                );
-
+                alert(JSON.stringify(e, null, 2));
+                statusLabels.forEach(el => el.innerText = "Error");
             }
-
         }
 
-
         function formatearFecha(fechaBD) {
-
             const fecha = new Date(fechaBD);
-
-            return fecha.toLocaleString(
-                "es-MX",
-                {
-                    timeZone: "UTC",
-                    day: "2-digit",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false
-                }
-            );
-
+            return fecha.toLocaleString("es-MX", {
+                timeZone: "UTC", day: "2-digit", month: "short",
+                hour: "2-digit", minute: "2-digit", hour12: false
+            });
         }
 
         function renderData(data) {
@@ -663,33 +533,88 @@
             const mobileBody = document.getElementById('data-body-mobile');
             desktopBody.innerHTML = ""; mobileBody.innerHTML = "";
 
+            if (data.length === 0) {
+                desktopBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--ink-soft);">Sin movimientos para este filtro.</td></tr>`;
+                mobileBody.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--ink-soft); font-size:13px;">Sin movimientos para este filtro.</div>`;
+                return;
+            }
 
             data.forEach(row => {
-                console.log(row.fecha_hora);
-                console.log(row);
                 const fecha = formatearFecha(row.fecha_hora);
-
                 const base = row.base;
                 const tech = row.clave_colaborador;
                 const eco = row.numero_economico;
                 const sube = row.bandeja_sube;
                 const baja = row.bandeja_baja;
 
-                desktopBody.innerHTML += `<tr><td>${fecha}</td><td><b>${eco}</b></td><td>${base}</td><td style="color:var(--success)">${sube}</td><td style="color:red">${baja}</td><td>${tech}</td></tr>`;
+                desktopBody.innerHTML += `<tr>
+                    <td class="mono-tag">${fecha}</td>
+                    <td class="eco-cell">${eco}</td>
+                    <td>${base}</td>
+                    <td class="mono-tag tag-up">${sube || '—'}</td>
+                    <td class="mono-tag tag-down">${baja || '—'}</td>
+                    <td>${tech}</td>
+                </tr>`;
 
                 mobileBody.innerHTML += `
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                            <span class="card-eco">Bus ${eco}</span>
-                            <span style="font-size:12px; color:#8e8e93;">${fecha}</span>
+                    <div class="ticket">
+                        <div class="ticket-stub"><span class="stub-id">${eco}</span></div>
+                        <div class="ticket-body">
+                            <div class="ticket-header">
+                                <span class="ticket-eco">Bus ${eco}</span>
+                                <span class="ticket-date">${fecha}</span>
+                            </div>
+                            <div class="tray-row">
+                                <div class="tray-box"><small class="tag-up">▲ SUBE</small><b>${sube || '—'}</b></div>
+                                <div class="tray-box"><small class="tag-down">▼ BAJA</small><b>${baja || '—'}</b></div>
+                            </div>
+                            <div class="ticket-footer">Técnico: ${tech} · Base: ${base}</div>
                         </div>
-                        <div style="display:flex; gap:10px;">
-                            <div class="tray-box"><small style="color:var(--success)">▲ SUBE</small><br><b>${sube}</b></div>
-                            <div class="tray-box"><small style="color:red">▼ BAJA</small><br><b>${baja}</b></div>
-                        </div>
-                        <div style="margin-top:10px; font-size:11px; color:#8e8e93;">Técnico: ${tech} | Base: ${base}</div>
                     </div>`;
             });
+        }
+
+        function exportarCSV() {
+            if (!datosActuales || datosActuales.length === 0) {
+                alert("No hay datos cargados para exportar. Espera a que termine de sincronizar o ajusta los filtros.");
+                return;
+            }
+
+            const encabezados = ["Fecha", "Base", "Economico", "BandejaSube", "BandejaBaja", "Tecnico"];
+
+            const escapar = (valor) => {
+                const texto = (valor === null || valor === undefined) ? "" : String(valor);
+                if (texto.includes(",") || texto.includes('"') || texto.includes("\n")) {
+                    return '"' + texto.replace(/"/g, '""') + '"';
+                }
+                return texto;
+            };
+
+            const filas = datosActuales.map(row => [
+                formatearFecha(row.fecha_hora),
+                row.base,
+                row.numero_economico,
+                row.bandeja_sube,
+                row.bandeja_baja,
+                row.clave_colaborador
+            ].map(escapar).join(","));
+
+            const csv = [encabezados.join(","), ...filas].join("\n");
+
+            // BOM al inicio para que Excel abra los acentos correctamente
+            const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const marcaTiempo = fechaSQL(new Date()).replace(/[: ]/g, "-");
+            const nombreArchivo = `movimientos_${currentBase}_${currentPeriodo}_${marcaTiempo}.csv`;
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         setInterval(() => { if (!document.hidden) loadData(); }, 30000);

@@ -24,6 +24,8 @@
             --teal-tint: #e3efee;
             --rust: #b33f2e;
             --rust-tint: #f8e8e4;
+            --blue: #2b6cb0;
+            --cranberry: #a32638;
             --font-display: 'IBM Plex Sans Condensed', sans-serif;
             --font-body: 'IBM Plex Sans', sans-serif;
             --font-mono: 'IBM Plex Mono', monospace;
@@ -264,8 +266,8 @@
             background: #c6c6c8; border: 3px solid var(--surface);
             box-shadow: 0 0 0 1px var(--rule);
         }
-        .node.up::before { background: var(--teal); }
-        .node.down::before { background: var(--rust); }
+        .node.up::before { background: var(--blue); }
+        .node.down::before { background: var(--cranberry); }
         .node.active-node::before { background: var(--amber); }
 
         .node-label {
@@ -481,7 +483,6 @@
                 const tSube = new Date(rSube.fecha_hora).getTime();
                 const idBandejaSube = rSube.bandeja_sube;
                 const idBusSube = rSube.numero_economico;
-                const idBaseSube = rSube.base;
 
                 const rBaja = database.find(r =>
                     r.bandeja_baja && r.bandeja_baja.toString().toUpperCase() === (modoActual === 'bus' ? idBandejaSube.toUpperCase() : query) &&
@@ -543,12 +544,12 @@
                         <div class="node up">
                             <span class="node-label">Instalación (subida)</span>
                             <span class="node-val">${f1}</span>
-                            <span class="node-meta">${sube.clave_colaborador} · ${sube.base}</span>
+                            <span class="node-meta">${sube.bandeja_sube} · ${sube.numero_economico}</span>
                         </div>
                         <div class="node ${status === 'finalizado' ? 'down' : 'active-node'}">
                             <span class="node-label">${status === 'finalizado' ? 'Retiro (bajada)' : 'Estado actual'}</span>
                             <span class="node-val">${f2}</span>
-                            <span class="node-meta">${baja ? (baja.clave_colaborador + ' · ' + baja.base) : 'Bandeja activa en la unidad'}</span>
+                            <span class="node-meta">${baja ? (baja.bandeja_baja + ' · ' + baja.numero_economico) : 'Bandeja activa en la unidad'}</span>
                         </div>
                     </div>
                     <div class="duration-footer">
