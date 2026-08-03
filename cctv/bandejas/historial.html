@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rastreo de Eventos y Bandejas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --ink: #16202b;
+            --ink-soft: #3a4552;
+            --paper: #eef0f3;
+            --surface: #ffffff;
+            --rule: #d3d8de;
+            --amber: #e2900f;
+            --amber-tint: #fbf1de;
+            --teal: #0f6f66;
+            --teal-tint: #e3efee;
+            --rust: #b33f2e;
+            --rust-tint: #f8e8e4;
+            --font-display: 'IBM Plex Sans Condensed', sans-serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--ink);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: var(--ink);
+        }
+
+        :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+        /* ===================== LAYOUT ===================== */
+        .app { display: flex; height: 100vh; width: 100%; }
+
+        /* --- RAIL DE CONTROL (lateral oscuro, tipo consola de despacho) --- */
+        .rail {
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--ink);
+            color: var(--paper);
+            display: flex;
+            flex-direction: column;
+            padding: 26px 20px;
+        }
+
+        .rail-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8b99;
+            margin-bottom: 4px;
+        }
+
+        .rail-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 26px;
+            letter-spacing: -0.01em;
+            margin-bottom: 28px;
+        }
+
+        .rail-nav-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8b99;
+            margin-bottom: 10px;
+        }
+
+        .rail-tabs { display: flex; flex-direction: column; gap: 2px; margin-bottom: auto; }
+
+        .rail-tab {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #b9c2cc;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .rail-tab i { width: 16px; text-align: center; font-size: 13px; }
+
+        .rail-tab.active {
+            background: rgba(226, 144, 15, 0.12);
+            color: var(--paper);
+            border-left-color: var(--amber);
+        }
+
+        .rail-status {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #7d8b99;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid #29323d;
+        }
+
+        .rail-status .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--amber);
+            flex-shrink: 0;
+        }
+
+        .rail-status.ok .dot { background: var(--teal); }
+        .rail-status.error .dot { background: var(--rust); }
+
+        /* --- ÁREA DE TRABAJO --- */
+        .workspace { flex: 1; display: flex; flex-direction: column; background: var(--paper); min-width: 0; }
+
+        .searchbar-wrap { padding: 28px 32px 8px 32px; }
+
+        .search-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: 8px;
+        }
+
+        .search-box {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            padding: 13px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 420px;
+            box-shadow: 0 1px 2px rgba(22, 32, 43, 0.04);
+        }
+
+        .search-box i { color: var(--ink-soft); font-size: 14px; }
+
+        .search-box input {
+            border: none; background: transparent; outline: none;
+            font-size: 15px; width: 100%; font-family: var(--font-body); color: var(--ink);
+        }
+
+        .results-view { flex: 1; overflow-y: auto; padding: 20px 32px 40px 32px; }
+
+        .empty-state {
+            text-align: center; margin-top: 90px; color: var(--ink-soft);
+        }
+        .empty-state i { font-size: 38px; opacity: 0.18; margin-bottom: 14px; display: block; }
+        .empty-state p { font-size: 14px; max-width: 280px; margin: 0 auto; }
+
+        /* ===================== TICKET (tarjeta manifiesto) ===================== */
+        @keyframes ticketIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ticket {
+            display: flex;
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid var(--rule);
+            box-shadow: 0 2px 10px rgba(22, 32, 43, 0.06);
+            max-width: 640px;
+            margin: 0 auto 22px auto;
+            overflow: hidden;
+            position: relative;
+            animation: ticketIn 0.25s ease both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ticket { animation: none; }
+        }
+
+        .ticket-stub {
+            width: 56px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-right: 2px dashed var(--rule);
+        }
+
+        .ticket-stub::before, .ticket-stub::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--paper);
+        }
+        .ticket-stub::before { top: -8px; }
+        .ticket-stub::after { bottom: -8px; }
+
+        .stub-id {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.06em;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            color: var(--ink-soft);
+        }
+
+        .ticket-body { flex: 1; padding: 20px 22px; min-width: 0; }
+
+        .ticket-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 18px; gap: 12px;
+        }
+
+        .ticket-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 21px;
+            color: var(--ink);
+            letter-spacing: -0.01em;
+        }
+
+        .stamp {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 5px 10px;
+            border: 1.5px dashed currentColor;
+            border-radius: 6px;
+            transform: rotate(-4deg);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .stamp.ok { color: var(--teal); background: var(--teal-tint); }
+        .stamp.active { color: var(--amber); background: var(--amber-tint); }
+        .stamp.warn { color: var(--rust); background: var(--rust-tint); }
+
+        /* Escalera de eventos */
+        .staircase { margin-left: 4px; border-left: 2px solid var(--rule); padding-left: 22px; position: relative; }
+        .node { position: relative; margin-bottom: 20px; }
+        .node:last-child { margin-bottom: 0; }
+        .node::before {
+            content: ''; position: absolute; left: -28px; top: 3px;
+            width: 11px; height: 11px; border-radius: 50%;
+            background: #c6c6c8; border: 3px solid var(--surface);
+            box-shadow: 0 0 0 1px var(--rule);
+        }
+        .node.up::before { background: var(--teal); }
+        .node.down::before { background: var(--rust); }
+        .node.active-node::before { background: var(--amber); }
+
+        .node-label {
+            font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+            letter-spacing: 0.1em; color: var(--ink-soft); text-transform: uppercase;
+        }
+        .node-val {
+            font-family: var(--font-mono); font-size: 15px; font-weight: 600;
+            display: block; color: var(--ink); margin-top: 3px;
+        }
+        .node-meta { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+
+        .duration-footer {
+            margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--rule);
+            font-family: var(--font-mono); font-size: 12.5px; font-weight: 600;
+            color: var(--ink); display: flex; align-items: center; gap: 8px;
+        }
+        .duration-footer i { color: var(--amber); }
+
+        /* ===================== RESPONSIVE ===================== */
+        @media (max-width: 850px) {
+            .app { flex-direction: column; }
+
+            .rail {
+                width: 100%; flex-direction: row; align-items: center;
+                padding: 14px 18px; gap: 16px;
+            }
+            .rail-eyebrow { display: none; }
+            .rail-title { font-size: 19px; margin-bottom: 0; margin-right: auto; }
+            .rail-nav-label { display: none; }
+            .rail-tabs { flex-direction: row; margin-bottom: 0; gap: 4px; }
+            .rail-tab { padding: 7px 10px; font-size: 13px; border-left: none; border-bottom: 3px solid transparent; }
+            .rail-tab.active { border-left: none; border-bottom-color: var(--amber); }
+            .rail-status { display: none; }
+
+            .searchbar-wrap { display: none; }
+            .results-view { padding: 16px 16px 130px 16px; }
+            .ticket { max-width: 100%; }
+
+            .floating-search {
+                display: flex !important;
+                position: fixed; bottom: 24px; left: 16px; right: 16px;
+                background: rgba(255, 255, 255, 0.92);
+                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--rule);
+                box-shadow: 0 8px 28px rgba(22, 32, 43, 0.18);
+                border-radius: 16px; padding: 13px 18px; z-index: 1000;
+                align-items: center; gap: 10px;
+            }
+            .floating-search input { border: none; background: transparent; outline: none; font-size: 16px; width: 100%; font-family: var(--font-body); }
+            .floating-search i { color: var(--amber); font-size: 17px; }
+        }
+
+        .floating-search { display: none; }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <aside class="rail">
+            <div class="rail-eyebrow">GHO · TECNOLOGÍA A BORDO</div>
+            <div class="rail-title">Rastreo</div>
+
+            <div class="rail-nav-label">Trazabilidad</div>
+            <div class="rail-tabs">
+                <div id="segBus" class="rail-tab active" onclick="cambiarModo('bus')">
+                    <i class="fa-solid fa-bus"></i> Por Autobús
+                </div>
+                <div id="segDisco" class="rail-tab" onclick="cambiarModo('disco')">
+                    <i class="fa-solid fa-hard-drive"></i> Por Bandeja
+                </div>
+            </div>
+
+            <div id="status-text" class="rail-status">
+                <span class="dot"></span> Sincronizando...
+            </div>
+        </aside>
+
+        <div class="workspace">
+            <div class="searchbar-wrap">
+                <div class="search-eyebrow">Buscar unidad o bandeja</div>
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="userInput" placeholder="Ej. 55016 o MORE-55016-D2" oninput="syncAndProcess(this.value)">
+                </div>
+            </div>
+
+            <main class="results-view" id="resultados">
+                <div class="empty-state">
+                    <i class="fa-solid fa-timeline"></i>
+                    <p>Ingresa un número de autobús o el código de una bandeja para ver su bitácora completa.</p>
+                </div>
+            </main>
+
+            <div class="floating-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="userInputMobile" placeholder="Buscar unidad o bandeja..." oninput="syncAndProcess(this.value)">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONEXIÓN A SUPABASE
+        // La variable se llama "db" (no "supabase") para no chocar con
+        // la librería, que ya usa ese nombre internamente.
+        // ============================================================
+        const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
+
+        let db = null;
+        try {
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.error("No se pudo inicializar Supabase:", e);
+        }
+
+        let database = [];
+        let modoActual = 'bus';
+
+        function setEstado(texto, tipo) {
+            const el = document.getElementById('status-text');
+            el.className = 'rail-status' + (tipo ? ' ' + tipo : '');
+            el.innerHTML = '<span class="dot"></span> ' + texto;
+        }
+
+        // Trae el historial completo desde tbl_cambiobandeja, PAGINANDO en
+        // bloques de 1000 filas (límite máximo por petición de Supabase),
+        // hasta que ya no queden más registros por traer.
+        async function cargar() {
+            if (!db) {
+                setEstado("Sin conexión a BD", "error");
+                return;
+            }
+
+            try {
+                setEstado("Conectando...", "");
+
+                let todos = [];
+                let desde = 0;
+                const tamanoPagina = 1000;
+                let hayMas = true;
+
+                while (hayMas) {
+                    const { data, error } = await db
+                        .from('tbl_cambiobandeja')
+                        .select('fecha_hora, base, clave_colaborador, numero_economico, bandeja_sube, bandeja_baja')
+                        .order('fecha_hora', { ascending: true })
+                        .range(desde, desde + tamanoPagina - 1);
+
+                    if (error) throw error;
+
+                    todos = todos.concat(data);
+                    hayMas = data.length === tamanoPagina;
+                    desde += tamanoPagina;
+                }
+
+                database = todos;
+                setEstado(database.length.toLocaleString('es-MX') + " registros", "ok");
+            } catch (e) {
+                console.error("Error cargando historial:", e);
+                setEstado("Error de conexión", "error");
+            }
+        }
+
+        // Sincroniza ambos inputs (rail/flotante) para que funcionen igual
+        function syncAndProcess(val) {
+            document.getElementById('userInput').value = val;
+            document.getElementById('userInputMobile').value = val;
+            procesar();
+        }
+
+        function cambiarModo(m) {
+            modoActual = m;
+            document.getElementById('segBus').classList.toggle('active', m === 'bus');
+            document.getElementById('segDisco').classList.toggle('active', m === 'disco');
+            syncAndProcess("");
+            document.getElementById('resultados').innerHTML = "";
+        }
+
+        function procesar() {
+            const container = document.getElementById('resultados');
+            const query = document.getElementById('userInput').value.trim().toUpperCase();
+            if (!query) {
+                container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-timeline"></i><p>Ingresa un número de autobús o el código de una bandeja para ver su bitácora completa.</p></div>`;
+                return;
+            }
+            container.innerHTML = "";
+
+            let subset = modoActual === 'bus'
+                ? database.filter(r => r.numero_economico && r.numero_economico.toString() === query)
+                : database.filter(r =>
+                    (r.bandeja_sube && r.bandeja_sube.toUpperCase() === query) ||
+                    (r.bandeja_baja && r.bandeja_baja.toUpperCase() === query)
+                );
+
+            const subidas = subset.filter(r => {
+                if (modoActual === "bus") return r.bandeja_sube;
+                return r.bandeja_sube && r.bandeja_sube.toUpperCase() === query;
+            });
+
+            if (subidas.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i><p>No hay registros para "${query}". Revisa el número e inténtalo de nuevo.</p></div>`;
+                return;
+            }
+
+            // Mostramos primero lo más reciente, aunque internamente
+            // seguimos comparando en orden cronológico ascendente arriba.
+            subidas.sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
+
+            subidas.forEach(rSube => {
+                const tSube = new Date(rSube.fecha_hora).getTime();
+                const idBandejaSube = rSube.bandeja_sube;
+                const idBusSube = rSube.numero_economico;
+                const idBaseSube = rSube.base;
+
+                const rBaja = database.find(r =>
+                    r.bandeja_baja && r.bandeja_baja.toString().toUpperCase() === (modoActual === 'bus' ? idBandejaSube.toUpperCase() : query) &&
+                    new Date(r.fecha_hora).getTime() > tSube
+                );
+
+                const proximaSubida = database.find(r => {
+                    const tRef = new Date(r.fecha_hora).getTime();
+                    if (modoActual === 'bus') {
+                        return r.numero_economico && r.numero_economico.toString() === query && r.bandeja_sube && tRef > tSube;
+                    } else {
+                        return r.bandeja_sube && r.bandeja_sube.toString().toUpperCase() === query && tRef > tSube;
+                    }
+                });
+
+                let status = "activo";
+                if (rBaja) {
+                    if (proximaSubida && new Date(rBaja.fecha_hora).getTime() > new Date(proximaSubida.fecha_hora).getTime()) {
+                        status = "inconsistente";
+                    } else {
+                        status = "finalizado";
+                    }
+                } else if (proximaSubida) {
+                    status = "inconsistente";
+                }
+
+                const titulo = modoActual === 'bus' ? idBandejaSube : `Unidad ${idBusSube}`;
+                container.insertAdjacentHTML('beforeend', renderCard(titulo, rSube, (status === "finalizado" ? rBaja : null), status));
+            });
+        }
+
+        function renderCard(titulo, sube, baja, status) {
+            let stampClass = "active", stampLabel = "En operación", stampIcon = "fa-circle-play";
+            let duracionStr = "En tránsito";
+
+            if (status === "finalizado") {
+                stampClass = "ok"; stampLabel = "Ciclo cerrado"; stampIcon = "fa-circle-check";
+                const diff = Math.abs(new Date(baja.fecha_hora) - new Date(sube.fecha_hora));
+                duracionStr = `${Math.floor(diff / 864e5)}d ${Math.floor((diff % 864e5) / 36e5)}h en DVR`;
+            } else if (status === "inconsistente") {
+                stampClass = "warn"; stampLabel = "Sin cierre"; stampIcon = "fa-triangle-exclamation";
+                duracionStr = "Revisar registro";
+            }
+
+            const stubText = titulo.length > 10 ? titulo.slice(0, 10) : titulo;
+
+            const f1 = new Date(sube.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+            const f2 = baja ? new Date(baja.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (status === "inconsistente" ? "Desconocida" : "Operando");
+
+            return `
+            <div class="ticket">
+                <div class="ticket-stub"><span class="stub-id">${stubText}</span></div>
+                <div class="ticket-body">
+                    <div class="ticket-header">
+                        <div class="ticket-title">${titulo}</div>
+                        <div class="stamp ${stampClass}"><i class="fa-solid ${stampIcon}"></i> ${stampLabel}</div>
+                    </div>
+                    <div class="staircase">
+                        <div class="node up">
+                            <span class="node-label">Instalación (subida)</span>
+                            <span class="node-val">${f1}</span>
+                            <span class="node-meta">${sube.clave_colaborador} · ${sube.base}</span>
+                        </div>
+                        <div class="node ${status === 'finalizado' ? 'down' : 'active-node'}">
+                            <span class="node-label">${status === 'finalizado' ? 'Retiro (bajada)' : 'Estado actual'}</span>
+                            <span class="node-val">${f2}</span>
+                            <span class="node-meta">${baja ? (baja.clave_colaborador + ' · ' + baja.base) : 'Bandeja activa en la unidad'}</span>
+                        </div>
+                    </div>
+                    <div class="duration-footer">
+                        <i class="fa-solid fa-hourglass-half"></i> Permanencia: ${duracionStr}
+                    </div>
+                </div>
+            </div>
+        `;
+        }
+
+        window.onload = cargar;
+    </script>
+</body>
+
+</html>
