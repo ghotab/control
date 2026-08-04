@@ -130,7 +130,7 @@
         .rail-status.error .dot { background: var(--rust); }
 
         /* --- ÁREA DE TRABAJO --- */
-        .workspace { flex: 1; display: flex; flex-direction: column; background: var(--paper); min-width: 0; }
+        .workspace { flex: 1; display: flex; flex-direction: column; background: var(--paper); min-width: 0; overflow: hidden; }
 
         .searchbar-wrap { padding: 28px 32px 8px 32px; }
 
@@ -483,6 +483,8 @@
                 const tSube = new Date(rSube.fecha_hora).getTime();
                 const idBandejaSube = rSube.bandeja_sube;
                 const idBusSube = rSube.numero_economico;
+                const idColaborador = rSube.clave_colaborador;
+                const base = rSube.base;
 
                 const rBaja = database.find(r =>
                     r.bandeja_baja && r.bandeja_baja.toString().toUpperCase() === (modoActual === 'bus' ? idBandejaSube.toUpperCase() : query) &&
@@ -527,7 +529,7 @@
                 duracionStr = "Revisar registro";
             }
 
-            const stubText = titulo.length > 10 ? titulo.slice(0, 10) : titulo;
+            const stubText = titulo.length > 10 ? titulo.slice(0, 13) : titulo;
 
             const f1 = new Date(sube.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
             const f2 = baja ? new Date(baja.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (status === "inconsistente" ? "Desconocida" : "Operando");
@@ -544,12 +546,12 @@
                         <div class="node up">
                             <span class="node-label">Instalación (subida)</span>
                             <span class="node-val">${f1}</span>
-                            <span class="node-meta">${sube.bandeja_sube} · ${sube.numero_economico}</span>
+                            <span class="node-meta">${sube.clave_colaborador} · ${sube.base }</span>
                         </div>
                         <div class="node ${status === 'finalizado' ? 'down' : 'active-node'}">
                             <span class="node-label">${status === 'finalizado' ? 'Retiro (bajada)' : 'Estado actual'}</span>
                             <span class="node-val">${f2}</span>
-                            <span class="node-meta">${baja ? (baja.bandeja_baja + ' · ' + baja.numero_economico) : 'Bandeja activa en la unidad'}</span>
+                            <span class="node-meta">${baja ? (baja.clave_colaborador + ' · ' + baja.base) : 'Bandeja activa en la unidad'}</span>
                         </div>
                     </div>
                     <div class="duration-footer">
