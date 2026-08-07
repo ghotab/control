@@ -531,8 +531,8 @@
 
             const stubText = titulo.length > 10 ? titulo.slice(0, 13) : titulo;
 
-            const f1 = new Date(sube.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-            const f2 = baja ? new Date(baja.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (status === "inconsistente" ? "Desconocida" : "Operando");
+            const f1 = new Date(sube.fecha_hora).toLocaleString('es-MX', { timeZone: "UTC", day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+            const f2 = baja ? new Date(baja.fecha_hora).toLocaleString('es-MX', { timeZone: "UTC", day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (status === "inconsistente" ? "Desconocida" : "Operando");
 
             return `
             <div class="ticket">
