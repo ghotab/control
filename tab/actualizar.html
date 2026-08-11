@@ -232,12 +232,12 @@
                 try {
                     const workbook = XLSX.read(e.target.result, { type: 'array' });
 
-                    if (!workbook.SheetNames.includes("Base de Datos")) {
-                        alert('No se encontró una hoja llamada "Base de Datos" en este archivo.\n\nHojas disponibles: ' + workbook.SheetNames.join(', '));
+                    if (!workbook.SheetNames.includes("Base de datos")) {
+                        alert('No se encontró una hoja llamada "Base de datos" en este archivo.\n\nHojas disponibles: ' + workbook.SheetNames.join(', '));
                         return;
                     }
 
-                    const hoja = workbook.Sheets["Base de Datos"];
+                    const hoja = workbook.Sheets["Base de datos"];
                     const filasCrudas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
                     procesarFilas(filasCrudas);
@@ -251,7 +251,7 @@
 
         function procesarFilas(filasCrudas) {
             if (filasCrudas.length === 0) {
-                alert('La hoja "Base de Datos" no tiene filas de datos.');
+                alert('La hoja "Base de datos" no tiene filas de datos.');
                 return;
             }
 
