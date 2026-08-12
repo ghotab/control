@@ -12,7 +12,10 @@
 
     async function getSession() {
         try {
-            if (!window.db || !window.db.auth) return null;
+            if (!window.db || !window.db.auth) {
+                console.error('Advertencia: window.db.auth no disponible al solicitar sesión');
+                return null;
+            }
             const { data } = await window.db.auth.getSession();
             return data.session;
         } catch (e) {
@@ -58,10 +61,28 @@
     }
 
     async function signInWithCollab(collabId, password) {
-        if (!window.db || !window.db.auth) throw new Error('Supabase client no inicializado');
         const email = `${collabId}@gho.mx`;
         const pwd = password || collabId;
-        return await window.db.auth.signInWithPassword({ email, password: pwd });
+
+        // Preferir window.db.auth, si no está disponible intentar crear un cliente temporal
+        try {
+            if (window.db && window.db.auth && typeof window.db.auth.signInWithPassword === 'function') {
+                return await window.db.auth.signInWithPassword({ email, password: pwd });
+            }
+
+            console.warn('window.db.auth no disponible o no tiene signInWithPassword; intentando cliente temporal');
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                const temp = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                if (temp && temp.auth && typeof temp.auth.signInWithPassword === 'function') {
+                    return await temp.auth.signInWithPassword({ email, password: pwd });
+                }
+            }
+
+            throw new Error('Cliente de autenticación no disponible');
+        } catch (e) {
+            console.error('Error en signInWithCollab:', e);
+            throw e;
+        }
     }
 
     async function signOut() {
