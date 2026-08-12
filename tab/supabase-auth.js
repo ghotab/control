@@ -12,7 +12,8 @@
 
     async function getSession() {
         try {
-            const { data } = await window.supabase.auth.getSession();
+            if (!window.db || !window.db.auth) return null;
+            const { data } = await window.db.auth.getSession();
             return data.session;
         } catch (e) {
             console.error('Error leyendo sesión:', e);
@@ -22,7 +23,8 @@
 
     async function getProfile() {
         try {
-            const userRes = await window.supabase.auth.getUser();
+            if (!window.db || !window.db.auth) return null;
+            const userRes = await window.db.auth.getUser();
             const uid = userRes?.data?.user?.id;
             if (!uid) return null;
             const { data, error } = await window.db.from('tbl_usuarios').select('*').eq('id_auth', uid).maybeSingle();
@@ -56,14 +58,15 @@
     }
 
     async function signInWithCollab(collabId, password) {
+        if (!window.db || !window.db.auth) throw new Error('Supabase client no inicializado');
         const email = `${collabId}@gho.mx`;
         const pwd = password || collabId;
-        return await window.supabase.auth.signInWithPassword({ email, password: pwd });
+        return await window.db.auth.signInWithPassword({ email, password: pwd });
     }
 
     async function signOut() {
         try {
-            await window.supabase.auth.signOut();
+            if (window.db && window.db.auth) await window.db.auth.signOut();
         } finally {
             window.location.href = 'login.html';
         }
