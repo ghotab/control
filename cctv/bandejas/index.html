@@ -149,7 +149,7 @@
                     <div class="row-text">Registrar Cambio</div>
                     <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
                 </a>
-                
+               
                 <a href="owalert.html" class="ios-row">
                     <div class="icon-box bg-red">
                         <i class="fa-solid fa-circle-radiation"></i>
@@ -191,6 +191,21 @@
         GRUPO HERRADURA OCCIDENTE<br>
         2026 • © Todos los derechos reservados
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../tab/supabase-auth.js"></script>
+    <script>
+        window.onload = async function() {
+            try {
+                if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
+                    await window.supabaseAuth.requireAuth();
+                }
+            } catch (e) {
+                console.error('Auth check failed:', e);
+                return;
+            }
+        };
+    </script>
+</body>
+</html>
 </body>
 </html>

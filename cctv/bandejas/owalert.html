@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../tab/supabase-auth.js"></script>
 
     <style>
         :root {
@@ -251,11 +252,14 @@
     const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
 
-    let db = null;
-    try {
-        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (e) {
-        console.error("No se pudo inicializar Supabase:", e);
+    let db = window.db || null;
+    if (!db) {
+        try {
+            db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.db = db;
+        } catch (e) {
+            console.error("No se pudo inicializar Supabase:", e);
+        }
     }
 
     let rawFlota = [];
@@ -516,7 +520,17 @@
         document.getElementById('badgeCritico').innerText = criticosTotal;
     }
 
-    init();
+    (async function(){
+        try {
+            if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
+                await window.supabaseAuth.requireAuth();
+            }
+        } catch (e) {
+            console.error('Auth check failed:', e);
+            return;
+        }
+        init();
+    })();
 </script>
 </body>
 </html>

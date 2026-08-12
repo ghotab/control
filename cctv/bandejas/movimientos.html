@@ -7,6 +7,7 @@
     <title>Movimientos CCTV - Live Dashboard</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../tab/supabase-auth.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
@@ -425,7 +426,15 @@
         const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
 
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let db = window.db || null;
+        if (!db) {
+            try {
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                window.db = db;
+            } catch (e) {
+                console.error("No se pudo inicializar Supabase:", e);
+            }
+        }
 
         let currentBase = "TODAS";
         let currentPeriodo = "SEMANA";
@@ -618,7 +627,17 @@
         }
 
         setInterval(() => { if (!document.hidden) loadData(); }, 30000);
-        window.onload = loadData;
+        window.onload = async function() {
+            try {
+                if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
+                    await window.supabaseAuth.requireAuth();
+                }
+            } catch (e) {
+                console.error('Auth check failed:', e);
+                return;
+            }
+            loadData();
+        };
     </script>
 </body>
 

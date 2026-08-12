@@ -6,6 +6,8 @@
     <title>Inventario de Sitio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../tab/supabase-auth.js"></script>
     
     <style>
         :root {
@@ -206,7 +208,20 @@
 
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbzSSGiu0bZIJgHheutgfD0MiqFNGkB0jxga_hNJu8T5R4ZLe-_FdjxvUR2uGXl_e-YG/exec";
-        
+
+        const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
+
+        let db = window.db || null;
+        if (!db) {
+            try {
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                window.db = db;
+            } catch (e) {
+                console.error('No se pudo inicializar Supabase:', e);
+            }
+        }
+
         let escaneados = new Set();
         const html5QrCode = new Html5Qrcode("reader");
 
@@ -269,7 +284,14 @@
             }
         }
 
-        window.onload = function() {
+        window.onload = async function() {
+            try {
+                if (window.supabaseAuth && window.supabaseAuth.requireAuth) await window.supabaseAuth.requireAuth();
+            } catch (e) {
+                console.error('Auth check failed:', e);
+                return;
+            }
+
             // Recuperamos los datos que ya existen en el teléfono
             const baseGuardada = localStorage.getItem('base');
             const tecnicoGuardado = localStorage.getItem('tecnico');
