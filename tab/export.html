@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-auth.js"></script>
     <style>
         :root {
             --bg: #f7f8fa;
@@ -115,15 +116,8 @@
 </div>
 
 <script>
-    const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
-
-    let db = null;
-    try {
-        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (e) {
-        console.error("No se pudo inicializar Supabase:", e);
-    }
+    const db = window.db;
+    (async function(){ try { if (window.supabaseAuth) await window.supabaseAuth.requireAuth(); } catch(e){ console.error(e); } })();
 
     const CAMPOS_EXPORTACION = [
         ["autobus", "BUS"],

@@ -5,167 +5,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Explorar Distribución por Rol</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-auth.js"></script>
+
     <style>
         :root {
-            --ios-blue: #007aff;
-            --ios-bg: #f2f2f7;
-            --glass: rgba(255, 255, 255, 0.7);
+            --bg: #f7f8fa; --surface: #ffffff; --border: #e5e7eb;
+            --ink: #111827; --ink-soft: #6b7280;
+            --violet: #6d5fd8; --violet-tint: #efedfc;
+            --teal: #14b8a6; --teal-tint: #e6f9f6;
+            --red: #ef4444; --red-tint: #fde9e9;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--ios-bg);
-            margin: 0;
-            color: #1c1c1e;
-        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); margin: 0; color: var(--ink); }
+        :focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
 
-        /* HEADER ESTILO MACOS */
         .header {
-            padding: 30px 20px;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            position: sticky;
-            top: 0;
-            border-bottom: 0.5px solid #d1d1d6;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
+            padding: 24px 20px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+            position: sticky; top: 0; border-bottom: 1px solid var(--border); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
         }
 
-        h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+        .header-title { display: flex; align-items: center; gap: 10px; }
+        .app-logo {
+            width: 34px; height: 34px; border-radius: 9px; background: var(--violet);
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;
         }
+        h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
 
-        /* SELECTOR ESTILO APPLE */
-        .selector-container {
-            width: 100%;
-            max-width: 400px;
-            position: relative;
+        #contadorBuses {
+            font-size: 12.5px; color: var(--ink-soft); font-weight: 600; display: none;
+            background: var(--violet-tint); padding: 5px 13px; border-radius: 20px;
         }
+        #contadorBuses span { color: var(--violet); font-weight: 700; }
+
+        .selector-container { width: 100%; max-width: 400px; position: relative; }
 
         select {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 12px;
-            border: 1px solid #d1d1d6;
-            background: white;
-            font-size: 16px;
-            appearance: none;
-            cursor: pointer;
-            outline: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--surface); font-size: 15px; appearance: none; cursor: pointer; outline: none;
+            box-shadow: 0 1px 3px rgba(17,24,39,0.04); font-family: 'Inter', sans-serif; color: var(--ink);
         }
+        select:focus { border-color: var(--violet); }
 
         .selector-container::after {
-            content: "\f078";
-            font-family: "Font Awesome 5 Free";
-            font-weight: 900;
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--ios-blue);
-            pointer-events: none;
+            content: "\f078"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--violet); pointer-events: none; font-size: 13px;
         }
 
-        /* GRID DE TARJETAS */
         .grid-container {
-            display: grid;
-            padding: 20px;
-            gap: 20px;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            max-width: 1400px;
-            margin: 0 auto;
+            display: grid; padding: 20px; gap: 18px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            max-width: 1400px; margin: 0 auto;
         }
 
         .card {
-            background: white;
-            border-radius: 18px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border: 0.5px solid rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.3s ease-out forwards;
+            background: var(--surface); border-radius: 12px; padding: 18px;
+            border: 1px solid var(--border); border-left: 3px solid var(--violet);
+            animation: fadeIn .25s ease-out both;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: reduce) { .card { animation: none; } }
 
         .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 0.5px solid #eee;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); margin-bottom: 12px; padding-bottom: 10px;
         }
+        .bus-number { font-size: 22px; font-weight: 800; color: var(--violet); }
+        .service-tag { font-size: 11px; font-weight: 700; padding: 4px 9px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--ink-soft); }
 
-        .bus-number {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--ios-blue);
-        }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+        .label { color: var(--ink-soft); font-weight: 500; }
+        .val { font-weight: 600; text-align: right; }
 
-        .service-tag {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 8px;
-            background: #e5e5ea;
-            border-radius: 6px;
-        }
+        .status-inline-ok { color: #0a7d6f; }
+        .status-inline-bad { color: #b91c1c; }
 
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13px;
-        }
+        .divider { height: 1px; background: var(--border); margin: 10px 0; }
 
-        .label {
-            color: #8e8e93;
-            font-weight: 500;
-        }
-
-        .val {
-            font-weight: 600;
-            text-align: right;
-        }
-
-        .divider {
-            height: 0.5px;
-            background: #eee;
-            margin: 10px 0;
-        }
-
-        .loading-overlay {
-            text-align: center;
-            padding: 50px;
-            color: #8e8e93;
-        }
+        .loading-overlay { text-align: center; padding: 60px 20px; color: var(--ink-soft); }
+        .loading-overlay i { color: var(--violet); }
     </style>
 </head>
 
 <body>
 
     <div class="header">
-        <h1><i class="fas fa-route" style="color:var(--ios-blue);"></i> Consulta de Distribución por Rol</h1>
+        <div class="header-title">
+            <div class="app-logo"><i class="fa-solid fa-route"></i></div>
+            <h1>Distribución por Rol</h1>
+        </div>
 
-        <div id="contadorBuses" style="font-size: 14px; color: #8e8e93; font-weight: 500; display:none;">
-            <span id="numBuses" style="color: var(--ios-blue); font-weight: 700;">0</span> Autobuses en este rol
+        <div id="contadorBuses">
+            <span id="numBuses">0</span> autobuses en este rol
         </div>
 
         <div class="selector-container">
@@ -178,45 +116,37 @@
     <div id="mainContainer">
         <div id="loader" class="loading-overlay">
             <i class="fas fa-circle-notch fa-spin fa-2x"></i>
-            <p>Consultando servidor central...</p>
+            <p>Consultando catálogo de flota...</p>
         </div>
         <div class="grid-container" id="gridBuses"></div>
     </div>
 
     <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+        // usar cliente centralizado y exigir sesión
+        const db = window.db;
+        (async function(){ try { if (window.supabaseAuth) await window.supabaseAuth.requireAuth(); } catch(e){ console.error(e); } })();
+
         let flotaCompleta = [];
 
-        async function obtenerFlota() {
-
-            const cache = localStorage.getItem("flota_cache");
-            const cacheTime = localStorage.getItem("flota_cache_time");
-            const ahora = Date.now();
-
-            if (cache && cacheTime && (ahora - cacheTime < 3600000)) {
-
-                console.log("Flota cargada desde cache");
-                return JSON.parse(cache);
-
+        async function inicializar() {
+            if (!db) {
+                document.getElementById('loader').innerHTML = '<p style="color:#ef4444;">Sin conexión con la base de datos.</p>';
+                return;
             }
 
-            console.log("Consultando API de flota...");
-
-            const resp = await fetch(scriptURL + "?accion=getFlota");
-            const data = await resp.json();
-
-            localStorage.setItem("flota_cache", JSON.stringify(data));
-            localStorage.setItem("flota_cache_time", ahora);
-
-            return data;
-        }
-
-        async function inicializar() {
             try {
-                flotaCompleta = await obtenerFlota();
+                const { data, error } = await db
+                    .from('tbl_flota')
+                    .select('autobus, rol, estatus, base, no_serie, anio, marca, modelo, centro_costos, sociedad, servicio')
+                    .order('autobus', { ascending: true });
 
-                // 1. Extraer Roles únicos (Columna Índice 3)
-                const roles = [...new Set(flotaCompleta.map(f => f[3]))].sort();
+                if (error) throw error;
+
+                flotaCompleta = data;
+
+                const roles = [...new Set(flotaCompleta.map(f => f.rol))]
+                    .filter(r => r && r.toString().trim() !== "")
+                    .sort();
 
                 const select = document.getElementById('selectRol');
                 select.innerHTML = '<option value="">-- Selecciona un Rol --</option>' +
@@ -225,7 +155,7 @@
                 document.getElementById('loader').style.display = 'none';
             } catch (e) {
                 console.error(e);
-                document.getElementById('loader').innerHTML = '<p style="color:red;">Error de conexión.</p>';
+                document.getElementById('loader').innerHTML = '<p style="color:#ef4444;">Error de conexión.</p>';
             }
         }
 
@@ -237,15 +167,14 @@
 
             if (!rolSeleccionado) {
                 grid.innerHTML = '';
-                divContador.style.display = 'none'; // Ocultamos si no hay selección
+                divContador.style.display = 'none';
                 return;
             }
 
-            const filtrados = flotaCompleta.filter(f => f[3] === rolSeleccionado);
+            const filtrados = flotaCompleta.filter(f => f.rol === rolSeleccionado);
 
-            // ACTUALIZAMOS EL CONTADOR
             spanNum.innerText = filtrados.length;
-            divContador.style.display = 'block'; // Mostramos el contador
+            divContador.style.display = 'inline-flex';
 
             if (filtrados.length === 0) {
                 grid.innerHTML = '<div class="loading-overlay">No hay buses asignados a este rol.</div>';
@@ -253,29 +182,30 @@
             }
 
             grid.innerHTML = filtrados.map(f => {
-                const estatusColor = f[6] === "ENROLADO" ? "#34c759" : "#ff3b30";
+                const esOk = (f.estatus || "").toUpperCase() === "ENROLADO";
+                const claseEstatus = esOk ? "status-inline-ok" : "status-inline-bad";
 
                 return `
                 <div class="card">
                     <div class="card-header">
-                        <span class="bus-number">${f[2]}</span>
-                        <span class="service-tag">${f[38]}</span>
+                        <span class="bus-number">${f.autobus || '—'}</span>
+                        <span class="service-tag">${f.servicio || '—'}</span>
                     </div>
-                    
-                    <div class="data-row"><span class="label">Sociedad</span><span class="val">${f[37]}</span></div>
-                    <div class="data-row"><span class="label">Estatus</span><span class="val" style="color: ${estatusColor};">${f[6]}</span></div>
-                    <div class="data-row"><span class="label">Base</span><span class="val" style="color: var(--ios-blue);">${f[9]}</span></div>
+
+                    <div class="data-row"><span class="label">Sociedad</span><span class="val">${f.sociedad || '—'}</span></div>
+                    <div class="data-row"><span class="label">Estatus</span><span class="val ${claseEstatus}">${f.estatus || 'S/E'}</span></div>
+                    <div class="data-row"><span class="label">Base</span><span class="val" style="color: var(--violet);">${f.base || '—'}</span></div>
 
                     <div class="divider"></div>
-                    
-                    <div class="data-row"><span class="label">Marca</span><span class="val">${f[33]}</span></div>
-                    <div class="data-row"><span class="label">Modelo</span><span class="val">${f[34]}</span></div>
-                    <div class="data-row"><span class="label">Año</span><span class="val">${f[25]}</span></div>
-                    
+
+                    <div class="data-row"><span class="label">Marca</span><span class="val">${f.marca || '—'}</span></div>
+                    <div class="data-row"><span class="label">Modelo</span><span class="val">${f.modelo || '—'}</span></div>
+                    <div class="data-row"><span class="label">Año</span><span class="val">${f.anio || '—'}</span></div>
+
                     <div class="divider"></div>
-                    
-                    <div class="data-row"><span class="label">Serie</span><span class="val">${f[15]}</span></div>
-                    <div class="data-row"><span class="label">CECO</span><span class="val">${f[36]}</span></div>
+
+                    <div class="data-row"><span class="label">Serie</span><span class="val">${f.no_serie || '—'}</span></div>
+                    <div class="data-row"><span class="label">CECO</span><span class="val">${f.centro_costos || '—'}</span></div>
                 </div>
             `;
             }).join('');

@@ -5,197 +5,213 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Distribución</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-auth.js"></script>
+
     <style>
         :root {
-            --ios-blue: #007aff;
-            --ios-bg: #f2f2f7;
+            --bg: #f7f8fa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --ink: #111827;
+            --ink-soft: #6b7280;
+            --violet: #6d5fd8;
+            --violet-tint: #efedfc;
+            --teal: #14b8a6;
+            --teal-tint: #e6f9f6;
+            --red: #ef4444;
+            --red-tint: #fde9e9;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--ios-bg);
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
             margin: 0;
+            color: var(--ink);
         }
 
-        /* Buscador estilo Spotlight */
+        :focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+
+        /* --- HEADER --- */
         .header {
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             position: sticky;
             top: 0;
-            border-bottom: 0.5px solid #d1d1d6;
             z-index: 10;
         }
 
+        .app-logo {
+            width: 38px; height: 38px; border-radius: 10px; background: var(--violet);
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; flex-shrink: 0;
+        }
+        .header .title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+        .header .subtitle { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+
+        /* --- BUSCADOR --- */
+        .search-wrap {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            gap: 12px;
+            position: sticky;
+            top: 71px;
+            z-index: 9;
+        }
+
         .search-bar {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #e3e3e3;
-            border-radius: 12px;
-            padding: 12px;
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
             display: flex;
             align-items: center;
+            gap: 10px;
         }
+        .search-bar input { border: none; background: transparent; width: 100%; font-size: 15px; outline: none; font-family: 'Inter', sans-serif; color: var(--ink); }
+        .search-bar i { color: var(--ink-soft); }
 
-        .search-bar input {
-            border: none;
-            background: transparent;
-            width: 100%;
-            margin-left: 10px;
-            font-size: 17px;
-            outline: none;
+        .btn-refresh {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+            padding: 0 16px; display: flex; align-items: center; gap: 8px; font-size: 13.5px;
+            font-weight: 600; color: var(--ink); cursor: pointer; font-family: 'Inter', sans-serif;
         }
+        .btn-refresh:hover { background: var(--violet-tint); border-color: var(--violet); color: var(--violet); }
+        .btn-refresh i { font-size: 12px; }
+        .btn-refresh:disabled { opacity: .5; cursor: not-allowed; }
 
-        /* Tarjetas de Autobús */
-        .container {
-            padding: 15px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        .sync-note { font-size: 11.5px; color: var(--ink-soft); padding: 8px 24px 0; }
+
+        /* --- CONTENEDOR DE RESULTADOS --- */
+        .container { padding: 18px; max-width: 800px; margin: 0 auto; }
 
         .card {
-            background: white;
-            border-radius: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--violet);
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border: 0.5px solid rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+            margin-bottom: 16px;
         }
 
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-
-        .eco {
-            display: block;
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            color: #1c1c1e;
-            line-height: 1;
-        }
+        .eco { display: block; font-size: 30px; font-weight: 800; letter-spacing: -1px; color: var(--ink); line-height: 1; }
 
         .base-tag {
-            font-size: 14px;
-            font-weight: 700;
-            padding: 4px 10px;
-            background: rgba(0, 122, 255, 0.1);
-            color: var(--ios-blue);
-            border-radius: 8px;
-            text-transform: uppercase;
+            font-size: 12.5px; font-weight: 700; padding: 5px 11px;
+            background: var(--violet-tint); color: var(--violet); border-radius: 8px; text-transform: uppercase;
         }
 
-
-        .label {
-            display: block;
-            font-size: 10px;
-            font-weight: 700;
-            color: #8e8e93;
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
+        .status-pill {
+            font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: .03em; display: inline-block; margin-top: 6px;
         }
+        .status-ok { background: var(--teal-tint); color: #0a7d6f; }
+        .status-bad { background: var(--red-tint); color: #b91c1c; }
 
-        .value {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: #1c1c1e;
-        }
+        .label { display: block; font-size: 10px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.05em; margin-bottom: 3px; text-transform: uppercase; }
+        .value { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            /* Tres columnas para la fila de Estatus/Serie/Ceco */
-            gap: 15px;
-            margin-bottom: 12px;
-        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 12px; }
+        .info-grid.dos-col { grid-template-columns: 1fr 1fr; }
 
-        .divider {
-            height: 0.5px;
-            background: #e5e5ea;
-            margin: 15px 0;
-        }
+        .divider { height: 1px; background: var(--border); margin: 15px 0; }
 
-        /* Ajuste para dispositivos móviles */
+        .highlight-box { background: var(--violet-tint); padding: 12px; border-radius: 8px; }
+        .highlight-box .value { color: var(--violet); font-weight: 700; }
+
         @media (max-width: 600px) {
-            .info-grid {
-                grid-template-columns: 1fr 1fr;
-                /* En cel se acomoda a 2 columnas */
-            }
+            .info-grid { grid-template-columns: 1fr 1fr; }
+            .header, .search-wrap { padding-left: 16px; padding-right: 16px; }
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #8e8e93;
-        }
+        .loading { text-align: center; padding: 50px 20px; color: var(--ink-soft); }
+        .loading i { color: var(--violet); }
+        .loading.error { color: var(--red); }
+        .loading p { margin-top: 12px; font-size: 14px; }
     </style>
 </head>
 
 <body>
 
     <div class="header">
-        <div class="search-bar">
-            <i class="fas fa-search" style="color:#8e8e93;"></i>
-            <input type="text" id="inputBusq" placeholder="Escribe el Económico..." onkeyup="buscar()">
+        <div class="app-logo"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div>
+            <div class="title">Consulta de Distribución</div>
+            <div class="subtitle">GHO · Tecnología a Bordo</div>
         </div>
     </div>
 
+    <div class="search-wrap">
+        <div class="search-bar">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="inputBusq" placeholder="Escribe el número económico..." onkeyup="buscar()">
+        </div>
+        <button class="btn-refresh" id="btnRefresh" onclick="obtenerDatos(true)">
+            <i class="fa-solid fa-rotate"></i> Actualizar
+        </button>
+    </div>
+    <div class="sync-note" id="syncNote"></div>
+
     <div class="container" id="resultados">
         <div class="loading"><i class="fas fa-circle-notch fa-spin fa-2x"></i>
-            <p>Consultando servidor central...</p>
+            <p>Consultando catálogo de flota...</p>
         </div>
     </div>
 
     <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+        // usar el cliente centralizado y exigir autenticación
+        const db = window.db;
+        (async function(){ try { if (window.supabaseAuth) await window.supabaseAuth.requireAuth(); } catch(e){ console.error(e); } })();
         let flotaCompleta = [];
 
-        async function obtenerFlota() {
+        async function obtenerDatos(forzarRefresh) {
+            const res = document.getElementById('resultados');
+            const btn = document.getElementById('btnRefresh');
 
-            const cache = localStorage.getItem("flota_cache");
-            const cacheTime = localStorage.getItem("flota_cache_time");
-            const ahora = Date.now();
-
-            if (cache && cacheTime && (ahora - cacheTime < 3600000)) {
-
-                console.log("Flota cargada desde cache");
-                return JSON.parse(cache);
-
+            if (!db) {
+                res.innerHTML = '<div class="loading error"><i class="fa-solid fa-triangle-exclamation fa-2x"></i><p>Sin conexión con la base de datos.</p></div>';
+                return;
             }
 
-            console.log("Consultando API de flota...");
+            btn.disabled = true;
+            if (forzarRefresh) {
+                res.innerHTML = '<div class="loading"><i class="fas fa-circle-notch fa-spin fa-2x"></i><p>Actualizando catálogo...</p></div>';
+            }
 
-            const resp = await fetch(scriptURL + "?accion=getFlota");
-            const data = await resp.json();
-
-            localStorage.setItem("flota_cache", JSON.stringify(data));
-            localStorage.setItem("flota_cache_time", ahora);
-
-            return data;
-        }
-
-        async function obtenerDatos() {
             try {
-                const resp = await fetch(scriptURL + "?accion=getFlota");
-                flotaCompleta = await obtenerFlota();
-                document.getElementById('resultados').innerHTML =
-                    '<div class="loading">Listo. Busca una unidad arriba.</div>';
+                const { data, error } = await db
+                    .from('tbl_flota')
+                    .select('autobus, rol, clave_rol, estatus, base, no_serie, marca, modelo, centro_costos, sociedad, servicio')
+                    .order('autobus', { ascending: true });
+
+                if (error) throw error;
+
+                flotaCompleta = data;
+
+                const hora = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('syncNote').innerText = `${data.length.toLocaleString('es-MX')} unidades cargadas · Actualizado ${hora}`;
+
+                res.innerHTML = '<div class="loading">Listo. Busca una unidad arriba.</div>';
 
             } catch (e) {
-                document.getElementById('resultados').innerHTML = '<div class="loading" style="color:red">Error al conectar.</div>';
+                console.error(e);
+                res.innerHTML = '<div class="loading error"><i class="fa-solid fa-triangle-exclamation fa-2x"></i><p>Error al conectar con la base de datos.</p></div>';
+            } finally {
+                btn.disabled = false;
             }
         }
 
@@ -204,12 +220,11 @@
             const res = document.getElementById('resultados');
 
             if (q.length < 2) {
-                res.innerHTML = '<div class="loading">Ingresa el económico...</div>';
+                res.innerHTML = '<div class="loading">Ingresa el número económico...</div>';
                 return;
             }
 
-            // Filtramos por la columna 'Autobus' (Índice 2)
-            const filtrados = flotaCompleta.filter(f => f[2].toString().includes(q));
+            const filtrados = flotaCompleta.filter(f => f.autobus && f.autobus.toString().toUpperCase().includes(q));
 
             if (filtrados.length === 0) {
                 res.innerHTML = '<div class="loading">No se encontró la unidad ' + q + '</div>';
@@ -217,69 +232,60 @@
             }
 
             res.innerHTML = filtrados.map(f => {
-                // Lógica de color para el estatus (Opcional)
-                const estatusColor = f[6] === "ENROLADO" ? "#34c759" : "#ff3b30";
+                const esOk = (f.estatus || "").toUpperCase() === "ENROLADO";
+                const pillClass = esOk ? "status-ok" : "status-bad";
 
                 return `
                 <div class="card">
                     <div class="card-header">
                         <div>
-                            <span class="label">AUTOBÚS</span>
-                            <span class="eco">${f[2]}</span>
+                            <span class="label">Autobús</span>
+                            <span class="eco">${f.autobus || '—'}</span>
+                            <span class="status-pill ${pillClass}">${f.estatus || 'S/E'}</span>
                         </div>
                         <div style="text-align: right;">
-                            <span class="base-tag">${f[9]}</span>
+                            <span class="base-tag">${f.base || 'N/D'}</span>
                         </div>
                     </div>
 
                     <div class="info-grid">
                         <div>
-                            <span class="label">ESTATUS</span>
-                            <span class="value" style="color: ${estatusColor};font-weight: 600;">${f[6]}</span>
+                            <span class="label">No. de Serie</span>
+                            <span class="value">${f.no_serie || '—'}</span>
                         </div>
                         <div>
-                            <span class="label">NO. DE SERIE</span>
-                            <span class="value">${f[15]}</span>
+                            <span class="label">Centro de Costos</span>
+                            <span class="value">${f.centro_costos || '—'}</span>
                         </div>
                         <div>
-                            <span class="label">CENTRO DE COSTOS</span>
-                            <span class="value">${f[36]}</span>
-                        </div>
-                    </div>
-
-                    <div class="divider"></div>
-                    <div class="info-grid">
-                        <div>
-                            <span class="label">SERVICIO</span>
-                            <span class="value">${f[38]}</span>
-                        </div>
-                        <div>
-                            <span class="label">SOCIEDAD</span>
-                            <span class="value" style="font-weight: bold;">${f[37]}</span>
-                        </div>
-                    </div>
-
-                    <div class="info-grid" style="background: rgba(0,122,255,0.05); padding: 10px; border-radius: 8px;">
-                        <div>
-                            <span class="label">CLAVE ROL</span>
-                            <span class="value">${f[4]}</span>
-                        </div>
-                        <div>
-                            <span class="label">ROL</span>
-                            <span class="value">${f[3]}</span>
+                            <span class="label">Sociedad</span>
+                            <span class="value">${f.sociedad || '—'}</span>
                         </div>
                     </div>
 
                     <div class="divider"></div>
 
-                    <div class="info-grid">
+                    <div class="info-grid dos-col">
                         <div>
-                            <span class="label">MARCA</span>
-                            <span class="value">${f[33]}</span>
+                            <span class="label">Servicio</span>
+                            <span class="value">${f.servicio || '—'}</span>
                         </div>
                         <div>
-                            <span class="label">MODELO</span>
-                            <span class="value">${f[34]}</span>
+                            <span class="label">Marca / Modelo</span>
+                            <span class="value">${f.marca || '—'} · ${f.modelo || '—'}</span>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="info-grid dos-col highlight-box">
+                        <div>
+                            <span class="label">Clave Rol</span>
+                            <span class="value">${f.clave_rol || '—'}</span>
+                        </div>
+                        <div>
+                            <span class="label">Rol</span>
+                            <span class="value">${f.rol || '—'}</span>
                         </div>
                     </div>
                 </div>
@@ -287,7 +293,7 @@
             }).join('');
         }
 
-        window.onload = obtenerDatos;
+        window.onload = () => obtenerDatos(false);
     </script>
 </body>
 
