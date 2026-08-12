@@ -3,44 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <title>Exportar Distribucion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --blue: #007aff; --bg: #f2f2f7; --cell: #ffffff; --border: #d1d1d6; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 40px; color: #1c1c1e; }
-        
+        :root {
+            --bg: #f7f8fa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --ink: #111827;
+            --ink-soft: #6b7280;
+            --violet: #6d5fd8;
+            --violet-tint: #efedfc;
+            --red: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            color: var(--ink);
+            margin: 0;
+        }
+
         .window { width: 500px; }
-        .title { font-size: 26px; font-weight: 700; margin-bottom: 20px; }
-        
-        .section-label { font-size: 12px; color: #6e6e73; margin: 15px 15px 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .group { background: var(--cell); border-radius: 12px; border: 0.5px solid var(--border); overflow: hidden; margin-bottom: 25px; }
-        
-        .field-tag { display: inline-block; background: #e9e9eb; padding: 4px 10px; border-radius: 6px; margin: 4px; font-size: 13px; color: #3a3a3c; }
-        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--border); }
+
+        .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        .app-logo {
+            width: 38px; height: 38px; border-radius: 10px; background: var(--violet);
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 17px; flex-shrink: 0;
+        }
+        .title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+        .subtitle { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+
+        .section-label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin: 0 2px 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+        .group {
+            background: var(--surface); border-radius: 12px; border: 1px solid var(--border);
+            overflow: hidden; margin-bottom: 24px; border-left: 3px solid var(--violet);
+        }
+
+        .field-tag {
+            display: inline-block; background: var(--violet-tint); color: var(--violet);
+            padding: 5px 11px; border-radius: 7px; margin: 4px; font-size: 12.5px; font-weight: 600;
+        }
+
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
         .row:last-child { border-bottom: none; }
 
-        /* Estética Switch de iOS */
-        .switch { position: relative; width: 51px; height: 31px; }
+        .switch { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background: #e9e9ea; transition: .3s; border-radius: 34px; }
-        input:checked + .slider { background: var(--blue); }
-        .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; transition: .3s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; transition: .2s; border-radius: 34px; }
+        input:checked + .slider { background: var(--violet); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: .2s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        input:checked + .slider:before { transform: translateX(18px); }
 
-        .btn-export { background: var(--blue); color: white; border: none; width: 100%; padding: 18px; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-export {
+            background: var(--violet); color: white; border: none; width: 100%; padding: 15px;
+            border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px;
+            font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(109, 95, 216, 0.28);
+        }
+        .btn-export:disabled { background: #c7c7cc; box-shadow: none; cursor: not-allowed; }
+
+        .status-msg { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 12px; min-height: 16px; font-weight: 500; }
+        .status-msg.error { color: var(--red); font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div class="window">
-    <div class="title">Exportar Distribucion</div>
+    <div class="app-header">
+        <div class="app-logo">📤</div>
+        <div>
+            <div class="title">Exportar Distribución</div>
+            <div class="subtitle">GHO · Tecnología a Bordo</div>
+        </div>
+    </div>
 
-    <div class="section-label">Campos incluidos por default</div>
+    <div class="section-label">Campos incluidos (en este orden)</div>
     <div class="group" style="padding: 15px;">
-        <span class="field-tag">Autobús</span> <span class="field-tag">Clave Rol</span>
-        <span class="field-tag">Nombre Rol</span> <span class="field-tag">Base</span>
-        <span class="field-tag">Admin Flota</span> <span class="field-tag">Estatus</span>
-        <span class="field-tag">Empresa Principal</span> <span class="field-tag">Servicio</span>
-        <span class="field-tag">Marca</span> <span class="field-tag">Modelo</span><span class="field-tag">Serie</span>
-        <span class="field-tag">SAP</span><span class="field-tag">Centro de Costos</span>
+        <span class="field-tag">BUS</span> <span class="field-tag">ClaveRol</span>
+        <span class="field-tag">NombreRol</span> <span class="field-tag">Base</span>
+        <span class="field-tag">AdminFlota</span> <span class="field-tag">Estatus</span>
+        <span class="field-tag">Empresa</span> <span class="field-tag">Cromatica</span>
+        <span class="field-tag">Servicio</span> <span class="field-tag">Asientos</span>
+        <span class="field-tag">Marca</span> <span class="field-tag">Modelo</span>
+        <span class="field-tag">Año</span> <span class="field-tag">Placas</span>
+        <span class="field-tag">Sociedad</span> <span class="field-tag">SerieBus</span>
+        <span class="field-tag">SAP</span> <span class="field-tag">CECO</span> <span class="field-tag">CEGE</span>
     </div>
 
     <div class="section-label">Opciones de archivo</div>
@@ -55,15 +110,115 @@
         </div>
     </div>
 
-    <button class="btn-export" onclick="doExport()">Descargar Distribución</button>
+    <button class="btn-export" id="btnExportar" onclick="doExport()">Descargar Distribución</button>
+    <div class="status-msg" id="statusMsg"></div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwXOwcepg8uTu1hQbt4cT8uMBXG8C0Paf8hsFj7fwpYIydLhc11Xucvp0GvZ-2pm6ca/exec";
+    const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
 
-    function doExport() {
-        // El orden de campos ya está predefinido en el Backend por tu requerimiento
-        window.open(`${API_URL}?accion=exportFlota`, '_blank');
+    let db = null;
+    try {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+        console.error("No se pudo inicializar Supabase:", e);
+    }
+
+    const CAMPOS_EXPORTACION = [
+        ["autobus", "BUS"],
+        ["clave_rol", "ClaveRol"],
+        ["rol", "NombreRol"],
+        ["base", "Base"],
+        ["admin_flota", "AdminFlota"],
+        ["estatus", "Estatus"],
+        ["empresa_principal", "Empresa"],
+        ["cromatica", "Cromatica"],
+        ["servicio", "Servicio"],
+        ["asientos", "Asientos"],
+        ["marca", "Marca"],
+        ["modelo", "Modelo"],
+        ["anio", "Año"],
+        ["placas", "Placas"],
+        ["sociedad", "Sociedad"],
+        ["no_serie", "SerieBus"],
+        ["no_sap", "SAP"],
+        ["centro_costos", "CECO"]
+    ];
+
+    function setStatus(texto, esError) {
+        const el = document.getElementById('statusMsg');
+        el.innerText = texto;
+        el.className = 'status-msg' + (esError ? ' error' : '');
+    }
+
+    function escaparCSV(valor) {
+        const texto = (valor === null || valor === undefined) ? "" : String(valor);
+        if (texto.includes(",") || texto.includes('"') || texto.includes("\n")) {
+            return '"' + texto.replace(/"/g, '""') + '"';
+        }
+        return texto;
+    }
+
+    async function doExport() {
+        if (!db) {
+            setStatus("❌ No hay conexión con la base de datos.", true);
+            return;
+        }
+
+        const btn = document.getElementById('btnExportar');
+        const incluirEncabezados = document.getElementById('headers').checked;
+
+        btn.disabled = true;
+        setStatus("Consultando datos...");
+
+        try {
+            const columnasSelect = CAMPOS_EXPORTACION.map(c => c[0]).join(", ");
+
+            const { data, error } = await db
+                .from('tbl_flota')
+                .select(columnasSelect)
+                .order('autobus', { ascending: true });
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                setStatus("⚠️ No hay datos en el catálogo de flota todavía.", true);
+                btn.disabled = false;
+                return;
+            }
+
+            const filas = data.map(row => {
+                const valores = CAMPOS_EXPORTACION.map(([columna]) => row[columna]);
+                valores.push(row["centro_costos"]);
+                return valores.map(escaparCSV).join(",");
+            });
+
+            const encabezados = CAMPOS_EXPORTACION.map(c => c[1]).concat("CEGE");
+
+            const lineas = incluirEncabezados ? [encabezados.join(","), ...filas] : filas;
+            const csv = lineas.join("\n");
+
+            const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const marcaTiempo = new Date().toISOString().slice(0, 10);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `distribucion_flota_${marcaTiempo}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            setStatus(`✅ ${data.length} unidades exportadas.`);
+
+        } catch (e) {
+            console.error(e);
+            setStatus("❌ Error al exportar: " + (e.message || "intenta de nuevo."), true);
+        } finally {
+            btn.disabled = false;
+        }
     }
 </script>
 
