@@ -323,80 +323,211 @@
     @media (max-width: 860px) {
       body {
         overflow: auto;
+        background: #f2f2f7;
       }
 
       .app-shell {
-        display: block;
-        min-height: 100vh;
-      }
-
-      .sidebar {
-        width: 100%;
-        min-width: 100%;
-        border-right: none;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        padding: 18px 14px 14px;
-      }
-
-      .brand {
-        padding-top: 6px;
-        margin-bottom: 16px;
-      }
-
-      .side-search {
-        margin: 0 4px 14px;
-      }
-
-      .nav-list {
-        gap: 8px;
-      }
-
-      .nav-item {
-        padding: 14px 14px;
-        border-radius: 12px;
-        background: rgba(17, 24, 39, 0.78);
-        border: 1px solid rgba(255,255,255,0.06);
-      }
-
-      .nav-item.mobile-only {
-        display: flex;
-      }
-
-      .main {
-        min-height: calc(100vh - 320px);
-        background: #f2f4f8;
-      }
-
-      .topbar {
-        padding: 0 16px;
-        height: 64px;
-      }
-
-      .title-wrap {
-        font-size: 0.8rem;
-      }
-
-      .workspace-btn {
         display: none;
       }
 
-      .content {
-        padding: 14px;
+      .mobile-shell {
+        display: block;
       }
 
-      .viewport-frame {
-        border-radius: 18px;
-        min-height: 420px;
+      .mobile-shell {
+        min-height: 100vh;
+        background: #f3f4f6;
+        color: #1f2937;
       }
 
-      .empty-card {
-        width: min(88%, 520px);
-        padding: 22px 18px;
+      .mobile-topbar {
+        height: 58px;
+        background: #151a21;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+      }
+
+      .mobile-menu-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .mobile-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      .mobile-home {
+        padding: 18px 16px 26px;
+      }
+
+      .mobile-greeting {
+        margin: 0 0 18px;
+        font-size: clamp(2rem, 6vw, 2.7rem);
+        line-height: 1.1;
+        letter-spacing: -0.06em;
+        font-weight: 500;
+        color: #111827;
+      }
+
+      .mobile-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+
+      .mobile-card {
+        min-height: 132px;
+        border-radius: 14px;
+        padding: 12px 10px 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(17,24,39,0.04);
+        text-decoration: none;
+      }
+
+      .mobile-card.primary { background: linear-gradient(180deg, #1f9ae5, #1f7de6); }
+      .mobile-card.success { background: linear-gradient(180deg, #34c759, #10b981); }
+      .mobile-card.purple { background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
+      .mobile-card.orange { background: linear-gradient(180deg, #f59e0b, #f97316); }
+      .mobile-card.turquoise { background: linear-gradient(180deg, #2dd4bf, #14b8a6); }
+
+      .mobile-card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: rgba(255,255,255,0.18);
+        font-size: 1.1rem;
+      }
+
+      .mobile-card label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      .mobile-panel {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 12px 22px rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(15, 23, 42, 0.04);
+        overflow: hidden;
+      }
+
+      .mobile-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 14px 10px;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .mobile-section-header .chevron {
+        font-size: 0.95rem;
+        color: #6b7280;
+      }
+
+      .mobile-list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mobile-list-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 14px;
+        border-top: 1px solid rgba(15, 23, 42, 0.06);
+        color: #1f2937;
+        text-decoration: none;
+      }
+
+      .mobile-item-title {
+        font-size: 0.98rem;
+        font-weight: 500;
+      }
+
+      .mobile-item-meta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .mobile-item-meta.blue {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+
+      .mobile-item-meta.green {
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      .mobile-item-meta.purple {
+        background: #ede9fe;
+        color: #6d28d9;
+      }
+
+      .mobile-item-meta.orange {
+        background: #ffedd5;
+        color: #c2410c;
+      }
+    }
+
+    @media (min-width: 861px) {
+      .mobile-shell {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
+  <div class="mobile-shell">
+    <header class="mobile-topbar">
+      <div class="mobile-menu-btn"><i class="fa-solid fa-bars"></i></div>
+      <div class="mobile-title">Home</div>
+      <div style="width:32px; height:32px; visibility:hidden;"></div>
+    </header>
+
+    <main class="mobile-home">
+      <h1 class="mobile-greeting" id="mobileGreeting">Buenos días, Alex.</h1>
+
+      <div class="mobile-grid" id="mobileGrid"></div>
+
+      <section class="mobile-panel">
+        <div class="mobile-section-header">
+          <span>Operaciones</span>
+          <span class="chevron"><i class="fa-solid fa-chevron-right"></i></span>
+        </div>
+        <div class="mobile-list" id="mobileList"></div>
+      </section>
+    </main>
+  </div>
+
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
@@ -410,23 +541,23 @@
 
       <nav class="nav-list" id="navList">
 
-        <a class="nav-item mobile-only" href="bandejas/registrarcambio.html">
+        <a class="nav-item mobile-only" href="registrarcambio.html">
           <i class="fa-solid fa-clipboard-check"></i>
           <span class="label">Registrar Cambio</span>
         </a>
-        <a class="nav-item" href="bandejas/owalert.html">
+        <a class="nav-item" href="owalert.html">
           <i class="fa-solid fa-shield-halved"></i>
           <span class="label">Alertas</span>
         </a>
-        <a class="nav-item" href="bandejas/historial.html">
+        <a class="nav-item" href="historial.html">
           <i class="fa-regular fa-clock"></i>
           <span class="label">Historial de Cambios</span>
         </a>
-        <a class="nav-item" href="bandejas/movimientos.html">
+        <a class="nav-item" href="movimientos.html">
           <i class="fa-solid fa-list"></i>
           <span class="label">Movimientos</span>
         </a>
-        <a class="nav-item" href="bandejas/inventario.html">
+        <a class="nav-item" href="inventario.html">
           <i class="fa-solid fa-boxes-stacked"></i>
           <span class="label">Inventario</span>
         </a>
@@ -559,6 +690,54 @@
       }
     }
 
+    const mobileOptions = [
+      { label: 'Registrar Cambio', href: 'registrarcambio.html', icon: 'fa-solid fa-clipboard-check', className: 'primary' },
+      { label: 'Alertas', href: 'owalert.html', icon: 'fa-solid fa-shield-halved', className: 'success' },
+      { label: 'Historial', href: 'historial.html', icon: 'fa-regular fa-clock', className: 'purple' },
+      { label: 'Movimientos', href: 'movimientos.html', icon: 'fa-solid fa-list', className: 'orange' },
+      { label: 'Inventario', href: 'inventario.html', icon: 'fa-solid fa-boxes-stacked', className: 'turquoise' }
+    ];
+
+    function renderMobileCards() {
+      const grid = document.getElementById('mobileGrid');
+      if (!grid) return;
+
+      const cards = mobileOptions.slice(0, 3).map((item) => `
+        <a class="mobile-card ${item.className}" href="${item.href}">
+          <div class="mobile-card-icon"><i class="${item.icon}"></i></div>
+          <label>${item.label}</label>
+        </a>
+      `).join('');
+
+      grid.innerHTML = cards;
+    }
+
+    function renderMobileList() {
+      const list = document.getElementById('mobileList');
+      if (!list) return;
+
+      const items = [
+        { label: 'Registrar Cambio', href: 'registrarcambio.html', count: 1, badgeClass: 'red' },
+        { label: 'Alertas', href: 'owalert.html', count: 3, badgeClass: 'blue' },
+        { label: 'Historial de Cambios', href: 'historial.html', count: 2, badgeClass: 'green' },
+        { label: 'Movimientos Recientes', href: 'movimientos.html', count: 4, badgeClass: 'purple' },
+        { label: 'Inventario', href: 'inventario.html', count: 2, badgeClass: 'orange' }
+      ];
+
+      list.innerHTML = items.map((item) => `
+        <a class="mobile-list-item" href="${item.href}">
+          <span class="mobile-item-title">${item.label}</span>
+          <span class="mobile-item-meta ${item.badgeClass}">${item.count}</span>
+        </a>
+      `).join('');
+    }
+
+    function updateGreeting() {
+      const name = localStorage.getItem('nombre_tecnico') || 'Alex';
+      const greeting = document.getElementById('mobileGreeting');
+      if (greeting) greeting.textContent = `Buenos días, ${name}.`;
+    }
+
     const navLinks = document.querySelectorAll('.nav-item');
     navLinks.forEach((link) => {
       link.addEventListener('click', function () {
@@ -569,6 +748,9 @@
 
     window.addEventListener('load', function () {
       updateMobileMenuRules();
+      renderMobileCards();
+      renderMobileList();
+      updateGreeting();
       if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
         window.supabaseAuth.requireAuth().catch(err => console.error('Auth check failed:', err));
       }
