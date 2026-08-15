@@ -733,7 +733,7 @@
     }
 
     function updateGreeting() {
-      const name = localStorage.getItem('nombre_tecnico') || 'Alex';
+      const name = localStorage.getItem('nombre_tecnico') || '';
       const greeting = document.getElementById('mobileGreeting');
       if (greeting) greeting.textContent = `Buenos días, ${name}.`;
     }
