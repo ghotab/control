@@ -717,11 +717,11 @@
       if (!list) return;
 
       const items = [
-        { label: 'Registrar Cambio', href: 'registrarcambio.html', count: 1, badgeClass: 'red' },
-        { label: 'Alertas', href: 'owalert.html', count: 3, badgeClass: 'blue' },
-        { label: 'Historial de Cambios', href: 'historial.html', count: 2, badgeClass: 'green' },
-        { label: 'Movimientos Recientes', href: 'movimientos.html', count: 4, badgeClass: 'purple' },
-        { label: 'Inventario', href: 'inventario.html', count: 2, badgeClass: 'orange' }
+        { label: 'Registrar Cambio', href: 'registrarcambio.html', count: 0, badgeClass: 'red' },
+        { label: 'Alertas', href: 'owalert.html', count: 0, badgeClass: 'blue' },
+        { label: 'Historial de Cambios', href: 'historial.html', count: 0, badgeClass: 'green' },
+        { label: 'Movimientos Recientes', href: 'movimientos.html', count: 0, badgeClass: 'purple' },
+        { label: 'Inventario', href: 'inventario.html', count: 0, badgeClass: 'orange' }
       ];
 
       list.innerHTML = items.map((item) => `
@@ -735,7 +735,7 @@
     function updateGreeting() {
       const name = localStorage.getItem('nombre_tecnico') || '';
       const greeting = document.getElementById('mobileGreeting');
-      if (greeting) greeting.textContent = `Buenos días, ${name}.`;
+      if (greeting) greeting.textContent = `Buen día, ${name}`;
     }
 
     const navLinks = document.querySelectorAll('.nav-item');
