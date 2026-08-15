@@ -41,11 +41,11 @@ export function getTemplate() {
           </div>
           <div class="form-row">
             <span class="form-label">Colaborador</span>
-            <input type="number" id="reg-tecnico" class="form-ctrl" placeholder="Clave">
+            <input type="text" id="reg-tecnico" class="form-ctrl" placeholder="Clave del colaborador" readonly>
           </div>
           <div class="form-row">
             <span class="form-label">Autobús</span>
-            <input type="number" id="reg-eco" class="form-ctrl" placeholder="Económico (5 dígitos)">
+            <input type="text" id="reg-eco" class="form-ctrl" inputmode="numeric" maxlength="5" placeholder="Ej 60521" pattern="[0-9]*" title="Ingresa 5 dígitos numéricos">
           </div>
         </div>
       </div>
@@ -56,17 +56,17 @@ export function getTemplate() {
         <div class="form-card">
           <div class="form-row scan-row">
             <span class="form-label">Bandeja que subes</span>
-            <button class="btn-scan" id="reg-scan-sube" title="Escanear"><i class="fa-solid fa-qrcode"></i></button>
+            <button class="btn-scan" id="reg-scan-sube" type="button" title="Escanear código QR"><i class="fa-solid fa-qrcode"></i></button>
           </div>
           <div class="form-row">
-            <input type="text" id="reg-bandeja-sube" class="form-ctrl" placeholder="Escanear entrada" readonly>
+            <input type="text" id="reg-bandeja-sube" class="form-ctrl" placeholder="Escanea la bandeja que subes" readonly>
           </div>
           <div class="form-row scan-row" style="border-top: 1px solid var(--border)">
             <span class="form-label">Bandeja que bajas</span>
-            <button class="btn-scan" id="reg-scan-baja" title="Escanear"><i class="fa-solid fa-qrcode"></i></button>
+            <button class="btn-scan" id="reg-scan-baja" type="button" title="Escanear código QR"><i class="fa-solid fa-qrcode"></i></button>
           </div>
           <div class="form-row">
-            <input type="text" id="reg-bandeja-baja" class="form-ctrl" placeholder="Escanear salida" readonly>
+            <input type="text" id="reg-bandeja-baja" class="form-ctrl" placeholder="Escanea la bandeja que bajas" readonly>
           </div>
         </div>
 
@@ -84,28 +84,29 @@ export function getTemplate() {
       <div class="inv-section">
         <p class="inv-section-title">Diagnóstico</p>
         <div class="form-card">
-          <div class="form-row">
-            <span class="form-label">¿Formateado?</span>
-            <select id="reg-formateo" class="form-ctrl">
-              <option value="NO">No</option>
-              <option value="SI">Sí</option>
-            </select>
+          <div class="form-row switch-row">
+            <span class="form-label">Formateo</span>
+            <label class="switch">
+              <input type="checkbox" id="reg-formateo">
+              <span class="slider"></span>
+            </label>
           </div>
           <div class="form-row" id="reg-div-motivo" style="display:none">
-            <input type="text" id="reg-motivo" class="form-ctrl" placeholder="Razón del formateo" style="text-align:left">
+            <input type="text" id="reg-motivo" class="form-ctrl" placeholder="¿Por qué se formateó?" style="text-align:left" required>
           </div>
           <div class="form-row">
             <span class="form-label">LED</span>
             <select id="reg-led" class="form-ctrl">
-              <option value="OK">🟢 Grabando</option>
-              <option value="FALLA">🔴 Falla</option>
+              <option value="ALARMA">🔴 ALARMA</option>
+              <option value="REC ACTIVO">🟢 REC ACTIVO</option>
+              <option value="REC APAGADO">⚫ REC APAGADO</option>
             </select>
           </div>
         </div>
       </div>
 
       <div style="height: 90px"></div>
-      <button class="btn-save-float" id="reg-btn-enviar">
+      <button class="btn-save-float" id="reg-btn-enviar" type="button">
         <i class="fa-solid fa-floppy-disk"></i> Guardar Registro
       </button>
     </div>`;
@@ -142,8 +143,11 @@ function _bindEvents() {
         guardar("tecnico", e.target.value); _validarProgreso();
     });
     document.getElementById("reg-eco").addEventListener("input", async () => {
+        const ecoInput = document.getElementById("reg-eco");
+        ecoInput.value = ecoInput.value.replace(/\D/g, "").slice(0, 5);
+        guardar("eco", ecoInput.value);
         _validarProgreso();
-        const eco = document.getElementById("reg-eco").value.trim();
+        const eco = ecoInput.value.trim();
         if (eco.length === 5) await _consultarDisco(eco);
     });
 
@@ -153,7 +157,15 @@ function _bindEvents() {
     document.getElementById("reg-bandeja-baja").addEventListener("input", _validarInconsistencia);
 
     document.getElementById("reg-formateo").addEventListener("change", e => {
-        document.getElementById("reg-div-motivo").style.display = e.target.value === "SI" ? "flex" : "none";
+        const isOn = e.target.checked;
+        document.getElementById("reg-div-motivo").style.display = isOn ? "flex" : "none";
+        const motivo = document.getElementById("reg-motivo");
+        if (!isOn) {
+            motivo.value = "";
+            motivo.removeAttribute("required");
+        } else {
+            motivo.setAttribute("required", "required");
+        }
     });
 
     document.getElementById("reg-btn-cambiar-usuario").addEventListener("click", () => {
@@ -218,10 +230,17 @@ function _validarProgreso() {
 async function _enviar() {
     const bannerVisible = document.getElementById("reg-banner-inconsistencia").style.display === "block";
     const justificacion = document.getElementById("reg-justificacion")?.value.trim() || "";
+    const formateado = document.getElementById("reg-formateo").checked;
+    const motivoFormateo = document.getElementById("reg-motivo")?.value.trim() || "";
     const btn = document.getElementById("reg-btn-enviar");
 
     if (bannerVisible && !justificacion) {
         alert("⚠️ Por favor, justifica por qué el disco no coincide.");
+        return;
+    }
+
+    if (formateado && !motivoFormateo) {
+        alert("⚠️ Si el disco fue formateado, indica el motivo del formateo.");
         return;
     }
 
@@ -231,8 +250,8 @@ async function _enviar() {
         eco: document.getElementById("reg-eco").value,
         bandejaSube: document.getElementById("reg-bandeja-sube").value,
         bandejaBaja: document.getElementById("reg-bandeja-baja").value,
-        formateo: document.getElementById("reg-formateo").value,
-        motivoFormateo: document.getElementById("reg-motivo").value || "N/A",
+        formateo: formateado ? "SI" : "NO",
+        motivoFormateo: motivoFormateo || "N/A",
         ledStatus: document.getElementById("reg-led").value,
         justificacionCruce: justificacion,
     };
@@ -248,11 +267,13 @@ async function _enviar() {
     try {
         await enviarCambio(datos);
 
-        // Limpiar campos del registro (mantener base y técnico)
         document.getElementById("reg-eco").value = "";
         document.getElementById("reg-bandeja-sube").value = "";
         document.getElementById("reg-bandeja-baja").value = "";
         document.getElementById("reg-justificacion").value = "";
+        document.getElementById("reg-motivo").value = "";
+        document.getElementById("reg-formateo").checked = false;
+        document.getElementById("reg-div-motivo").style.display = "none";
         document.getElementById("reg-banner-inconsistencia").style.display = "none";
         _discoActualBD = "";
         _validarProgreso();
