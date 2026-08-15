@@ -94,30 +94,24 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../tab/supabase-auth.js"></script>
-  <script>
-    function normalizeAppPath(rawPath) {
-      if (!rawPath) return '/cctv/bandejas/index.html';
-      let normalized = rawPath.replace(/\\/g, '/');
-      normalized = normalized.replace(/^\/?[A-Za-z]:\//, '/');
-      const productionMatch = normalized.match(/\/produ\/control(.*)$/i);
-      if (productionMatch) {
-        normalized = productionMatch[1] || '/';
-      }
-      if (!normalized.startsWith('/')) {
-        normalized = '/' + normalized;
-      }
-      return normalized || '/cctv/bandejas/index.html';
-    }
+ <script>
 
     function getRedirect() {
       const params = new URLSearchParams(window.location.search);
-      const rawRedirect = params.get('redirect') || '/cctv/bandejas/index.html';
-      const normalized = normalizeAppPath(rawRedirect);
-      if (window.location.protocol === 'file:') {
-        return 'http://localhost:8000' + normalized;
+      let redirectPath = params.get('redirect') || 'cctv/bandejas/index.html';
+      
+      // Quita la barra inicial '/' si existe para evitar errores 404
+      if (redirectPath.startsWith('/')) {
+        redirectPath = redirectPath.substring(1);
       }
-      return normalized;
+      return redirectPath;
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('tecnico')) {
+        window.location.href = getRedirect();
+      }
+    });
 
     const btn = document.getElementById('btn-login');
     const errBox = document.getElementById('error-msg');
@@ -126,52 +120,60 @@
     async function handleLogin() {
       const clave = document.getElementById('clave').value.trim();
       const password = document.getElementById('password').value;
+      
       errBox.classList.remove('show');
       document.getElementById('clave').classList.remove('error');
       document.getElementById('password').classList.remove('error');
 
-      if (!clave) { document.getElementById('clave').classList.add('error'); errTxt.textContent = 'Ingresa tu clave de colaborador.'; errBox.classList.add('show'); return; }
+      if (!clave) { 
+        document.getElementById('clave').classList.add('error'); 
+        errTxt.textContent = 'Ingresa tu clave de colaborador.'; 
+        errBox.classList.add('show'); 
+        return; 
+      }
 
-      btn.disabled = true; btn.innerHTML = '<span style="display:inline-block;animation:spin .7s linear infinite"><i class="fa-solid fa-circle-notch"></i></span> Verificando...';
+      btn.disabled = true; 
+      btn.innerHTML = '<span style="display:inline-block;animation:spin .7s linear infinite"><i class="fa-solid fa-circle-notch"></i></span> Verificando...';
 
       try {
         const res = await window.supabaseAuth.signInWithCollab(clave, password);
-        if (res.error) {
-          throw res.error;
-        }
+        if (res.error) throw res.error;
 
-        // try to read profile if available
+        // Intentar leer el perfil
         try {
           const profile = await window.supabaseAuth.getProfile();
-          if (profile && profile.clave_colaborador) localStorage.setItem('tecnico', profile.clave_colaborador);
-          if (profile && profile.nombre) localStorage.setItem('nombre_tecnico', profile.nombre);
-          if (profile && profile.base) localStorage.setItem('base', profile.base);
-        } catch (e) { /* ignore */ }
+          if (profile?.clave_colaborador) localStorage.setItem('tecnico', profile.clave_colaborador);
+          if (profile?.nombre) localStorage.setItem('nombre_tecnico', profile.nombre);
+          if (profile?.base) localStorage.setItem('base', profile.base);
+        } catch (e) { /* ignorar error de perfil */ }
 
+        // Login exitoso: brincamos al index
         window.location.href = getRedirect();
+        
       } catch (e) {
         console.error(e);
         errTxt.textContent = (e && e.message) ? e.message : 'Error autenticando.';
         errBox.classList.add('show');
-        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar';
+        btn.disabled = false; 
+        btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar';
       }
     }
 
     function togglePass() {
       const inp = document.getElementById('password');
       const icon = document.getElementById('eye-icon');
-      if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; } else { inp.type = 'password'; icon.className = 'fa-solid fa-eye'; }
+      if (inp.type === 'password') { 
+        inp.type = 'text'; 
+        icon.className = 'fa-solid fa-eye-slash'; 
+      } else { 
+        inp.type = 'password'; 
+        icon.className = 'fa-solid fa-eye'; 
+      }
     }
 
     btn.addEventListener('click', handleLogin);
     document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
-
-    // If already logged (localStorage), redirect quickly
-    window.addEventListener('DOMContentLoaded', () => {
-      const clave = localStorage.getItem('tecnico');
-      if (clave) { const dest = getRedirect(); if (dest) window.location.href = dest; }
-    });
-  </script>
+</script>
 
 </body>
 
