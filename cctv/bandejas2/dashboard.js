@@ -112,10 +112,28 @@ function buildAlerts(history, flota) {
 async function loadDashboardData() {
   try {
     const db = await getDb();
+    const currentBase = normalizeText(localStorage.getItem('base') || state.user?.base || '');
+
+    const recentQuery = db
+      .from('tbl_cambiobandeja')
+      .select('numero_economico, base, bandeja_sube, bandeja_baja, fecha_hora, clave_colaborador')
+      .order('fecha_hora', { ascending: false })
+      .limit(6);
+
+    const historyQuery = db
+      .from('tbl_cambiobandeja')
+      .select('numero_economico, base, bandeja_sube, bandeja_baja, fecha_hora, clave_colaborador')
+      .order('fecha_hora', { ascending: false })
+      .limit(20);
+
+    if (currentBase) {
+      recentQuery.eq('base', currentBase);
+      historyQuery.eq('base', currentBase);
+    }
 
     const [recentRes, historyRes, flotaRes] = await Promise.all([
-      db.from('tbl_cambiobandeja').select('numero_economico, base, bandeja_sube, bandeja_baja, fecha_hora, clave_colaborador').order('fecha_hora', { ascending: false }).limit(6),
-      db.from('tbl_cambiobandeja').select('numero_economico, base, bandeja_sube, bandeja_baja, fecha_hora, clave_colaborador').order('fecha_hora', { ascending: false }).limit(20),
+      recentQuery,
+      historyQuery,
       db.from('tbl_flota').select('autobus, base, estatus').limit(200)
     ]);
 
@@ -285,18 +303,37 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 async function loadUser() {
   try {
+    const storedName = normalizeText(localStorage.getItem('nombre_tecnico'));
+    const storedBase = normalizeText(localStorage.getItem('base'));
+
+    if (storedName) {
+      document.getElementById('userName').textContent = storedName;
+      document.getElementById('userAvatar').textContent = storedName.charAt(0).toUpperCase();
+      state.user = { nombre: storedName, base: storedBase || '' };
+    }
+
     if (window.supabaseAuth && window.supabaseAuth.getProfile) {
       const profile = await window.supabaseAuth.getProfile();
       if (profile) {
-        const nombre = profile.nombre || profile.clave_colaborador || 'Operador';
-        const base = profile.base || 'Base';
-        document.getElementById('userName').textContent = nombre;
-        document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+        const nombre = normalizeText(profile.nombre || profile.nombre_completo || profile.clave_colaborador || storedName || 'Operador');
+        const base = normalizeText(profile.base || storedBase || 'Base');
+        document.getElementById('userName').textContent = nombre || 'Operador';
+        document.getElementById('userAvatar').textContent = (nombre || 'O').charAt(0).toUpperCase();
+        localStorage.setItem('nombre_tecnico', nombre);
         localStorage.setItem('base', base);
+        state.user = { nombre, base };
       }
+    }
+
+    if (!document.getElementById('userName').textContent.trim()) {
+      document.getElementById('userName').textContent = 'Operador';
+      document.getElementById('userAvatar').textContent = 'O';
     }
   } catch (error) {
     console.warn('User profile unavailable:', error);
+    const fallbackName = normalizeText(localStorage.getItem('nombre_tecnico')) || 'Operador';
+    document.getElementById('userName').textContent = fallbackName;
+    document.getElementById('userAvatar').textContent = fallbackName.charAt(0).toUpperCase();
   }
 }
 
