@@ -1,211 +1,581 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Bandejas</title>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Control de Bandejas</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #ebedf2;
+      --sidebar: #0a1220;
+      --sidebar-soft: #101b2d;
+      --surface: #f5f7fb;
+      --panel: #ffffff;
+      --panel-2: #eef3fb;
+      --line: rgba(15, 23, 42, 0.1);
+      --text: #0f172a;
+      --text-soft: #5b6474;
+      --muted: #7a8696;
+      --blue: #2d7cf6;
+      --blue-2: #1f5bd6;
+      --green: #2dc071;
+      --orange: #f59e0b;
+      --purple: #7c4dff;
+      --red: #ef4444;
+      --shadow: 0 30px 60px rgba(15, 23, 42, 0.12);
+    }
 
-    <style>
-        :root {
-            --ios-blue: #007aff;
-            --ios-bg: #f2f2f7;
-            --ios-card: #ffffff;
-            --ios-text: #000000;
-            --ios-label: #8e8e93;
-            --ios-border: #d1d1d6;
-            --ios-arrow: #c4c4c6;
-        }
+    * { box-sizing: border-box; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-            background-color: var(--ios-bg);
-            margin: 0;
-            color: var(--ios-text);
-            -webkit-font-smoothing: antialiased;
-        }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-        /* Título Grande Estilo iOS */
-        .header-ios {
-            padding: 40px 20px 10px 20px;
-        }
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+    }
 
-        .header-ios h1 {
-            font-size: 34px;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
+    a { text-decoration: none; }
 
-        .header-ios p {
-            color: var(--ios-label);
-            font-size: 15px;
-            margin: 5px 0 0 0;
-        }
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+      background: linear-gradient(180deg, #eff3f9 0%, #eef2f8 100%);
+    }
 
-        /* Contenedor de Grupos */
-        .menu-container {
-            padding: 20px 16px;
-        }
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: linear-gradient(180deg, var(--sidebar) 0%, #090f1a 100%);
+      color: #f8fafc;
+      padding: 18px 14px 18px;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+    }
 
-        .ios-group-title {
-            font-size: 13px;
-            color: var(--ios-label);
-            text-transform: uppercase;
-            margin: 0 0 8px 16px;
-            letter-spacing: 0.3px;
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 8px 20px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
 
-        /* La "Card" de iOS que agrupa filas */
-        .ios-group {
-            background: var(--ios-card);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 0.5px solid var(--ios-border);
-            margin-bottom: 30px;
-        }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #f8fafc, #dfe8f5);
+      color: #111827;
+      font-size: 1.05rem;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+    }
 
-        /* Filas del Menú */
-        .ios-row {
-            display: flex;
-            align-items: center;
-            padding: 10px 16px;
-            text-decoration: none;
-            color: var(--ios-text);
-            background-color: var(--ios-card);
-            transition: background-color 0.2s;
-            min-height: 44px;
-            border-bottom: 0.5px solid var(--ios-border);
-        }
+    .brand-name {
+      font-size: 1.05rem;
+      line-height: 1;
+    }
 
-        .ios-row:last-child {
-            border-bottom: none;
-        }
+    .side-search {
+      margin: 18px 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      font-size: 0.92rem;
+    }
 
-        .ios-row:active {
-            background-color: #e5e5ea;
-        }
+    .side-search i { opacity: 0.75; }
 
-        /* Iconos circulares de colores tipo Settings */
-        .icon-box {
-            width: 30px;
-            height: 30px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 16px;
-            color: white;
-        }
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+      overflow: auto;
+      padding-right: 4px;
+    }
 
-        /* Colores Apple Standard */
-        .bg-blue   { background-color: #007aff; }
-        .bg-orange { background-color: #ff9500; }
-        .bg-green  { background-color: #34c759; }
-        .bg-red    { background-color: #ff3b30; }
-        .bg-purple { background-color: #5856d6; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      color: rgba(255,255,255,0.8);
+      transition: background 0.2s ease, transform 0.2s ease;
+      font-size: 0.98rem;
+      border: 1px solid transparent;
+      user-select: none;
+    }
 
-        .row-text {
-            flex: 1;
-            font-size: 17px;
-            font-weight: 400;
-        }
+    .nav-item:hover {
+      background: rgba(148, 163, 184, 0.08);
+      transform: translateX(1px);
+    }
 
-        .chevron {
-            color: var(--ios-arrow);
-            font-size: 14px;
-            margin-left: 10px;
-        }
+    .nav-item.active {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.08);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
 
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--ios-label);
-            font-size: 12px;
-            font-weight: 400;
-        }
-    </style>
+    .nav-item i {
+      width: 18px;
+      text-align: center;
+      color: rgba(255,255,255,0.82);
+      font-size: 0.94rem;
+    }
+
+    .nav-item .label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-item.mobile-only {
+      display: none;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tiny-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #f4f7fb 0%, #eef3f9 100%);
+    }
+
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px 0 28px;
+      background: rgba(255,255,255,0.35);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+
+    .title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--text-soft);
+    }
+
+    .title-wrap strong {
+      color: var(--text);
+      font-size: 1.12rem;
+    }
+
+    .workspace-btn {
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: rgba(255,255,255,0.6);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .content {
+      flex: 1;
+      padding: 22px 22px 22px 22px;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .viewport-frame {
+      width: 100%;
+      height: 100%;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 22px;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .viewport-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(244,247,251,0.96));
+    }
+
+    .empty-layout {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at top, rgba(45,124,246,0.12), transparent 38%),
+        linear-gradient(180deg, rgba(255,255,255,0.74), rgba(241,246,252,0.92));
+      color: var(--text);
+    }
+
+    .empty-card {
+      width: min(70%, 820px);
+      padding: 28px 30px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(15,23,42,0.08);
+      box-shadow: 0 20px 40px rgba(15,23,42,0.08);
+      backdrop-filter: blur(6px);
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 84px;
+      height: 84px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(45,124,246,0.12), rgba(124,77,255,0.1));
+      color: var(--blue);
+      font-size: clamp(2rem, 2vw, 2.5rem);
+      box-shadow: inset 0 0 0 1px rgba(45,124,246,0.08);
+    }
+
+    .empty-card h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 2vw, 2.8rem);
+      line-height: 1.1;
+      letter-spacing: -0.06em;
+    }
+
+    .empty-card p {
+      margin: 0;
+      max-width: 620px;
+      color: var(--text-soft);
+      line-height: 1.6;
+      font-size: 1.02rem;
+    }
+
+    .empty-mini {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .mini-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.04);
+      color: var(--text-soft);
+      border: 1px solid rgba(15,23,42,0.06);
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 860px) {
+      body {
+        overflow: auto;
+      }
+
+      .app-shell {
+        display: block;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 100%;
+        min-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding: 18px 14px 14px;
+      }
+
+      .brand {
+        padding-top: 6px;
+        margin-bottom: 16px;
+      }
+
+      .side-search {
+        margin: 0 4px 14px;
+      }
+
+      .nav-list {
+        gap: 8px;
+      }
+
+      .nav-item {
+        padding: 14px 14px;
+        border-radius: 12px;
+        background: rgba(17, 24, 39, 0.78);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+
+      .nav-item.mobile-only {
+        display: flex;
+      }
+
+      .main {
+        min-height: calc(100vh - 320px);
+        background: #f2f4f8;
+      }
+
+      .topbar {
+        padding: 0 16px;
+        height: 64px;
+      }
+
+      .title-wrap {
+        font-size: 0.8rem;
+      }
+
+      .workspace-btn {
+        display: none;
+      }
+
+      .content {
+        padding: 14px;
+      }
+
+      .viewport-frame {
+        border-radius: 18px;
+        min-height: 420px;
+      }
+
+      .empty-card {
+        width: min(88%, 520px);
+        padding: 22px 18px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">T</div>
+        <div class="brand-name">Tecnología a Bordo</div>
+      </div>
 
-    <div class="header-ios">
-        <h1>Control de Bandejas</h1>
-        <p>Evidencia a Bordo</p>
-    </div>
+      <div class="side-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
 
-    <div class="menu-container">
-        
-        <p class="ios-group-title">Operaciones de Campo</p>
-            <div class="ios-group">
-                <a href="registrarcambio.html" class="ios-row">
-                    <div class="icon-box bg-blue">
-                        <i class="fa-solid fa-compact-disc"></i>
-                    </div>
-                    <div class="row-text">Registrar Cambio</div>
-                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
-               
-                <a href="owalert.html" class="ios-row">
-                    <div class="icon-box bg-red">
-                        <i class="fa-solid fa-circle-radiation"></i>
-                    </div>
-                    <div class="row-text">Alertas de Sobreescritura</div>
-                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
-                <a href="historial.html" class="ios-row">
-                    <div class="icon-box bg-orange">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </div>
-                    <div class="row-text">Historial de Cambios</div>
-                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
-                <a href="movimientos.html" class="ios-row">
-                    <div class="icon-box bg-purple">
-                        <i class="fa-solid fa-list-ul"></i>
-                    </div>
-                    <div class="row-text">Movimientos Recientes</div>
-                    <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-                </a>
-                
-            </div>
-        
-        <p class="ios-group-title">Control y Auditorías</p>
-        <div class="ios-group">
-            <a href="inventario.html" class="ios-row">
-                <div class="icon-box bg-purple">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                </div>
-                <div class="row-text">Inventario de Sitio</div>
-                <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-            </a>
+      <nav class="nav-list" id="navList">
+
+        <a class="nav-item mobile-only" href="bandejas/registrarcambio.html">
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span class="label">Registrar Cambio</span>
+        </a>
+        <a class="nav-item" href="bandejas/owalert.html">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span class="label">Alertas</span>
+        </a>
+        <a class="nav-item" href="bandejas/historial.html">
+          <i class="fa-regular fa-clock"></i>
+          <span class="label">Historial de Cambios</span>
+        </a>
+        <a class="nav-item" href="bandejas/movimientos.html">
+          <i class="fa-solid fa-list"></i>
+          <span class="label">Movimientos</span>
+        </a>
+        <a class="nav-item" href="bandejas/inventario.html">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          <span class="label">Inventario</span>
+        </a>
+       
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="nav-item" style="pointer-events:none; opacity:0.9;">
+          <div class="tiny-badge"></div>
+          <span class="label">Grupo Herradura Occidente</span>
         </div>
+      </div>
+    </aside>
 
-    </div>
+    <main class="main">
+      <header class="topbar">
+        <div class="title-wrap">
+          <strong>Bandejas de Grabación</strong>
+          <span>Base Operativa</span>
+        </div>
+        <button class="workspace-btn">Cerrar Sesión</button>
+      </header>
 
-    <div class="footer">
-        GRUPO HERRADURA OCCIDENTE<br>
-        2026 • © Todos los derechos reservados
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../../tab/supabase-auth.js"></script>
-    <script>
-        window.onload = async function() {
-            try {
-                if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
-                    await window.supabaseAuth.requireAuth();
+      <section class="content">
+        <div class="viewport-frame">
+          <iframe title="Vista principal" srcdoc='<!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8" />
+              <style>
+                :root {
+                  --bg1: rgba(15, 23, 42, 0.04);
+                  --bg2: rgba(255,255,255,0.9);
+                  --line: rgba(15,23,42,0.08);
+                  --text: #0f172a;
+                  --muted: #5b6474;
+                  --blue: #2d7cf6;
                 }
-            } catch (e) {
-                console.error('Auth check failed:', e);
-                return;
-            }
-        };
-    </script>
+                * { box-sizing: border-box; }
+                html, body { height: 100%; margin: 0; }
+                body {
+                  font-family: Inter, "Segoe UI", sans-serif;
+                  background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(224,231,239,0.7));
+                  display: grid;
+                  place-items: center;
+                  color: var(--text);
+                }
+                .card {
+                  width: min(680px, 82%);
+                  background: rgba(255,255,255,0.72);
+                  border: 1px solid var(--line);
+                  border-radius: 28px;
+                  box-shadow: 0 26px 60px rgba(15,23,42,0.08);
+                  backdrop-filter: blur(8px);
+                  padding: 28px 26px;
+                  text-align: center;
+                }
+                .icon {
+                  width: 92px;
+                  height: 92px;
+                  margin: 0 auto 18px;
+                  border-radius: 26px;
+                  display: grid;
+                  place-items: center;
+                  background: linear-gradient(135deg, rgba(45,124,246,0.12), rgba(124,77,255,0.08));
+                  color: var(--blue);
+                  font-size: 2.5rem;
+                }
+                h2 {
+                  margin: 0 0 12px;
+                  font-size: clamp(2rem, 3vw, 3rem);
+                  letter-spacing: -0.06em;
+                  line-height: 1.08;
+                }
+                p {
+                  margin: 0;
+                  color: var(--muted);
+                  line-height: 1.7;
+                  font-size: 1.02rem;
+                }
+                .chips {
+                  margin-top: 22px;
+                  display: flex;
+                  flex-wrap: wrap;
+                  justify-content: center;
+                  gap: 10px;
+                }
+                .chip {
+                  background: rgba(15,23,42,0.04);
+                  border: 1px solid rgba(15,23,42,0.06);
+                  border-radius: 999px;
+                  padding: 9px 12px;
+                  font-size: 0.8rem;
+                  color: var(--muted);
+                  font-weight: 600;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div class="icon">✦</div>
+                <h2>Tecnología a Bordo</h2>
+                <p>La vista principal se carga aquí. Selecciona una opción del menú para abrir la información correspondiente.</p>
+                <div class="chips">
+                  <span class="chip">Flota</span>
+                  <span class="chip">Seguridad</span>
+                </div>
+              </div>
+            </body>
+            </html>'></iframe>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../tab/supabase-auth.js"></script>
+  <script>
+    function isMobileDevice() {
+      return window.matchMedia('(max-width: 860px)').matches || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    function updateMobileMenuRules() {
+      const mobileOnly = document.querySelector('.nav-item.mobile-only');
+      if (!mobileOnly) return;
+      if (isMobileDevice()) {
+        mobileOnly.style.display = 'flex';
+      } else {
+        mobileOnly.style.display = 'none';
+      }
+    }
+
+    const navLinks = document.querySelectorAll('.nav-item');
+    navLinks.forEach((link) => {
+      link.addEventListener('click', function () {
+        navLinks.forEach((item) => item.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    window.addEventListener('load', function () {
+      updateMobileMenuRules();
+      if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
+        window.supabaseAuth.requireAuth().catch(err => console.error('Auth check failed:', err));
+      }
+    });
+
+    window.addEventListener('resize', updateMobileMenuRules);
+  </script>
 </body>
 </html>
-</body>
-</html>
+
