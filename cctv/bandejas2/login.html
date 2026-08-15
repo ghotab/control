@@ -98,9 +98,8 @@
 
     function getRedirect() {
       const params = new URLSearchParams(window.location.search);
-      let redirectPath = params.get('redirect') || 'cctv/bandejas/index.html';
+      let redirectPath = params.get('redirect') || 'cctv/bandejas2/index.html';
       
-      // Quita la barra inicial '/' si existe para evitar errores 404
       if (redirectPath.startsWith('/')) {
         redirectPath = redirectPath.substring(1);
       }
