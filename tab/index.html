@@ -4,492 +4,969 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHO | TAB Administración</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Tecnología a bordo | Distribución</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-auth.js"></script>
+
     <style>
         :root {
-            --mac-bg: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000');
-            --glass: rgba(255, 255, 255, 0.2);
-            --ios-blue: #007aff;
-            /* Agregamos esta línea para que funcione el hover */
+            --sidebar: #030303;
+            --surface: #ffffff;
+            --page: #f7f8fa;
+            --border: #d9dce1;
+            --border-soft: #eceef1;
+            --ink: #20242b;
+            --ink-soft: #5b616b;
+            --muted: #8b9098;
+            --blue: #006fe6;
+            --blue-soft: #e7f1ff;
+            --green: #0b7d37;
+            --green-soft: #dff6e7;
+            --red: #b42318;
+            --red-soft: #fde7e5;
+            --shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
         }
 
-        body,
-        html {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--mac-bg) no-repeat center center fixed;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-        }
+        * { box-sizing: border-box; }
 
-        .top-bar {
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            color: white;
-            font-size: 13px;
-            justify-content: space-between;
-        }
+        [hidden] { display: none !important; }
 
-        .launchpad {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            padding: 60px 100px;
-            gap: 40px;
-            justify-items: center;
-        }
+        html,
+        body { margin: 0; min-height: 100%; }
 
-        .app-link {
-            text-decoration: none;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: transform 0.2s;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .app-link:hover {
-            transform: scale(1.1);
-        }
-
-        .app-icon {
-            width: 90px;
-            height: 90px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 45px;
-            margin-bottom: 10px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .icon-flota {
-            background: linear-gradient(145deg, #007aff, #00c6ff);
-        }
-
-        .icon-admin {
-            background: linear-gradient(145deg, #08aa23, #09cf80);
-        }
-
-        .icon-sim {
-            background: linear-gradient(145deg, #f42a5f, #ad1a55);
-        }
-
-        .icon-refa {
-            background: linear-gradient(145deg, #4B0082, #ad80ff);
-        }
-
-         .icon-turnos {
-            background: linear-gradient(145deg, #00072E, #0A2472);
-        }
-
-        .dock-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 20px;
-        }
-
-        .dock {
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(20px);
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: flex;
-            gap: 15px;
-            border: 0.5px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .dock-item {
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .menu-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /*justify-content: center; */
-            width: 140px;
-        }
-
-        .menu-container .app-link span {
-            margin-top: 2px;
-            /* Alineación fina para que coincida con los otros iconos */
-            text-align: center;
-        }
-
-        /* Estilo del Botón Principal (App Icon) */
-        .app-icon.icon-bandejas {
-            background: linear-gradient(145deg, #5e5ce6, #7d7aff);
-            /* Color morado macOS */
-            cursor: pointer;
-        }
-
-        /* El Menú Desplegable (Glassmorphism) */
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 95px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 220px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            border-radius: 12px;
-            margin-top: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 0.5px solid rgba(255, 255, 255, 0.3);
-            z-index: 1000;
-            padding: 5px;
-        }
-
-        .dropdown-menu.show {
-            display: block;
-            animation: menuAppear 0.2s ease-out;
-        }
-
-        @keyframes menuAppear {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        /* Opciones del Menú */
-        .menu-item {
-            padding: 10px 15px;
-            color: #1c1c1e;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            border-radius: 8px;
+        body {
+            background: var(--page);
+            color: var(--ink);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             font-size: 14px;
-            transition: background 0.2s;
         }
 
-        .menu-item:hover {
-            background: var(--ios-blue);
-            color: white;
+        button,
+        input,
+        select { font: inherit; }
+
+        button { cursor: pointer; }
+
+        :focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 2px;
         }
 
-        .menu-item i {
-            margin-right: 12px;
-            width: 18px;
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 257px minmax(0, 1fr);
+            background: var(--surface);
+        }
+
+        .sidebar {
+            background: var(--sidebar);
+            color: #fff;
+            padding: 24px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .brand {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 0;
+            line-height: 1;
+        }
+
+        .side-search {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #9ca0a8;
+            font-size: 17px;
+            font-weight: 600;
+            padding-bottom: 2px;
+        }
+
+        .nav-sep {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            color: #00a7ff;
+            font-size: 16px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .nav-item i {
+            width: 23px;
             text-align: center;
+            font-size: 19px;
         }
 
-        /* Divisor estilo macOS */
-        .menu-divider {
-            height: 0.5px;
-            background: rgba(0, 0, 0, 0.1);
-            margin: 5px 10px;
+        .content {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- AJUSTES PARA MÓVIL --- */
-        @media (max-width: 600px) {
+        .topbar {
+            min-height: 76px;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            background: var(--surface);
+        }
 
-            body,
-            html {
-                /* Permitimos el scroll vertical en móviles */
-                overflow-y: auto;
-                height: auto;
-                min-height: 100%;
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000;
+            white-space: nowrap;
+        }
+
+        .mobile-title { display: none; }
+
+        .group-select {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #3f4650;
+            font-size: 23px;
+            white-space: nowrap;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+        }
+
+        .action-btn {
+            height: 47px;
+            border: 1px solid #c7cbd1;
+            border-radius: 5px;
+            background: #fff;
+            color: #000;
+            padding: 0 16px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .icon-btn {
+            width: 47px;
+            height: 47px;
+            padding: 0;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 180px;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            box-shadow: var(--shadow);
+            display: none;
+            z-index: 20;
+        }
+
+        .user-dropdown.open {
+            display: block;
+        }
+
+        .menu-action {
+            width: 100%;
+            min-height: 38px;
+            border: 0;
+            border-radius: 4px;
+            background: #fff;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 10px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .menu-action:hover {
+            background: #f3f4f6;
+        }
+
+        .tabs {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            min-height: 62px;
+            padding: 0 30px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            overflow-x: auto;
+        }
+
+        .tab {
+            color: #444b55;
+            font-size: 18px;
+            white-space: nowrap;
+            padding: 20px 0 17px;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .filters {
+            padding: 20px 30px 14px;
+            border-bottom: 1px solid var(--border-soft);
+            background: var(--surface);
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: 215px minmax(130px, .55fr) minmax(260px, 1.6fr) minmax(130px, .55fr) minmax(168px, .7fr);
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box,
+        .filter-select,
+        .export-btn {
+            height: 47px;
+            border: 1px solid #c9cdd3;
+            border-radius: 5px;
+            background: #fff;
+            color: #3f4650;
+        }
+
+        .search-box {
+            width: 100%;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 0 15px;
+        }
+
+        .search-box i {
+            color: #515761;
+            font-size: 18px;
+        }
+
+        .search-box input {
+            border: 0;
+            outline: 0;
+            width: 100%;
+            min-width: 0;
+            color: var(--ink);
+            font-size: 18px;
+            background: transparent;
+        }
+
+        .search-box input::placeholder { color: #4f5660; opacity: 1; }
+
+        .filter-wrap {
+            position: relative;
+            min-width: 0;
+        }
+
+        .filter-select {
+            width: 100%;
+            min-width: 0;
+            appearance: none;
+            padding: 0 44px 0 16px;
+            font-size: 18px;
+        }
+
+        .filter-wrap i {
+            pointer-events: none;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5c626b;
+        }
+
+        .filter-spacer { display: none; }
+
+        .export-btn {
+            width: 100%;
+            min-width: 0;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 18px;
+            color: #111827;
+        }
+
+        .export-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .mobile-filter-btn { display: none; }
+
+        .table-panel {
+            min-height: 0;
+            overflow: auto;
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1280px;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #fff;
+            color: #3e4650;
+            font-size: 13px;
+            line-height: 1.2;
+            text-align: left;
+            text-transform: uppercase;
+            padding: 12px 18px;
+            border-bottom: 2px solid var(--border);
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            height: 91px;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border-soft);
+            vertical-align: middle;
+            color: #2b313a;
+            font-size: 16px;
+        }
+
+        tbody tr:hover { background: #fafafa; }
+
+        .bus-cell {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .locator {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #aeb3ba;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            font-size: 9px;
+        }
+
+        .bus-number {
+            color: var(--blue);
+            font-size: 20px;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            color: #354052;
+            font-size: 14px;
+            line-height: 1.25;
+        }
+
+        .role-name {
+            color: #805200;
+            font-style: italic;
+            text-decoration: underline dotted;
+            text-underline-offset: 3px;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 31px;
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
+        .status-ok {
+            background: var(--green-soft);
+            color: var(--green);
+        }
+
+        .status-bad {
+            background: var(--red-soft);
+            color: var(--red);
+        }
+
+        .status-neutral {
+            background: #edf0f4;
+            color: #4b5563;
+        }
+
+        .loading,
+        .empty {
+            padding: 48px 30px;
+            color: var(--ink-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .table-foot {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                display: block;
+                min-height: 100vh;
             }
 
-            .launchpad {
-                /* Reducimos el padding exagerado de los lados */
-                padding: 40px 20px;
-                /* Ajustamos el tamaño de la rejilla para que quepan de a dos o según quepan */
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 20px;
-            }
+            .sidebar { display: none; }
 
-            .app-icon {
-                width: 70px;
-                /* Iconos un poco más pequeños para móvil */
-                height: 70px;
-                font-size: 35px;
-            }
-
-            .dropdown-menu {
-                /* Evitamos que el menú se salga de la pantalla */
-                width: 180px;
-                position: fixed;
-                /* Cambiamos a fixed para que flote sobre todo en móvil */
-                top: 20% !important;
-                left: 50% !important;
-                transform: translate(-50%, 0);
-            }
-
-            .top-bar {
-                font-size: 11px;
-                /* Texto de la barra superior más pequeño */
-                padding: 0 10px;
-            }
-
-            .dock-container {
-                /* Fijamos el dock abajo para que siempre sea accesible */
+            .topbar {
+                height: 62px;
+                min-height: 62px;
+                padding: 8px 18px;
+                border-top: 1px solid #d5d8dd;
+                border-bottom: 1px solid #f1f2f4;
+                justify-content: center;
                 position: sticky;
-                bottom: 0;
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(10px);
-                padding-top: 10px;
+                top: 0;
+                z-index: 8;
             }
+
+            .mobile-menu,
+            .mobile-dots {
+                display: inline-flex;
+                position: absolute;
+                top: 19px;
+                border: 0;
+                background: transparent;
+                color: #4b5563;
+                font-size: 19px;
+                padding: 0;
+            }
+
+            .mobile-menu { left: 20px; }
+            .mobile-dots { right: 20px; }
+
+            .title-row {
+                flex-direction: column;
+                gap: 1px;
+                text-align: center;
+            }
+
+            .page-title {
+                order: 2;
+                font-size: 17px;
+                line-height: 1.05;
+            }
+
+            .desktop-title { display: none; }
+            .mobile-title { display: inline; }
+
+            .group-select {
+                order: 1;
+                font-size: 8px;
+                line-height: 1;
+                color: #7d838c;
+                text-transform: uppercase;
+                gap: 4px;
+            }
+
+            .group-select i { display: none; }
+
+            .actions { display: none; }
+
+            .tabs { display: none; }
+
+            .filters {
+                padding: 13px 18px 14px;
+                display: block;
+                border-bottom: 1px solid #d6d9de;
+                position: sticky;
+                top: 62px;
+                z-index: 7;
+            }
+
+            .mobile-filter-btn {
+                display: flex;
+                width: 100%;
+                height: 35px;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #cfd3d8;
+                border-radius: 4px;
+                background: #fff;
+                color: #111;
+                font-weight: 800;
+            }
+
+            .filter-controls {
+                display: none;
+                margin-top: 10px;
+                gap: 8px;
+                grid-template-columns: 1fr;
+            }
+
+            .filters.open .filter-controls { display: grid; }
+
+            .search-box,
+            .filter-select,
+            .export-btn {
+                width: 100%;
+                min-width: 0;
+                height: 41px;
+                font-size: 14px;
+            }
+
+            .filter-spacer { display: none; }
+
+            .table-panel {
+                overflow: auto;
+                height: calc(100vh - 62px - 63px - 36px);
+                box-shadow: inset -42px 0 26px -35px rgba(15, 23, 42, 0.28);
+            }
+
+            table {
+                min-width: 1130px;
+            }
+
+            thead th {
+                font-size: 10px;
+                padding: 10px 12px;
+                top: 0;
+            }
+
+            tbody td {
+                height: 68px;
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            .bus-cell { gap: 16px; }
+
+            .bus-number {
+                font-size: 16px;
+                margin-bottom: 4px;
+            }
+
+            .sub { font-size: 12px; }
+
+            .role-name {
+                max-width: 170px;
+                font-size: 13px;
+            }
+
+            .status-pill {
+                min-height: 26px;
+                font-size: 13px;
+                padding: 3px 8px;
+            }
+
+            .table-foot {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 9;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                padding: 0 20px;
+                background: rgba(255, 255, 255, 0.95);
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.08);
+                font-size: 12px;
+                font-weight: 700;
+                color: #5b616b;
+            }
+        }
+
+        @media (min-width: 901px) {
+            .mobile-menu,
+            .mobile-dots { display: none; }
         }
     </style>
 </head>
 
 <body>
-    <div class="top-bar">
-        <div><i class="fab fa-apple"></i> <span style="font-weight:700; margin-left:10px;">GHO TAB -
-                Administración</span></div>
-        <div id="reloj">12:00 PM</div>
-    </div>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">Tecnología<br>a bordo</div>
+            <div class="side-search"></i><span></span></div>
+            <div class="nav-sep"></div>
+            <a class="nav-item" href="#" aria-current="page"><i class="fa-solid fa-map"></i><span>Distribución</span></a>
+            <div class="nav-sep"></div>
+        </aside>
 
-    <div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:8px 20px;background:transparent">
-        <button onclick="openPanel('actualizar.html')" style="padding:8px 12px;border-radius:8px">Actualizar</button>
-        <button onclick="loadPage('distro.html')" style="padding:8px 12px;border-radius:8px">Distribución</button>
-        <button onclick="loadPage('xbase.html')" style="padding:8px 12px;border-radius:8px">Por Base</button>
-        <button onclick="loadPage('xrol.html')" style="padding:8px 12px;border-radius:8px">Por Rol</button>
-        <button onclick="openPanel('export.html')" style="padding:8px 12px;border-radius:8px">Exportar</button>
-        <button onclick="window.supabaseAuth && window.supabaseAuth.signOut()" style="padding:8px 12px;border-radius:8px">Cerrar sesión</button>
-    </div>
-
-
-
-    <div class="launchpad">
-
-        <div class="menu-container">
-            <div class="app-link" onclick="toggleMenu(event,'menuDistro')" style="cursor: pointer;">
-                <div class="app-icon icon-flota">
-                    <i class="fas fa-bus-alt" style="color: white;"></i>
+        <main class="content">
+            <header class="topbar">
+                <button class="mobile-menu" type="button" aria-label="Menú"><i class="fa-solid fa-bars"></i></button>
+                <div class="title-row">
+                    <div class="page-title"><span class="desktop-title">Vista de flota</span><span class="mobile-title">Vehículos</span></div>
+                    <div class="group-select">GHO <i class="fa-solid fa-chevron-down"></i></div>
                 </div>
-                <span>Distribución</span>
-            </div>
-
-            <div id="menuDistro" class="dropdown-menu">
-                <a href="#" onclick="loadPage('distro.html');return false;" class="menu-item"><i class="fa-solid fa-tag"></i> Explorar por Autobus</a>
-                <a href="#" onclick="loadPage('xrol.html');return false;" class="menu-item"><i class="fa-solid fa-users-cog"></i> Explorar por Roles</a>
-                <a href="#" onclick="loadPage('xbase.html');return false;" class="menu-item"><i class="fa-solid fa-industry"></i> Explorar por Base</a>
-
-            </div>
-        </div>
-
-        <div class="menu-container">
-            <div class="app-link" onclick="toggleMenu(event,'menuBandejas')" style="cursor: pointer;">
-                <div class="app-icon icon-bandejas">
-                    <i class="fa fa-inbox" style="color: white;"></i>
+                <div class="actions">
+                    <div class="user-menu">
+                        <button class="action-btn icon-btn" id="userMenuBtn" type="button" aria-label="Usuario" aria-haspopup="menu" aria-expanded="false">
+                            <i class="fa-regular fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown" role="menu">
+                            <button class="menu-action" type="button" role="menuitem" onclick="cerrarSesion()">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <span>Control de Bandejas</span>
-            </div>
+                <button class="mobile-dots" type="button" aria-label="Más opciones"><i class="fa-solid fa-ellipsis"></i></button>
+            </header>
 
-            <div id="menuBandejas" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/cctv/bandejas/registrarcambio.html" class="menu-item"><i
-                        class="fas fa-plus-circle"></i> Registrar Cambio</a>
-                <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/cctv/bandejas/owalert.html" class="menu-item"><i
-                        class="fas fa-circle-radiation"></i> Riesgos Sobreescritura</a>
-                <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/cctv/bandejas/historial.html" class="menu-item"><i
-                        class="fas fa-history"></i> Historial de Cambios</a>
-                <a href="https://ghotab.github.io/control/cctv/bandejas/movimientos.html" class="menu-item"><i
-                        class="fas fa-exchange-alt"></i> Movimientos Recientes</a>
+            <nav class="tabs" aria-label="Secciones">
+                <span class="tab active">Autobuses</span>
+            </nav>
 
-                <div class="menu-divider"></div>
+            <section class="filters" id="filters">
+                <button class="mobile-filter-btn" type="button" onclick="toggleFilters()">Mostrar filtros</button>
+                <div class="filter-controls">
+                    <label class="search-box" for="searchInput">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="searchInput" type="search" placeholder="Buscar Autobus" autocomplete="off">
+                    </label>
 
-                <a href="https://ghotab.github.io/control/cctv/bandejas/inventario.html" class="menu-item"><i
-                        class="fas fa-boxes"></i> Inventario de Sitio</a>
-            </div>
-        </div>
+                    <label class="filter-wrap" aria-label="Base">
+                        <select class="filter-select" id="baseFilter">
+                            <option value="">Base</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </label>
 
-        <div class="menu-container">
-            <div class="app-link" onclick="toggleMenu(event, 'menuCorrectivo')">
-                <div class="app-icon icon-mantenimiento">
-                    <i class="fas fa-tools" style="color: white;"></i>
+                    <label class="filter-wrap" aria-label="Nombre de Rol">
+                        <select class="filter-select" id="rolFilter">
+                            <option value="">Nombre de Rol</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </label>
+
+                    <label class="filter-wrap" aria-label="Estatus">
+                        <select class="filter-select" id="estatusFilter">
+                            <option value="">Estatus</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </label>
+
+                    <div class="filter-spacer"></div>
+
+                    <button class="export-btn" id="exportBtn" type="button">
+                        <i class="fa-solid fa-file-csv"></i>
+                        Exportar CSV
+                    </button>
                 </div>
-                <span>Mantenimientos Correctivos</span>
-            </div>
-            <div id="menuCorrectivo" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/failreporting/createReport.html" class="menu-item"><i
-                        class="fa-solid fa-marker"></i> Registrar Falla (Como Administrador)</a>
-                <a href="https://ghotab.github.io/control/failreporting/conductor.html" class="menu-item"><i
-                        class="fa-solid fa-bus"></i> Registrar Falla (Como Conductor)</a>
-                <a href="https://ghotab.github.io/control/failreporting/pendientes.html" class="menu-item"><i
-                        class="fas fa-exclamation-triangle"></i> Dashboard de Reportes</a>
-                <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/failreporting/historial.html" class="menu-item"><i
-                        class="fas fa-clipboard-check"></i> Historial de Reportes</a>
-            </div>
-        </div>
+            </section>
 
-        <div class="menu-container">
-            <a href="https://ghotab.github.io/control/refa/index.html"><div class="app-link" onclick="toggleMenu(event, 'menuRefa')">
-                <div class="app-icon icon-refa">
-                    <i class="fas fa-wrench" style="color: white;"></i>
-                </div></a>
-                <span>Refaccionamiento</span>
-            </div>
-        </div>
+            <section class="table-panel" id="tablePanel">
+                <div class="loading" id="loader" hidden></div>
+                <table id="fleetTable" hidden>
+                    <thead>
+                        <tr>
+                            <th>Autobus</th>
+                            <th>Base</th>
+                            <th>Servicio</th>
+                            <th>Clave y Nombre Rol</th>
+                            <th>Marca y Modelo</th>
+                            <th>Estatus</th>
+                            <th>Sociedad</th>
+                            <th>Centro de Costos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fleetBody"></tbody>
+                </table>
+            </section>
 
-        <div class="menu-container">
-            <div class="app-link" onclick="toggleMenu(event, 'menuSIMS')">
-                <div class="app-icon icon-sim">
-                    <i class="fas fa-sim-card" style="color: white;"></i>
-                </div>
-                <span>Control de SIMs</span>
-            </div>
-            <div id="menuSIMS" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/sims/recordsim.html" class="menu-item"><i
-                        class="fa-solid fa-marker"></i> Recepción de SIMs</a>
-                <a href="https://ghotab.github.io/control/sims/simsassign.html" class="menu-item"><i
-                        class="fa-solid fa-hand-pointer"></i> Asignación de SIMs</a>
-                <a href="https://ghotab.github.io/control/sims/dashboard.html" class="menu-item"><i
-                        class="fa-solid fa-chalkboard-user"></i> Dashboard de SIMs</a>
-                <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/sims/install.html" class="menu-item"><i
-                        class="fas fa-window-restore"></i> Instalación de SIM</a>
-            </div>
-        </div>
-
-
-
-        <div class="menu-container">
-            <div class="app-link" onclick="toggleMenu(event, 'menuAdmin')">
-                <div class="app-icon icon-admin">
-                    <i class="fa-solid fa-calculator" style="color: white;"></i>
-                </div>
-                <span>Contabilidad</span>
-            </div>
-
-            <div id="menuAdmin" class="dropdown-menu">
-                <a href="https://ghotab.github.io/control/admin/caratula_gastos.html" class="menu-item"><i
-                        class="fa-solid fa-file-excel"></i> Carátula de Gastos</a>
-                <div class="menu-divider"></div>
-                <a href="https://ghotab.github.io/control/admin/visor_cfdi.html" class="menu-item"><i
-                        class="fa-solid fa-file-contract"></i> Visor CFDI</a>
-
-            </div>
-        </div>
-
-        <div class="menu-container">
-            <a href="https://ghotab.github.io/control/roles/login.html"><div class="app-link" onclick="toggleMenu(event, 'menuTurnos')">
-                <div class="app-icon icon-turnos">
-                    <i class="fas fa-tools" style="color: white;"></i>
-                </div>
-                <span>Control de Horarios</span>
-            </div>
-            </a>
-        </div>
-    
-
-    </div>
-
-    <div class="dock-container">
-        <div class="dock">
-            <div class="dock-item"><i class="fas fa-home" style="color:#007aff;"></i></div>
-            <div class="dock-item" onclick="location.reload()"><i class="fas fa-sync" style="color:#34c759;"></i></div>
-        </div>
-    </div>
-
-    <div id="viewer" style="display:none;position:fixed;inset:56px 20px 80px 20px;background:white;z-index:1200;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(2,6,23,0.3)">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #e6e6e6;background:#fff">
-            <div style="font-weight:700">Visor</div>
-            <div style="display:flex;gap:8px">
-                <button onclick="reloadFrame()" style="padding:6px 10px;border-radius:8px">Recargar</button>
-                <button onclick="closeViewer()" style="padding:6px 10px;border-radius:8px">Cerrar</button>
-            </div>
-        </div>
-        <iframe id="contentFrame" src="" style="width:100%;height:100%;border:0"></iframe>
+            <div class="table-foot" id="tableFoot">Mostrando 0 de 0</div>
+        </main>
     </div>
 
     <script>
-        // exigir autenticación al entrar
-        (async function(){
-            try { if (window.supabaseAuth && window.supabaseAuth.requireAuth) await window.supabaseAuth.requireAuth(); } catch(e){ console.error(e); }
+        const db = window.db;
+        (async function () {
+            try {
+                if (window.supabaseAuth) await window.supabaseAuth.requireAuth();
+            } catch (e) {
+                console.error(e);
+            }
         })();
 
-        function loadPage(url){
-            if (!window.supabaseAuth) return location.href = url;
-            window.supabaseAuth.requireAuth().then(s => {
-                if (!s) return;
-                document.getElementById('viewer').style.display = 'block';
-                document.querySelector('.launchpad').style.display = 'none';
-                document.querySelector('.dock-container').style.display = 'none';
-                document.getElementById('contentFrame').src = url;
+        const state = {
+            rows: [],
+            filtered: []
+        };
+
+        const columns = [
+            { label: 'Autobus', getter: row => clean(row.autobus) },
+            { label: 'Base', getter: row => clean(row.base) },
+            { label: 'Servicio', getter: row => clean(row.servicio) },
+            { label: 'Clave y Nombre Rol', getter: row => [clean(row.clave_rol), clean(row.rol)].filter(Boolean).join(' - ') },
+            { label: 'Marca y Modelo', getter: row => [clean(row.marca), clean(row.modelo)].filter(Boolean).join(' ') },
+            { label: 'Estatus', getter: row => clean(row.estatus) },
+            { label: 'Sociedad', getter: row => clean(row.sociedad) },
+            { label: 'Centro de Costos', getter: row => clean(row.centro_costos) }
+        ];
+
+        function clean(value) {
+            return value === null || value === undefined ? '' : String(value).trim();
+        }
+
+        function display(value) {
+            const text = clean(value);
+            return text || '-';
+        }
+
+        function escapeHtml(value) {
+            return display(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function statusClass(estatus) {
+            const value = clean(estatus).toUpperCase();
+            if (value === 'ENROLADO' || value === 'EN SERVICIO' || value === 'ACTIVO' || value === 'DISPONIBLE') return 'status-ok';
+            if (value === 'DESENROLADO' || value === 'PARA VENTA ' || value === 'SINIESTRADO' || value === 'TALLER') return 'status-bad';
+            return 'status-neutral';
+        }
+
+        function uniqueValues(field) {
+            return [...new Set(state.rows.map(row => clean(row[field])).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'es-MX', { numeric: true }));
+        }
+
+        function fillSelect(id, label, values) {
+            const select = document.getElementById(id);
+            select.innerHTML = `<option value="">${label}</option>` +
+                values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+        }
+
+        function normalizeText(value) {
+            return clean(value).toLocaleLowerCase('es-MX');
+        }
+
+        function applyFilters() {
+            const q = normalizeText(document.getElementById('searchInput').value);
+            const base = document.getElementById('baseFilter').value;
+            const rol = document.getElementById('rolFilter').value;
+            const estatus = document.getElementById('estatusFilter').value;
+
+            state.filtered = state.rows.filter(row => {
+                const matchesSearch = !q || normalizeText(row.autobus).includes(q);
+                const matchesBase = !base || clean(row.base) === base;
+                const matchesRol = !rol || clean(row.rol) === rol;
+                const matchesEstatus = !estatus || clean(row.estatus) === estatus;
+                return matchesSearch && matchesBase && matchesRol && matchesEstatus;
             });
+
+            renderTable();
         }
 
-        function openPanel(url){ loadPage(url); }
+        function renderTable() {
+            const loader = document.getElementById('loader');
+            const table = document.getElementById('fleetTable');
+            const body = document.getElementById('fleetBody');
+            const foot = document.getElementById('tableFoot');
+            const exportBtn = document.getElementById('exportBtn');
 
-        function closeViewer(){
-            document.getElementById('viewer').style.display = 'none';
-            document.querySelector('.launchpad').style.display = '';
-            document.querySelector('.dock-container').style.display = '';
-            document.getElementById('contentFrame').src = '';
+            loader.hidden = true;
+            table.hidden = false;
+            exportBtn.disabled = state.filtered.length === 0;
+            foot.textContent = `Mostrando ${state.filtered.length.toLocaleString('es-MX')} de ${state.rows.length.toLocaleString('es-MX')}`;
+
+            if (state.filtered.length === 0) {
+                table.hidden = true;
+                loader.hidden = false;
+                loader.className = 'empty';
+                loader.innerHTML = '<i class="fa-regular fa-circle-xmark"></i><span>No hay autobuses para la vista actual.</span>';
+                return;
+            }
+
+            body.innerHTML = state.filtered.map(row => {
+                const roleText = [display(row.clave_rol), display(row.rol)].filter(value => value !== '-').join(' - ') || '-';
+                const modelText = [display(row.marca), display(row.modelo)].filter(value => value !== '-').join(' ') || '-';
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="bus-cell">
+                                <span class="locator"><i class="fa-solid fa-location-arrow"></i></span>
+                                <div>
+                                    <div class="bus-number">${escapeHtml(row.autobus)}</div>
+                                    <div class="sub">${escapeHtml(modelText)}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${escapeHtml(row.base)}</td>
+                        <td>${escapeHtml(row.servicio)}</td>
+                        <td><div class="role-name" title="${escapeHtml(roleText)}">${escapeHtml(roleText)}</div></td>
+                        <td>${escapeHtml(modelText)}</td>
+                        <td><span class="status-pill ${statusClass(row.estatus)}">${escapeHtml(row.estatus || 'S/E')}</span></td>
+                        <td>${escapeHtml(row.sociedad)}</td>
+                        <td>${escapeHtml(row.centro_costos)}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function reloadFrame(){
-            const f = document.getElementById('contentFrame');
-            f.src = f.src;
-        }
-        setInterval(() => {
-            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-        }, 1000);
-
-        function toggleMenu(event, idMenu) {
-            event.stopPropagation();
-
-            // Primero cerramos cualquier otro menú que esté abierto para que no se encimen
-            const todosLosMenus = document.querySelectorAll('.dropdown-menu');
-            todosLosMenus.forEach(menu => {
-                if (menu.id !== idMenu) {
-                    menu.classList.remove('show');
-                }
-            });
-
-            // Ahora abrimos o cerramos el menú que nos interesa
-            const menuSeleccionado = document.getElementById(idMenu);
-            menuSeleccionado.classList.toggle("show");
+        function csvEscape(value) {
+            const text = clean(value).replace(/\r?\n|\r/g, ' ');
+            return `"${text.replace(/"/g, '""')}"`;
         }
 
-        // Cerrar el menú si haces clic fuera de él
-        window.onclick = function (event) {
-            if (!event.target.matches('.app-icon') && !event.target.matches('.fa-tray')) {
-                var dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
+        function exportCsv() {
+            if (state.filtered.length === 0) return;
+
+            const header = columns.map(col => csvEscape(col.label)).join(',');
+            const rows = state.filtered.map(row => columns.map(col => csvEscape(col.getter(row))).join(','));
+            const csv = '\uFEFF' + [header, ...rows].join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const stamp = new Date().toISOString().slice(0, 10);
+
+            link.href = url;
+            link.download = `distribucion_autobuses_${stamp}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function toggleFilters() {
+            const filters = document.getElementById('filters');
+            const btn = filters.querySelector('.mobile-filter-btn');
+            filters.classList.toggle('open');
+            btn.textContent = filters.classList.contains('open') ? 'Ocultar filtros' : 'Mostrar filtros';
+        }
+
+        function toggleUserMenu() {
+            const btn = document.getElementById('userMenuBtn');
+            const dropdown = document.getElementById('userDropdown');
+            const isOpen = dropdown.classList.toggle('open');
+            btn.setAttribute('aria-expanded', String(isOpen));
+        }
+
+        function closeUserMenu() {
+            const btn = document.getElementById('userMenuBtn');
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        function cerrarSesion() {
+            closeUserMenu();
+            if (window.supabaseAuth && typeof window.supabaseAuth.signOut === 'function') {
+                window.supabaseAuth.signOut();
+                return;
+            }
+            window.location.href = 'login.html';
+        }
+
+        async function loadFleet() {
+            const loader = document.getElementById('loader');
+
+            if (!db) {
+                loader.hidden = false;
+                loader.className = 'empty';
+                loader.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Sin conexión con la base de datos.</span>';
+                return;
+            }
+
+            try {
+                const { data, error } = await db
+                    .from('tbl_flota')
+                    .select('autobus, base, servicio, clave_rol, rol, marca, modelo, estatus, sociedad, centro_costos')
+                    .order('autobus', { ascending: true });
+
+                if (error) throw error;
+
+                state.rows = data || [];
+                state.filtered = [...state.rows];
+                fillSelect('baseFilter', 'Base', uniqueValues('base'));
+                fillSelect('rolFilter', 'Nombre de Rol', uniqueValues('rol'));
+                fillSelect('estatusFilter', 'Estatus', uniqueValues('estatus'));
+                renderTable();
+            } catch (e) {
+                console.error(e);
+                loader.hidden = false;
+                loader.className = 'empty';
+                loader.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Error al cargar la distribución de autobuses.</span>';
             }
         }
 
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('baseFilter').addEventListener('change', applyFilters);
+        document.getElementById('rolFilter').addEventListener('change', applyFilters);
+        document.getElementById('estatusFilter').addEventListener('change', applyFilters);
+        document.getElementById('exportBtn').addEventListener('click', exportCsv);
+        document.getElementById('userMenuBtn').addEventListener('click', event => {
+            event.stopPropagation();
+            toggleUserMenu();
+        });
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.user-menu')) closeUserMenu();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeUserMenu();
+        });
+
+        window.onload = loadFleet;
     </script>
 </body>
 
