@@ -975,10 +975,10 @@
             btn.setAttribute('aria-expanded', 'false');
         }
 
-        function cerrarSesion() {
+        async function cerrarSesion() {
             closeUserMenu();
             if (window.supabaseAuth && typeof window.supabaseAuth.signOut === 'function') {
-                window.supabaseAuth.signOut();
+                await window.supabaseAuth.signOut();
                 return;
             }
             window.location.href = 'login.html';

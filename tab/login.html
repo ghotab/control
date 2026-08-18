@@ -572,7 +572,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-auth.js"></script>
   <script>
-   function getRedirect() { const params = new URLSearchParams(window.location.search); return params.get('redirect') || 'index.html'; }
+   function getRedirect() {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect') || 'index.html';
+      return redirect.includes('login.html') ? 'index.html' : redirect;
+    }
 
     const btn = document.getElementById('btn-login');
     const errBox = document.getElementById('error-msg');
@@ -632,11 +636,13 @@
     btn.addEventListener('click', handleLogin);
     document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const clave = localStorage.getItem('tecnico');
-      if (clave) {
-        const dest = getRedirect();
-        if (dest) window.location.href = dest;
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        if (!window.supabaseAuth || typeof window.supabaseAuth.getSession !== 'function') return;
+        const session = await window.supabaseAuth.getSession();
+        if (session) window.location.href = getRedirect();
+      } catch (e) {
+        console.error(e);
       }
     });
   </script>

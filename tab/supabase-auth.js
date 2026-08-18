@@ -42,12 +42,34 @@
         }
     }
 
+    function normalizeAppPath(rawPath) {
+        if (!rawPath) return '/cctv/bandejas/index.html';
+        let normalized = rawPath.replace(/\\/g, '/');
+        normalized = normalized.replace(/^\/?[A-Za-z]:\//, '/');
+        const productionMatch = normalized.match(/\/produ\/control(.*)$/i);
+        if (productionMatch) {
+            normalized = productionMatch[1] || '/';
+        }
+        if (!normalized.startsWith('/')) {
+            normalized = '/' + normalized;
+        }
+        return normalized || '/cctv/bandejas/index.html';
+    }
+
+    function buildLoginRedirect(targetPath) {
+        const normalized = normalizeAppPath(targetPath || (window.location.pathname + window.location.search + window.location.hash));
+        const redirect = encodeURIComponent(normalized);
+        if (window.location.protocol === 'file:') {
+            return 'http://localhost:8000/cctv/bandejas/login.html?redirect=' + redirect;
+        }
+        return 'login.html?redirect=' + redirect;
+    }
+
     async function requireAuth() {
         const session = await getSession();
         if (!session) {
             // redirige al login y conserva la URL actual
-            const redirect = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-            window.location.href = 'login.html?redirect=' + redirect;
+            window.location.href = buildLoginRedirect(window.location.pathname + window.location.search + window.location.hash);
             return null;
         }
         // attach profile if available
@@ -89,6 +111,14 @@
         try {
             if (window.db && window.db.auth) await window.db.auth.signOut();
         } finally {
+            [
+                'tecnico',
+                'nombre_tecnico',
+                'base',
+                'rol',
+                'clave_sesion'
+            ].forEach(key => localStorage.removeItem(key));
+            window.supabaseAuth.profile = null;
             window.location.href = 'login.html';
         }
     }
