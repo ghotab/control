@@ -161,8 +161,8 @@
                 if (!window.supabaseAuth) return;
                 await window.supabaseAuth.requireAuth();
                 const profile = window.supabaseAuth.profile || await window.supabaseAuth.getProfile();
-                const perfil = String(profile?.perfil || profile?.rol || localStorage.getItem('rol') || '').trim().toLowerCase();
-                if (perfil !== 'jefe') window.location.href = 'index.html';
+                const nivel = String(profile?.Nivel || profile?.nivel || profile?.perfil || profile?.rol || localStorage.getItem('rol') || '').trim().toLowerCase();
+                if (nivel !== 'jefe') window.location.href = 'index.html';
             } catch(e){
                 console.error(e);
                 window.location.href = 'index.html';

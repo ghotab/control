@@ -604,7 +604,7 @@
           if (profile && profile.clave_colaborador) localStorage.setItem('tecnico', profile.clave_colaborador);
           if (profile && profile.nombre) localStorage.setItem('nombre_tecnico', profile.nombre);
           if (profile && profile.base) localStorage.setItem('base', profile.base);
-          if (profile && profile.perfil) localStorage.setItem('rol', profile.perfil);
+          if (profile && (profile.Nivel || profile.nivel || profile.perfil || profile.rol)) localStorage.setItem('rol', profile.Nivel || profile.nivel || profile.perfil || profile.rol);
         } catch (e) { /* ignore */ }
 
         window.location.href = getRedirect();

@@ -803,7 +803,7 @@
         }
 
         function configureCatalogAccess(profile) {
-            const role = normalizeRole(profile?.perfil || profile?.rol || localStorage.getItem('rol'));
+            const role = normalizeRole(profile?.Nivel || profile?.nivel || profile?.perfil || profile?.rol || localStorage.getItem('rol'));
             canUpdateCatalog = role === 'jefe';
             document.getElementById('updateNav').hidden = !canUpdateCatalog;
             document.getElementById('updateTab').hidden = !canUpdateCatalog;
