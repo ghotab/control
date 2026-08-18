@@ -107,6 +107,8 @@
             white-space: nowrap;
         }
 
+        .nav-item[hidden] { display: none !important; }
+
         .nav-item i {
             width: 23px;
             text-align: center;
@@ -236,8 +238,12 @@
         }
 
         .tab {
+            border: 0;
+            background: transparent;
             color: #444b55;
+            cursor: pointer;
             font-size: 18px;
+            font-family: inherit;
             white-space: nowrap;
             padding: 20px 0 17px;
             border-bottom: 3px solid transparent;
@@ -246,6 +252,15 @@
         .tab.active {
             color: var(--blue);
             border-color: var(--blue);
+        }
+
+        .page-view[hidden] { display: none !important; }
+
+        .update-frame {
+            width: 100%;
+            height: calc(100vh - 138px);
+            border: 0;
+            background: var(--page);
         }
 
         .filters {
@@ -526,6 +541,10 @@
 
             .tabs { display: none; }
 
+            .update-frame {
+                height: calc(100vh - 62px);
+            }
+
             .filters {
                 padding: 13px 18px 14px;
                 display: block;
@@ -642,7 +661,8 @@
             <div class="brand">Tecnología<br>a bordo</div>
             <div class="side-search"></i><span></span></div>
             <div class="nav-sep"></div>
-            <a class="nav-item" href="#" aria-current="page"><i class="fa-solid fa-map"></i><span>Distribución</span></a>
+            <a class="nav-item active" href="#" id="fleetNav" aria-current="page" onclick="showView('fleet'); return false;"><i class="fa-solid fa-map"></i><span>Distribución</span></a>
+            <a class="nav-item" href="#" id="updateNav" hidden onclick="showView('update'); return false;"><i class="fa-solid fa-file-arrow-up"></i><span>Actualizar catálogo</span></a>
             <div class="nav-sep"></div>
         </aside>
 
@@ -670,7 +690,8 @@
             </header>
 
             <nav class="tabs" aria-label="Secciones">
-                <span class="tab active">Autobuses</span>
+                <button class="tab active" id="fleetTab" type="button" onclick="showView('fleet')">Autobuses</button>
+                <button class="tab" id="updateTab" type="button" hidden onclick="showView('update')">Actualizar catálogo</button>
             </nav>
 
             <section class="filters" id="filters">
@@ -731,16 +752,29 @@
             </section>
 
             <div class="table-foot" id="tableFoot">Mostrando 0 de 0</div>
+
+            <section class="page-view" id="updateView" hidden>
+                <iframe class="update-frame" id="updateFrame" title="Actualizar catálogo de flota"></iframe>
+            </section>
         </main>
     </div>
 
     <script>
         const db = window.db;
+        let canUpdateCatalog = false;
+
         (async function () {
             try {
-                if (window.supabaseAuth) await window.supabaseAuth.requireAuth();
+                if (window.supabaseAuth) {
+                    await window.supabaseAuth.requireAuth();
+                    const profile = window.supabaseAuth.profile || await window.supabaseAuth.getProfile();
+                    configureCatalogAccess(profile);
+                } else {
+                    configureCatalogAccess(null);
+                }
             } catch (e) {
                 console.error(e);
+                configureCatalogAccess(null);
             }
         })();
 
@@ -762,6 +796,38 @@
 
         function clean(value) {
             return value === null || value === undefined ? '' : String(value).trim();
+        }
+
+        function normalizeRole(value) {
+            return clean(value).toLocaleLowerCase('es-MX');
+        }
+
+        function configureCatalogAccess(profile) {
+            const role = normalizeRole(profile?.perfil || profile?.rol || localStorage.getItem('rol'));
+            canUpdateCatalog = role === 'jefe';
+            document.getElementById('updateNav').hidden = !canUpdateCatalog;
+            document.getElementById('updateTab').hidden = !canUpdateCatalog;
+            if (!canUpdateCatalog) showView('fleet');
+        }
+
+        function showView(view) {
+            const isUpdate = view === 'update';
+            if (isUpdate && !canUpdateCatalog) return;
+
+            document.getElementById('filters').hidden = isUpdate;
+            document.getElementById('tablePanel').hidden = isUpdate;
+            document.getElementById('tableFoot').hidden = isUpdate;
+            document.getElementById('updateView').hidden = !isUpdate;
+
+            document.getElementById('fleetTab').classList.toggle('active', !isUpdate);
+            document.getElementById('updateTab').classList.toggle('active', isUpdate);
+            document.getElementById('fleetNav').setAttribute('aria-current', isUpdate ? 'false' : 'page');
+            document.getElementById('updateNav').setAttribute('aria-current', isUpdate ? 'page' : 'false');
+
+            if (isUpdate) {
+                const frame = document.getElementById('updateFrame');
+                if (!frame.src) frame.src = 'actualizar.html';
+            }
         }
 
         function display(value) {

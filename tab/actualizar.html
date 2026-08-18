@@ -156,7 +156,18 @@
 
     <script>
         const db = window.db;
-        (async function(){ try { if (window.supabaseAuth) await window.supabaseAuth.requireAuth(); } catch(e){ console.error(e); } })();
+        (async function(){
+            try {
+                if (!window.supabaseAuth) return;
+                await window.supabaseAuth.requireAuth();
+                const profile = window.supabaseAuth.profile || await window.supabaseAuth.getProfile();
+                const perfil = String(profile?.perfil || profile?.rol || localStorage.getItem('rol') || '').trim().toLowerCase();
+                if (perfil !== 'jefe') window.location.href = 'index.html';
+            } catch(e){
+                console.error(e);
+                window.location.href = 'index.html';
+            }
+        })();
 
         const MAPEO_COLUMNAS = {
             "#": "numero_fila",
