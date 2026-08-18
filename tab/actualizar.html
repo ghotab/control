@@ -116,7 +116,7 @@
             <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                 <i class="fa-solid fa-file-arrow-up"></i>
                 <p>Toca para elegir el archivo, o arrástralo aquí</p>
-                <p style="font-size:11px; margin-top:6px;">Se leerá la hoja <b>"Base de Datos"</b></p>
+                <p style="font-size:11px; margin-top:6px;">Se leerá la hoja <b>"Base de datos"</b></p>
                 <div class="filename" id="filenameLabel"></div>
             </div>
             <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="manejarArchivo(this.files[0])">
@@ -230,12 +230,12 @@
                 try {
                     const workbook = XLSX.read(e.target.result, { type: 'array' });
 
-                    if (!workbook.SheetNames.includes("Base de Datos")) {
-                        alert('No se encontró una hoja llamada "Base de Datos" en este archivo.\n\nHojas disponibles: ' + workbook.SheetNames.join(', '));
+                    if (!workbook.SheetNames.includes("Base de datos")) {
+                        alert('No se encontró una hoja llamada "Base de datos" en este archivo.\n\nHojas disponibles: ' + workbook.SheetNames.join(', '));
                         return;
                     }
 
-                    const hoja = workbook.Sheets["Base de Datos"];
+                    const hoja = workbook.Sheets["Base de datos"];
                     const filasCrudas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
                     procesarFilas(filasCrudas);
@@ -249,7 +249,7 @@
 
         function procesarFilas(filasCrudas) {
             if (filasCrudas.length === 0) {
-                alert('La hoja "Base de Datos" no tiene filas de datos.');
+                alert('La hoja "Base de datos" no tiene filas de datos.');
                 return;
             }
 
