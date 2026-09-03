@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>Pendientes WF · Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="mark">WF</div>
+        <span>Pendientes WF</span>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">General</div>
+        <button class="nav-item active" data-view="resumen">Resumen</button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Bitácora del accidente</div>
+        <button class="nav-item" data-view="pendientes-wf">
+          Pendientes WF
+          <span class="dot" id="dot-pendientes" style="display:none;"></span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="avatar">--</div>
+          <div class="info">
+            <p class="name" id="user-name">Cargando…</p>
+            <p class="role" id="user-role">—</p>
+          </div>
+        </div>
+        <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="view-title">Resumen</h2>
+          <p class="sub" id="view-sub">Bitácora del accidente · gestión de video</p>
+        </div>
+        <div class="topbar-base">Base: <strong id="topbar-base">—</strong></div>
+      </div>
+
+      <div class="content">
+        <!-- ===================== RESUMEN ===================== -->
+        <section class="view active" id="view-resumen">
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="label">Sesión</div>
+              <div class="value" id="stat-usuario" style="font-size:16px;">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Perfil</div>
+              <div class="value" id="stat-nivel" style="font-size:16px;">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Base</div>
+              <div class="value" id="stat-base" style="font-size:16px;">—</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Bienvenido/a</h3>
+                <p>Usa "Pendientes WF" en el menú para cargar y revisar los pendientes de tu base.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== PENDIENTES WF ===================== -->
+        <section class="view" id="view-pendientes-wf">
+          <div id="pwf-root"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./assets/dashboard.js"></script>
+</body>
+</html>
