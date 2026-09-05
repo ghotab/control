@@ -765,6 +765,7 @@ function montarVistaBase(root, baseUsuario) {
       const indice = {};
       registrosSiniestro.forEach((r) => (indice[r.idEjFlujo] = r));
       const fusionados = registrosPrincipal.map((r) => (esIncompleto(r) ? fusionarConSiniestro(r, indice[r.idEjFlujo]) : r));
+      necesitaSiniestro = false;
       await procesarYMostrar(fusionados);
     } catch (err) {
       console.error(err);
@@ -1136,6 +1137,7 @@ function montarVistaJefe(root) {
       const indice = {};
       registrosSiniestro.forEach((r) => (indice[r.idEjFlujo] = r));
       const fusionados = st.registrosCrudos.map((r) => (esIncompleto(r) ? fusionarConSiniestro(r, indice[r.idEjFlujo]) : r));
+      st.necesitaSiniestro = false;
       await procesarUniverso(tipo, fusionados);
     } catch (err) {
       console.error(err);
