@@ -140,13 +140,13 @@
                 </div>
             </div>
 
-            <p class="section-label">Reemplazo</p>
-            <div class="card warn-card">
+            <p class="section-label">Actualización</p>
+            <div class="card">
                 <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 16px 0;">
-                    Esto <b>borrará por completo</b> el catálogo actual de <code>tbl_flota</code> y lo reemplazará con estas filas. Esta acción no se puede deshacer.
+                    Esto <b style="color:var(--violet)">actualizará</b> las unidades existentes (conservando su historial de reparaciones) y creará las nuevas. Las unidades que ya no aparezcan en el archivo se marcarán como inactivas, sin borrarse.
                 </p>
                 <button class="btn-primary" id="btnReemplazar" onclick="confirmarYReemplazar()" disabled>
-                    Reemplazar catálogo completo
+                    Actualizar catálogo
                 </button>
                 <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
                 <div class="status-line" id="statusLine"></div>
@@ -311,7 +311,7 @@
             }
 
             const ok = confirm(
-                `¿Confirmas que quieres BORRAR el catálogo actual y reemplazarlo con ${filasParaCargar.length} unidades?\n\nEsta acción no se puede deshacer.`
+                `¿Confirmas que quieres actualizar el catálogo con ${filasParaCargar.length} unidades?\n\nLas unidades que ya no aparezcan en el archivo se marcarán como inactivas (no se borran, para no afectar reportes de reparación existentes).`
             );
             if (!ok) return;
 
@@ -323,27 +323,54 @@
             progressBar.style.display = 'block';
 
             try {
-                setStatus("Borrando catálogo anterior...", "", "fa-circle-notch fa-spin");
+                // 1. Traer los autobuses que YA existen, para saber cuáles desaparecieron del archivo nuevo
+                setStatus("Comparando contra el catálogo actual...", "", "fa-circle-notch fa-spin");
 
-                const { error: errorDelete } = await db.from('tbl_flota').delete().not('id', 'is', null);
-                if (errorDelete) throw errorDelete;
+                const { data: existentes, error: errorExistentes } = await db.from('tbl_flota').select('autobus');
+                if (errorExistentes) throw errorExistentes;
 
+                const autobusesNuevos = new Set(filasParaCargar.map(f => f.autobus));
+                const autobusesDesaparecidos = existentes
+                    .map(e => e.autobus)
+                    .filter(a => !autobusesNuevos.has(a));
+
+                // 2. Upsert por lotes: si el autobús ya existe (misma "autobus"), actualiza esa fila
+                //    conservando su id; si no existe, la crea. Esto es lo que preserva los reportes.
                 const tamanoLote = 500;
-                let insertadas = 0;
+                let procesadas = 0;
 
                 for (let i = 0; i < filasParaCargar.length; i += tamanoLote) {
-                    const lote = filasParaCargar.slice(i, i + tamanoLote);
+                    const lote = filasParaCargar.slice(i, i + tamanoLote).map(f => ({ ...f, activo: true }));
 
-                    setStatus(`Cargando ${insertadas + lote.length} de ${filasParaCargar.length}...`, "", "fa-circle-notch fa-spin");
+                    setStatus(`Actualizando ${procesadas + lote.length} de ${filasParaCargar.length}...`, "", "fa-circle-notch fa-spin");
 
-                    const { error: errorInsert } = await db.from('tbl_flota').insert(lote);
-                    if (errorInsert) throw errorInsert;
+                    const { error: errorUpsert } = await db
+                        .from('tbl_flota')
+                        .upsert(lote, { onConflict: 'autobus' });
 
-                    insertadas += lote.length;
-                    progressFill.style.width = Math.round((insertadas / filasParaCargar.length) * 100) + '%';
+                    if (errorUpsert) throw errorUpsert;
+
+                    procesadas += lote.length;
+                    progressFill.style.width = Math.round((procesadas / filasParaCargar.length) * 100) + '%';
                 }
 
-                setStatus(`Catálogo actualizado: ${insertadas.toLocaleString('es-MX')} unidades cargadas.`, "ok", "fa-circle-check");
+                // 3. Marcar como inactivas las que ya no vienen en el archivo (sin borrarlas)
+                if (autobusesDesaparecidos.length > 0) {
+                    setStatus(`Marcando ${autobusesDesaparecidos.length} unidades como inactivas...`, "", "fa-circle-notch fa-spin");
+
+                    const { error: errorInactivar } = await db
+                        .from('tbl_flota')
+                        .update({ activo: false })
+                        .in('autobus', autobusesDesaparecidos);
+
+                    if (errorInactivar) throw errorInactivar;
+                }
+
+                setStatus(
+                    `Catálogo actualizado: ${procesadas.toLocaleString('es-MX')} unidades procesadas` +
+                    (autobusesDesaparecidos.length > 0 ? `, ${autobusesDesaparecidos.length} marcadas inactivas.` : '.'),
+                    "ok", "fa-circle-check"
+                );
 
             } catch (e) {
                 console.error(e);
