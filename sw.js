@@ -1,32 +1,128 @@
-self.addEventListener('push', (event) => {
-  let datos = {}
-  try {
-    datos = event.data ? event.data.json() : {}
-  } catch {
-    datos = { titulo: 'Nuevo reporte', cuerpo: '' }
-  }
+const CACHE = 'tab-v3';
 
-  const titulo = datos.titulo || 'Nuevo reporte'
-  const opciones = {
-    body: datos.cuerpo || '',
-    tag: datos.folio || undefined,
-    data: { url: datos.url || './' },
-    vibrate: [200, 100, 200],
-    requireInteraction: true,
-  }
+const ASSETS = [
+    './',
+    './index.html',
+    './loggin.html',
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png',
+    './assets/motive_dashcam.png'
+];
 
-  event.waitUntil(self.registration.showNotification(titulo, opciones))
-})
 
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close()
-  const url = event.notification.data?.url || './'
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((lista) => {
-      for (const cliente of lista) {
-        if ('focus' in cliente) return cliente.focus()
-      }
-      if (clients.openWindow) return clients.openWindow(url)
-    })
-  )
-})
+// INSTALACIÓN
+self.addEventListener('install', event => {
+
+    self.skipWaiting();
+
+    event.waitUntil(
+        caches.open(CACHE)
+            .then(cache => cache.addAll(ASSETS))
+    );
+
+});
+
+
+// ACTIVACIÓN
+self.addEventListener('activate', event => {
+
+    event.waitUntil(
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys.filter(k => k !== CACHE)
+                    .map(k => caches.delete(k))
+            );
+        })
+    );
+
+    self.clients.claim();
+
+});
+
+
+// FETCH
+self.addEventListener('fetch', event => {
+
+    event.respondWith(
+
+        fetch(event.request)
+            .then(response => {
+
+                const clone = response.clone();
+
+                caches.open(CACHE)
+                    .then(cache => cache.put(event.request, clone));
+
+                return response;
+
+            })
+            .catch(() => caches.match(event.request))
+
+    );
+
+});
+
+
+// PUSH NOTIFICATION
+self.addEventListener('push', event => {
+
+    let data = {};
+
+    try {
+        data = event.data.json();
+    } catch {
+        data = {
+            title: 'Nueva Falla',
+            body: 'Un conductor ha registrado una nueva incidencia. Revisa pronto'
+        };
+    }
+
+    event.waitUntil(
+
+        self.registration.showNotification(data.title, {
+
+            body: data.body,
+            icon: './icon-192.png',
+            badge: './icon-192.png',
+
+            vibrate: [200, 100, 200],
+
+            data: {
+                url: data.url || './'
+            }
+
+        })
+
+    );
+
+});
+
+
+// CLICK EN NOTIFICACIÓN
+self.addEventListener('notificationclick', event => {
+
+    event.notification.close();
+
+    event.waitUntil(
+
+        clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        }).then(windowClients => {
+
+            for (const client of windowClients) {
+
+                if (client.url === event.notification.data.url) {
+                    return client.focus();
+                }
+
+            }
+
+            return clients.openWindow(event.notification.data.url);
+
+        })
+
+    );
+
+});

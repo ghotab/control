@@ -1,21 +1,1143 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0B1220" />
-    <link rel="manifest" href="./manifest.json" />
-    <title>Atención a Bordo</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <script type="module" crossorigin src="./assets/index-CLaQMuDp.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-gI8HEHWL.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+
+<head>
+    <script>
+        (function() {
+            try {
+                const session = JSON.parse(localStorage.getItem('gt_session') || '{}');
+                if (!session || !session.rol) {
+                    window.location.replace('loggin.html');
+                }
+            } catch (e) {
+                window.location.replace('loggin.html');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GHO | Operaciones TAB</title>
+    <meta name="description" content="Panel de operaciones y logística TAB — Grupo Herradura Occidente">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --sidebar-bg: #111827;
+            --sidebar-width: 240px;
+            --sidebar-hover: rgba(255,255,255,0.07);
+            --sidebar-active: rgba(255,255,255,0.12);
+            --accent: #0091ff;
+            --accent-dim: rgba(0,145,255,0.15);
+            --topbar-bg: #ffffff;
+            --topbar-border: #e5e7eb;
+            --content-bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --radius: 12px;
+            --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--content-bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        /* ─── APP SHELL ─── */
+        .app-shell {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ─── SIDEBAR OVERLAY (mobile) ─── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 110;
+            flex-shrink: 0;
+            transition: transform var(--transition);
+            overflow: hidden;
+        }
+
+        .sidebar-brand {
+            padding: 22px 18px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .brand-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.4px;
+            line-height: 1;
+        }
+
+        .brand-name span {
+            color: var(--accent);
+        }
+
+        .brand-sub {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 3px;
+        }
+
+        /* Sidebar user card */
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            text-transform: capitalize;
+        }
+
+        /* Nav sections */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0 10px;
+            scrollbar-width: none;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 14px 18px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.65);
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 0;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: background var(--transition), color var(--transition);
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--sidebar-hover);
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: #ffffff;
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* ─── SUBOPTIONS ─── */
+        .nav-suboptions {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition), padding var(--transition);
+            background: rgba(0,145,255,0.05);
+        }
+
+        .nav-suboptions.expanded {
+            max-height: 500px;
+            padding: 8px 0;
+        }
+
+        .nav-subitem {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px 10px 38px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.55);
+            font-size: 12.5px;
+            font-weight: 400;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: background var(--transition), color var(--transition);
+            position: relative;
+        }
+
+        .nav-subitem::before {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+
+        .nav-subitem:hover {
+            background: rgba(0,145,255,0.1);
+            color: #ffffff;
+        }
+
+        .nav-subitem.active {
+            color: var(--accent);
+        }
+
+        .nav-separator {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 8px 18px;
+        }
+
+        .nav-item.expandable {
+            position: relative;
+        }
+
+        .nav-item.expandable::after {
+            content: '▾';
+            margin-left: auto;
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            transition: transform var(--transition);
+        }
+
+        .nav-item.expandable.expanded::after {
+            transform: rotate(180deg);
+        }
+
+        .nav-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        /* Icon color variants */
+        .ic-blue   { background: rgba(0,145,255,0.2); color: #0091ff; }
+        .ic-indigo { background: rgba(88,86,214,0.2); color: #5856d6; }
+        .ic-green  { background: rgba(52,199,89,0.2); color: #34c759; }
+        .ic-orange { background: rgba(255,149,0,0.2); color: #ff9500; }
+        .ic-red    { background: rgba(255,59,48,0.2); color: #ff3b30; }
+        .ic-teal   { background: rgba(48,176,199,0.2); color: #30b0c7; }
+
+        /* External link indicator */
+        .ext-badge {
+            margin-left: auto;
+            font-size: 9px;
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            border-top: 1px solid rgba(255,255,255,0.07);
+            padding: 10px 0;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            color: rgba(255,59,48,0.8);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,59,48,0.08);
+            color: #ff3b30;
+        }
+
+        .logout-btn .nav-icon {
+            background: rgba(255,59,48,0.12);
+            color: #ff3b30;
+        }
+
+        /* ─── MAIN AREA ─── */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        /* ─── TOP BAR ─── */
+        .topbar {
+            height: 56px;
+            min-height: 56px;
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--topbar-border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 14px;
+            z-index: 50;
+        }
+
+        .topbar-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background var(--transition);
+            flex-shrink: 0;
+        }
+
+        .topbar-toggle:hover {
+            background: var(--content-bg);
+        }
+
+        .topbar-title {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .topbar-title h2 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .topbar-title p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: var(--content-bg);
+            border: 1px solid var(--border);
+        }
+
+        .topbar-user-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topbar-user-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 640px) {
+            .topbar-user-name { display: none; }
+        }
+
+        .topbar-logout {
+            width: 34px;
+            height: 34px;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background var(--transition), color var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topbar-logout:hover {
+            background: rgba(255,59,48,0.08);
+            color: #ff3b30;
+        }
+
+        /* ─── CONTENT PANEL ─── */
+        .content-panel {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* ─── WELCOME / HOME VIEW ─── */
+        .home-view {
+            padding: 28px 24px;
+        }
+
+        .home-greeting {
+            margin-bottom: 28px;
+        }
+
+        .home-greeting h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .home-greeting p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Quick Access Cards Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--card-accent, transparent), transparent);
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .module-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent);
+        }
+
+        .module-card:hover::before {
+            opacity: 1;
+        }
+
+        .module-card:active {
+            transform: translateY(0);
+        }
+
+        .module-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .module-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .module-card-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .module-card-arrow {
+            margin-top: auto;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Section headers in home view */
+        .section-heading {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+            margin-top: 28px;
+        }
+
+        .section-heading:first-of-type {
+            margin-top: 0;
+        }
+
+        /* ─── IFRAME CONTENT VIEW ─── */
+        .iframe-view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .iframe-view.active {
+            display: flex;
+        }
+
+        .iframe-topbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .iframe-back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background var(--transition);
+            text-decoration: none;
+        }
+
+        .iframe-back-btn:hover {
+            background: var(--accent-dim);
+        }
+
+        .iframe-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .iframe-loader {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #6366f1);
+            border-radius: 3px;
+            animation: loading-bar 1.4s ease-in-out infinite;
+        }
+
+        @keyframes loading-bar {
+            0%   { transform: translateX(-100%) scaleX(0.3); }
+            50%  { transform: translateX(50%) scaleX(0.7); }
+            100% { transform: translateX(200%) scaleX(0.3); }
+        }
+
+        .content-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            min-height: 0;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 110;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+            }
+
+            .sidebar-overlay {
+                display: block;
+            }
+
+            .topbar-toggle {
+                display: flex;
+            }
+
+            .home-view {
+                padding: 20px 16px;
+            }
+
+            .modules-grid {
+                grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+                gap: 10px;
+            }
+
+            .home-greeting h1 {
+                font-size: 22px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Smooth scrollbar */
+        .content-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-panel::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- OVERLAY para mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <div class="brand-name">tecnología a bordo<span>.</span></div>
+            <div class="brand-sub">GRUPO HERRADURA — OCCIDENTE</div>
+        </div>
+
+        <!-- User Card -->
+        <div class="sidebar-user">
+            <div class="user-avatar" id="sb-avatar">U</div>
+            <div class="user-info">
+                <div class="user-name" id="sb-name">Cargando...</div>
+                <div class="user-role" id="sb-role">—</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+
+            <div class="nav-section-title">Operaciones de campo</div>
+
+            <button class="nav-item expandable" onclick="toggleBandejas(this); loadModule('cctv/bandejas/index.html?tab=movimientos', 'Control de Bandejas', this)" id="nav-bandejas">
+                <span class="nav-icon ic-blue"><i class="fa-solid fa-compact-disc"></i></span>
+                Control de Bandejas
+            </button>
+
+            <div class="nav-suboptions" id="bandejas-suboptions">
+                <button class="nav-subitem" onclick="loadModule('cctv/bandejas/index.html?tab=registrar', 'Registrar Cambio', this)">
+                    <i class="fa-solid fa-plus" style="margin-left: -10px; font-size: 10px;"></i>Registrar Cambio
+                </button>
+                <button class="nav-subitem" onclick="loadModule('cctv/bandejas/index.html?tab=alertas', 'Alertas de Sobreescritura', this)">
+                    <i class="fa-solid fa-bell" style="margin-left: -10px; font-size: 10px;"></i>Alertas de Sobreescritura
+                </button>
+                <button class="nav-subitem" onclick="loadModule('cctv/bandejas/index.html?tab=historial', 'Historial de Cambios', this)">
+                    <i class="fa-solid fa-history" style="margin-left: -10px; font-size: 10px;"></i>Historial de Cambios
+                </button>
+                <button class="nav-subitem" onclick="loadModule('cctv/bandejas/index.html?tab=movimientos', 'Movimientos Recientes', this)">
+                    <i class="fa-solid fa-arrows-rotate" style="margin-left: -10px; font-size: 10px;"></i>Movimientos Recientes
+                </button>
+                <div class="nav-separator"></div>
+                <button class="nav-subitem" onclick="loadModule('cctv/bandejas/index.html?tab=inventario', 'Inventario de Sitio', this)">
+                    <i class="fa-solid fa-boxes-stacked" style="margin-left: -10px; font-size: 10px;"></i>Inventario de Sitio
+                </button>
+            </div>
+
+            <button class="nav-item" onclick="loadModule('sims/index.html', 'Control de SIMs', this)" id="nav-sims">
+                <span class="nav-icon ic-indigo"><i class="fa-solid fa-signal"></i></span>
+                Control de SIMs
+            </button>
+
+            <div class="nav-section-title">Logística y operación</div>
+
+            <button class="nav-item" onclick="loadModule('refa/index.html', 'Refaccionamiento', this)" id="nav-refa">
+                <span class="nav-icon ic-indigo"><i class="fa-solid fa-wrench"></i></span>
+                Refaccionamiento
+            </button>
+
+            <button class="nav-item" onclick="loadModule('tab/querydistro.html', 'Consultar Distribución', this)" id="nav-distro">
+                <span class="nav-icon ic-green"><i class="fa-solid fa-bus"></i></span>
+                Consultar Distribución
+            </button>
+
+            <div class="nav-section-title">Boletera a bordo</div>
+
+            <button class="nav-item" onclick="loadModule('failreporting/index.html', 'Atención a Conductores', this)" id="nav-fail">
+                <span class="nav-icon ic-orange"><i class="fa-solid fa-id-card"></i></span>
+                Atención a Conductores
+            </button>
+
+            <div class="nav-section-title">Mantenimiento</div>
+
+            <a class="nav-item" href="https://forms.gle/CkFV8a6whcTuxxvx6" target="_blank" rel="noopener">
+                <span class="nav-icon ic-green"><i class="fa-solid fa-clipboard-check"></i></span>
+                CCTV Inspección Prev.
+                <span class="ext-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+            </a>
+
+        </nav>
+
+        <!-- Footer -->
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="logout()">
+                <span class="nav-icon"><i class="fa-solid fa-power-off"></i></span>
+                Cerrar sesión
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ─── MAIN AREA ─── -->
+    <div class="main-area">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <button class="topbar-toggle" id="menuToggle" onclick="toggleSidebar()" title="Menú">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="topbar-title">
+                <h2 id="topbar-title-text">Panel de Actividades</h2>
+                <p id="topbar-subtitle-text">TAB Logística y Operaciones</p>
+            </div>
+
+            <div class="topbar-actions">
+                <div class="topbar-user">
+                    <div class="topbar-user-avatar" id="topbar-avatar">U</div>
+                    <span class="topbar-user-name" id="topbar-name">Usuario</span>
+                </div>
+                <button class="topbar-logout" onclick="logout()" title="Cerrar sesión">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT PANEL -->
+        <main class="content-panel" id="contentPanel">
+
+            <!-- ── HOME VIEW (visible by default) ── -->
+            <div class="home-view" id="homeView">
+
+                <div class="home-greeting">
+                    <h1 id="greeting-text">Bienvenido 👋</h1>
+                    <p>Selecciona una actividad del menú o elige una opción a continuación.</p>
+                </div>
+
+                <p class="section-heading">Operaciones de campo</p>
+                <div class="modules-grid">
+                    <div class="module-card" onclick="showBandejasSubmenu()" style="--card-accent: rgba(0,145,255,0.06)">
+                        <div class="module-card-icon ic-blue"><i class="fa-solid fa-compact-disc"></i></div>
+                        <div>
+                            <div class="module-card-title">Control de Bandejas</div>
+                            <div class="module-card-desc">Gestión de bandejas CCTV a bordo</div>
+                        </div>
+                        <div class="module-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+
+                    <div class="module-card" onclick="loadModule('sims/index.html', 'Control de SIMs', null)" style="--card-accent: rgba(88,86,214,0.06)">
+                        <div class="module-card-icon ic-indigo"><i class="fa-solid fa-signal"></i></div>
+                        <div>
+                            <div class="module-card-title">Control de SIMs</div>
+                            <div class="module-card-desc">Logística de conectividad a bordo</div>
+                        </div>
+                        <div class="module-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </div>
+
+                <p class="section-heading">Logística y operación</p>
+                <div class="modules-grid">
+                    <div class="module-card" onclick="loadModule('refa/index.html', 'Refaccionamiento', null)" style="--card-accent: rgba(88,86,214,0.06)">
+                        <div class="module-card-icon ic-indigo"><i class="fa-solid fa-wrench"></i></div>
+                        <div>
+                            <div class="module-card-title">Refaccionamiento</div>
+                            <div class="module-card-desc">Control de piezas y refacciones</div>
+                        </div>
+                        <div class="module-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+
+                    <div class="module-card" onclick="loadModule('tab/querydistro.html', 'Consultar Distribución', null)" style="--card-accent: rgba(52,199,89,0.06)">
+                        <div class="module-card-icon ic-green"><i class="fa-solid fa-bus"></i></div>
+                        <div>
+                            <div class="module-card-title">Consultar Distribución</div>
+                            <div class="module-card-desc">Asignación y distribución de flotas</div>
+                        </div>
+                        <div class="module-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+                </div>
+
+                <p class="section-heading">Boletera y mantenimiento</p>
+                <div class="modules-grid">
+                    <div class="module-card" onclick="loadModule('failreporting/index.html', 'Atención a Conductores', null)" style="--card-accent: rgba(255,149,0,0.06)">
+                        <div class="module-card-icon ic-orange"><i class="fa-solid fa-id-card"></i></div>
+                        <div>
+                            <div class="module-card-title">Atención a Conductores</div>
+                            <div class="module-card-desc">Boletera a bordo e incidencias</div>
+                        </div>
+                        <div class="module-card-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                    </div>
+
+                    <a class="module-card" href="https://forms.gle/CkFV8a6whcTuxxvx6" target="_blank" rel="noopener" style="--card-accent: rgba(52,199,89,0.06)">
+                        <div class="module-card-icon ic-green"><i class="fa-solid fa-clipboard-check"></i></div>
+                        <div>
+                            <div class="module-card-title">Inspección Preventiva</div>
+                            <div class="module-card-desc">CCTV — Formulario Google</div>
+                        </div>
+                        <div class="module-card-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                    </a>
+                </div>
+
+                <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top: 40px; padding-bottom: 20px;">
+                    Operaciones TAB 1.0 · Grupo Herradura Occidente 2026
+                </p>
+            </div>
+
+            <!-- ── IFRAME VIEW ── -->
+            <div class="iframe-view" id="iframeView">
+                <div class="iframe-topbar">
+                    <button class="iframe-back-btn" onclick="goHome()">
+                        <i class="fa-solid fa-chevron-left"></i> Inicio
+                    </button>
+                    <span style="color: var(--text-muted); font-size: 13px;">|</span>
+                    <span class="iframe-title" id="iframeTitle">—</span>
+                    <div id="iframeLoader" class="iframe-loader" style="display:none;"></div>
+                </div>
+                <iframe
+                    id="contentFrame"
+                    class="content-iframe"
+                    src=""
+                    title="Módulo de contenido"
+                    allowfullscreen
+                ></iframe>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    /* ─── SESSION ─── */
+    let currentSession = {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            currentSession = JSON.parse(localStorage.getItem('gt_session') || '{}');
+            if (currentSession.nombre) {
+                const parts = currentSession.nombre.trim().split(' ');
+                const initials = parts.map(p => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+
+                document.getElementById('sb-avatar').textContent = initials || 'U';
+                document.getElementById('sb-name').textContent = currentSession.nombre;
+                document.getElementById('sb-role').textContent = currentSession.rol || '';
+                document.getElementById('topbar-avatar').textContent = initials || 'U';
+                document.getElementById('topbar-name').textContent = currentSession.nombre;
+
+                const hour = new Date().getHours();
+                const greet = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches';
+                const firstName = parts[0] || 'Bienvenido';
+                document.getElementById('greeting-text').textContent = `${greet}, ${firstName} 👋`;
+            }
+        } catch (e) {
+            console.error('Error init session:', e);
+        }
+    });
+
+    /* ─── LOGOUT ─── */
+    function logout() {
+        localStorage.removeItem('gt_session');
+        localStorage.removeItem('turnos_cache');
+        window.location.replace('loggin.html');
+    }
+
+    /* ─── SIDEBAR TOGGLE ─── */
+    let sidebarOpen = false;
+
+    function toggleSidebar() {
+        sidebarOpen ? closeSidebar() : openSidebar();
+    }
+
+    function openSidebar() {
+        sidebarOpen = true;
+        document.getElementById('sidebar').classList.add('open');
+        const overlay = document.getElementById('sidebarOverlay');
+        overlay.style.display = 'block';
+        requestAnimationFrame(() => overlay.classList.add('active'));
+    }
+
+    function closeSidebar() {
+        sidebarOpen = false;
+        document.getElementById('sidebar').classList.remove('open');
+        const overlay = document.getElementById('sidebarOverlay');
+        overlay.classList.remove('active');
+        setTimeout(() => { if (!sidebarOpen) overlay.style.display = 'none'; }, 220);
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) closeSidebar();
+    });
+
+    /* ─── MODULE LOADING ─── */
+    let activeNavItem = null;
+
+    function toggleBandejas(btn) {
+        const suboptions = document.getElementById('bandejas-suboptions');
+        const isExpanded = btn.classList.contains('expanded');
+
+        if (isExpanded) {
+            btn.classList.remove('expanded');
+            suboptions.classList.remove('expanded');
+        } else {
+            btn.classList.add('expanded');
+            suboptions.classList.add('expanded');
+        }
+    }
+
+    function showBandejasSubmenu() {
+        // Abre el sidebar en móvil si está cerrado
+        if (window.innerWidth <= 768 && !sidebarOpen) {
+            openSidebar();
+        }
+        // Expande el menú de bandejas
+        const bandejaBtn = document.getElementById('nav-bandejas');
+        if (!bandejaBtn.classList.contains('expanded')) {
+            toggleBandejas(bandejaBtn);
+        }
+        loadModule('cctv/bandejas/index.html?tab=movimientos', 'Control de Bandejas', bandejaBtn);
+    }
+
+    function loadModule(url, title, navBtn) {
+        const homeView  = document.getElementById('homeView');
+        const iframeView = document.getElementById('iframeView');
+        const iframe    = document.getElementById('contentFrame');
+        const iframeTitle = document.getElementById('iframeTitle');
+        const loader    = document.getElementById('iframeLoader');
+        const bandejaBtn = document.getElementById('nav-bandejas');
+        const suboptions = document.getElementById('bandejas-suboptions');
+
+        document.getElementById('topbar-title-text').textContent = title;
+        document.getElementById('topbar-subtitle-text').textContent = 'TAB Logística y Operaciones';
+        iframeTitle.textContent = title;
+
+        // Show loader
+        loader.style.display = 'block';
+        
+        let finalUrl = url;
+        if (url.includes('cctv/bandejas')) {
+            try {
+                const session = JSON.parse(localStorage.getItem('gt_session') || '{}');
+                if (session && session.rol) {
+                    const sep = finalUrl.includes('?') ? '&' : '?';
+                    finalUrl += `${sep}session_clave=${encodeURIComponent(session.clave || '')}&session_nombre=${encodeURIComponent(session.nombre || '')}&session_rol=${encodeURIComponent(session.rol || '')}&session_base=${encodeURIComponent(session.base || '')}`;
+                }
+            } catch (e) {
+                console.error("Error attaching session query params:", e);
+            }
+        }
+        
+        iframe.src = finalUrl;
+        iframe.onload = () => { loader.style.display = 'none'; };
+
+        homeView.style.display = 'none';
+        iframeView.style.display = 'flex';
+        iframeView.classList.add('active');
+
+        if (activeNavItem) activeNavItem.classList.remove('active');
+        if (navBtn) { navBtn.classList.add('active'); activeNavItem = navBtn; }
+
+        if (window.innerWidth <= 768) closeSidebar();
+    }
+
+    function goHome() {
+        const homeView   = document.getElementById('homeView');
+        const iframeView = document.getElementById('iframeView');
+        const iframe     = document.getElementById('contentFrame');
+        const bandejaBtn = document.getElementById('nav-bandejas');
+        const suboptions = document.getElementById('bandejas-suboptions');
+
+        iframeView.classList.remove('active');
+        iframeView.style.display = 'none';
+        homeView.style.display = 'block';
+
+        document.getElementById('topbar-title-text').textContent = 'Panel de Actividades';
+        document.getElementById('topbar-subtitle-text').textContent = 'TAB Logística y Operaciones';
+
+        iframe.src = '';
+
+        if (activeNavItem) { activeNavItem.classList.remove('active'); activeNavItem = null; }
+
+        // Close bandejas submenu
+        bandejaBtn.classList.remove('expanded');
+        suboptions.classList.remove('expanded');
+    }
+
+    /* ─── SERVICE WORKER ─── */
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(() => {
+                Notification.requestPermission();
+            });
+    }
+</script>
+
+</body>
 </html>

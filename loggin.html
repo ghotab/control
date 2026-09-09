@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Iniciar sesión | Tecnología a Bordo</title>
+    
+    <!-- PWA meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --motive-blue: #0091ff;
+            --motive-blue-hover: #007ae0;
+            --motive-blue-active: #0062b8;
+            --motive-bg-blue: #009cff;
+            --text-dark: #111625;
+            --text-muted: #5e6678;
+            --border-color: #d8dce6;
+            --border-focus: #0091ff;
+            --error-bg: #fff1f0;
+            --error-border: #ffccc7;
+            --error-text: #ff4d4f;
+            --card-bg: rgba(255, 255, 255, 0.98);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Split Screen Layout */
+        .login-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Left Side: Form */
+        .form-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 60px;
+            background-color: #ffffff;
+            z-index: 10;
+        }
+
+        .form-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        /* Motive Brand Logo Recreation */
+        .brand-logo {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 60px;
+        }
+
+        .logo-motive {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            color: #0b0f19;
+            line-height: 1;
+            position: relative;
+        }
+
+        .logo-motive span {
+            color: var(--motive-blue);
+        }
+
+        .logo-subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8c96ab;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-wrapper {
+            max-width: 400px;
+            width: 100%;
+            margin: auto;
+        }
+
+        .form-wrapper h1 {
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+            color: var(--text-dark);
+            background-color: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #a4abb8;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(0, 145, 255, 0.15);
+        }
+
+        /* Password Toggle Button */
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--motive-blue);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px;
+            user-select: none;
+            outline: none;
+        }
+
+        .password-toggle:hover {
+            text-decoration: underline;
+        }
+
+        /* Error Box */
+        .error-alert {
+            display: none;
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Button style */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--motive-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 145, 255, 0.2);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--motive-blue-hover);
+            box-shadow: 0 6px 16px rgba(0, 145, 255, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+            background-color: var(--motive-blue-active);
+        }
+
+        .btn-submit:disabled {
+            background-color: #a4ccff;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Spinner for loading state */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .forgot-password {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--motive-blue);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+            color: var(--motive-blue-hover);
+        }
+
+        .form-footer {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 40px;
+        }
+
+        .form-footer a {
+            color: var(--motive-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .form-bottom-note {
+            font-size: 12px;
+            color: #9299a8;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        /* Right Side: Showcase */
+        .showcase-side {
+            flex: 1.2;
+            background: linear-gradient(135deg, var(--motive-bg-blue) 0%, #0066ff 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .showcase-content {
+            max-width: 600px;
+            width: 100%;
+            z-index: 5;
+            color: #ffffff;
+        }
+
+        .showcase-content h2 {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 20px;
+            letter-spacing: -0.8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .showcase-content p {
+            font-size: 17px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        /* Visual mockup elements wrapper */
+        .mockups-wrapper {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            margin-top: 20px;
+        }
+
+        /* Dashcam Image Floating */
+        .dashcam-image {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 280px;
+            height: auto;
+            border-radius: 12px;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.25));
+            transform: rotate(-3deg);
+            z-index: 4;
+            animation: float-main 6s ease-in-out infinite;
+        }
+
+        @keyframes float-main {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-12px) rotate(-1deg); }
+        }
+
+        /* CSS Rendered Floating Dashboard Cards */
+        .floating-card {
+            position: absolute;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 15px 35px rgba(0, 50, 100, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: var(--text-dark);
+            z-index: 3;
+            transition: transform 0.3s ease;
+        }
+
+        .floating-card:hover {
+            transform: scale(1.03) !important;
+            z-index: 10;
+        }
+
+        /* Card 1: Driver Performance */
+        .card-perf {
+            left: 0;
+            top: 20px;
+            width: 250px;
+            animation: float-card1 5s ease-in-out infinite;
+        }
+
+        @keyframes float-card1 {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .card-subtitle {
+            font-size: 10px;
+            font-weight: 600;
+            color: #9299a8;
+            margin-bottom: 12px;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #f0f2f5;
+            padding-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--motive-blue);
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .change-badge {
+            background-color: #e6f7ff;
+            color: var(--motive-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .driver-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+
+        .driver-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .sparkline {
+            width: 50px;
+            height: 15px;
+        }
+
+        .driver-score {
+            font-weight: 700;
+            color: #34c759;
+        }
+
+        .driver-score.low {
+            color: #ff3b30;
+        }
+
+        /* Card 2: AI Alert */
+        .card-alert {
+            left: 20px;
+            bottom: 20px;
+            width: 260px;
+            padding: 14px;
+            animation: float-card2 6s ease-in-out infinite;
+        }
+
+        @keyframes float-card2 {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        .video-mockup {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(180deg, #1b263b 0%, #0d1b2a 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .driver-avatar-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* AI Bounding Boxes */
+        .ai-box {
+            position: absolute;
+            border: 1.5px solid #34c759;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(52, 199, 89, 0.4);
+            pointer-events: none;
+        }
+
+        .ai-box-face {
+            top: 25px;
+            left: 100px;
+            width: 60px;
+            height: 60px;
+        }
+
+        .ai-box-phone {
+            top: 60px;
+            left: 155px;
+            width: 25px;
+            height: 35px;
+            border-color: #ff3b30;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+
+        .alert-dot {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(0.9); opacity: 1; }
+        }
+
+        .alert-banner {
+            background-color: #ff3b30;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Card 3: Road View */
+        .card-road {
+            right: 20px;
+            bottom: 40px;
+            width: 230px;
+            padding: 12px;
+            animation: float-card3 5.5s ease-in-out infinite;
+        }
+
+        @keyframes float-card3 {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .road-mockup {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(180deg, #60a5fa 0%, #1e3a8a 100%);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .road-path {
+            width: 100%;
+            height: 40px;
+            background-color: #334155;
+            clip-path: polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%);
+            position: relative;
+        }
+
+        .ai-box-car {
+            position: absolute;
+            bottom: 15px;
+            left: 85px;
+            width: 60px;
+            height: 25px;
+            border: 1.5px solid #ff9500;
+            box-shadow: 0 0 8px rgba(255, 149, 0, 0.4);
+            border-radius: 3px;
+        }
+
+        .ai-label-car {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            background-color: #ff9500;
+            color: #ffffff;
+            font-size: 7px;
+            font-weight: 700;
+            padding: 1px 3px;
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Background decoration circles */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
+            pointer-events: none;
+        }
+
+        .bg-circle-1 {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            right: -200px;
+        }
+
+        .bg-circle-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -150px;
+            left: -150px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 1024px) {
+            .showcase-side {
+                display: none;
+            }
+            .form-side {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Lado Izquierdo: Formulario de Login -->
+        <section class="form-side">
+            <div class="form-header">
+                <div class="brand-logo">
+                    <span class="logo-motive">tecnología a bordo<span>.</span></span>
+                    <span class="logo-subtitle">GRUPO HERRADURA - OCCIDENTE</span>
+                </div>
+            </div>
+
+            <div class="form-wrapper">
+                <h1>Iniciar sesión</h1>
+                
+                <!-- Error Alert Box -->
+                <div class="error-alert" id="errorAlert"></div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="clave">Clave de acceso</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="clave" 
+                                placeholder="Ej: 1004386" 
+                                required 
+                                autocomplete="username"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                placeholder="*******" 
+                                required 
+                                autocomplete="current-password"
+                            >
+                            <button 
+                                type="button" 
+                                class="password-toggle" 
+                                id="passwordToggle" 
+                                onclick="togglePasswordVisibility()"
+                            >
+                                Mostrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btnSubmit">
+                        <span class="spinner" id="btnSpinner"></span>
+                        <span id="btnText">Entrar</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="form-footer-wrapper">
+                <p class="form-footer">
+                    ¿No tienes acceso? <a href="#" onclick="showSignUp(event)">Solicitar</a>
+                </p>
+                <p class="form-bottom-note">
+                    Desarrollado para Operaciones TAB · Grupo Herradura Occidente 2026
+                </p>
+            </div>
+        </section>
+
+        <!-- Lado Derecho: Banner y Mockups de Motive -->
+        <section class="showcase-side">
+            <!-- Background Orbs -->
+            <div class="bg-circle bg-circle-1"></div>
+            <div class="bg-circle bg-circle-2"></div>
+
+            <div class="showcase-content">
+                <h2>Maximiza disponibilidad de tecnologías</h2>
+                <p>y reduce incidencias por fallos en las tecnologías instaladas a bordo.</p>
+                
+                <div class="mockups-wrapper">
+                    <!-- CCTV Dome Camera Image -->
+                    <img 
+                        src="assets/cctv_dome_cam.png" 
+                        alt="CCTV Domo a Bordo" 
+                        class="dashcam-image"
+                        id="dashcamImg"
+                    >
+
+                    <!-- Card 1: Driver Performance Scorecard -->
+                    <div class="floating-card card-perf" style="transform: translateY(0px);">
+                        <div class="card-title">INDICE DE CONFIABILIDAD</div>
+                        <div class="card-subtitle">ÚLTIMOS 30 DÍAS</div>
+                        <div class="score-row">
+                            <div>
+                                <div class="score-value">83</div>
+                                <div class="score-label">CCTV SCORE</div>
+                            </div>
+                            <span class="change-badge">12 SEM <i class="fa-solid fa-arrow-up" style="margin-left: 2px;"></i> 4</span>
+                        </div>
+                        <div class="driver-list-item">
+                            <span class="driver-name">Javier Santaolalla</span>
+                            <!-- Sparkline path in inline SVG -->
+                            <svg class="sparkline" viewBox="0 0 50 15">
+                                <path d="M 0,10 Q 12.5,2 25,8 T 50,2" fill="none" stroke="#34c759" stroke-width="2"/>
+                            </svg>
+                            <span class="driver-score">83</span>
+                        </div>
+                        <div class="driver-list-item">
+                            <span class="driver-name">Juan Ramírez</span>
+                            <svg class="sparkline" viewBox="0 0 50 15">
+                                <path d="M 0,5 Q 12.5,15 25,7 T 50,13" fill="none" stroke="#ff3b30" stroke-width="2"/>
+                            </svg>
+                            <span class="driver-score low">47</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzt059aIGqjtv5s5oIDksB2LliIwtl9HqWfz-XF5M13e1XYStSfdQQ-xjpGbdlrW6s5/exec';
+
+        // Check if session is already active
+        try {
+            const currentSession = JSON.parse(localStorage.getItem('gt_session') || '{}');
+            if (currentSession.rol) {
+                window.location.href = 'index.html';
+            }
+        } catch (e) {
+            console.error('Error parseando sesion actual:', e);
+        }
+
+        // Toggle Password Visibility
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('passwordToggle');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = 'Ocultar';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = 'Mostrar';
+            }
+        }
+
+        // Show Temporary Alert Messages for unbuilt features
+        function showForgotPassword(e) {
+            e.preventDefault();
+            showAlert('Por favor, ponte en contacto con el administrador del sistema para recuperar o restablecer tu contraseña.');
+        }
+
+        function showSignUp(e) {
+            e.preventDefault();
+            showAlert('El registro de nuevos usuarios debe ser autorizado y procesado por el departamento de Administración.');
+        }
+
+        // Utility to display alert box
+        function showAlert(msg, isSuccess = false) {
+            const alertBox = document.getElementById('errorAlert');
+            alertBox.textContent = msg;
+            alertBox.style.display = 'block';
+            if (isSuccess) {
+                alertBox.style.backgroundColor = '#f6ffed';
+                alertBox.style.borderColor = '#b7eb8f';
+                alertBox.style.color = '#52c41a';
+            } else {
+                alertBox.style.backgroundColor = 'var(--error-bg)';
+                alertBox.style.borderColor = 'var(--error-border)';
+                alertBox.style.color = 'var(--error-text)';
+            }
+        }
+
+        function hideAlert() {
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+
+        // Handle Login Submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const clave = document.getElementById('clave').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!clave || !password) {
+                showAlert('Por favor, ingresa tanto la clave de acceso como tu contraseña.');
+                return;
+            }
+
+            // Set loading UI state
+            setLoading(true);
+            hideAlert();
+
+            try {
+                // Fetch credentials directly from production Google Apps Script API
+                const url = `${API_URL}?accion=login&clave=${encodeURIComponent(clave)}&password=${encodeURIComponent(password)}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Servidor no disponible');
+                }
+
+                const data = await response.json();
+                console.log('Respuesta del servidor:', data);
+
+                // API responses may use success: true, status: 'ok', or return the user role directly.
+                const isSuccessful = data.success || data.status === 'ok' || data.rol;
+
+                if (isSuccessful) {
+                    // Check if the user is active (based on structure 'clave, nombre, rol, base, password, activo')
+                    // The field is active / activo. Let's inspect 'activo'.
+                    // If active exists and is specifically inactive (e.g. false, 'No', 'no', 'Inactivo'), block entry.
+                    const isActive = data.activo !== false && 
+                                     data.activo !== 'No' && 
+                                     data.activo !== 'no' && 
+                                     data.activo !== 'INACTIVO' &&
+                                     data.activo !== 'inactivo';
+
+                    if (!isActive) {
+                        showAlert('Tu cuenta se encuentra inactiva. Comunícate con el administrador.');
+                        setLoading(false);
+                        return;
+                    }
+
+                    // Save session details to localStorage
+                    const session = {
+                        clave: data.clave || clave,
+                        nombre: data.nombre || 'Usuario',
+                        rol: data.rol,
+                        base: data.base || '',
+                        activo: data.activo || 'Sí'
+                    };
+                    
+                    localStorage.setItem('gt_session', JSON.stringify(session));
+                    
+                    // Redirect to the secured dashboard
+                    window.location.href = 'index.html';
+                } else {
+                    showAlert(data.mensaje || data.message || 'Clave de acceso o contraseña incorrectas. Por favor, verifica tus datos.');
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('Error durante la autenticación:', error);
+                showAlert('Error al conectar con el servidor de autenticación. Verifica tu conexión de red o vuelve a intentarlo más tarde.');
+                setLoading(false);
+            }
+        }
+
+        // Set Loading state for Button
+        function setLoading(isLoading) {
+            const btnSubmit = document.getElementById('btnSubmit');
+            const spinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+            
+            btnSubmit.disabled = isLoading;
+            if (isLoading) {
+                spinner.style.display = 'block';
+                btnText.textContent = 'Verificando...';
+            } else {
+                spinner.style.display = 'none';
+                btnText.textContent = 'Log In';
+            }
+        }
+    </script>
+</body>
+</html>
