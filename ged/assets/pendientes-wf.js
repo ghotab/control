@@ -628,7 +628,8 @@ function calcularVideoYArea(registroST, registroMON) {
     };
   }
 
-  const monListo = registroMON && registroMON.videos?.length > 0 && pareceVideoCompartido(registroMON.observacionesAbordo);
+  // Igual que en construirUniversoMonitoreo: para Monitoreo basta el link.
+  const monListo = registroMON && registroMON.videos?.length > 0;
   if (monListo) {
     return {
       hayVideo: "Sí",
@@ -673,7 +674,9 @@ async function construirUniversoMonitoreo(datosMonitoreo, idsCubiertos) {
   const pendientes = [];
   const terminadas = [];
   filas.forEach((f) => {
-    const tieneVideo = f.videos?.length > 0 && pareceVideoCompartido(f.observacionesAbordo);
+    // Para Monitoreo basta con que exista el link: a diferencia de Soporte
+    // Técnico, aquí no exigimos que la observación "suene" a compartido.
+    const tieneVideo = f.videos?.length > 0;
     const base = {
       ...f,
       areaAtencion: "MONITOREO",
