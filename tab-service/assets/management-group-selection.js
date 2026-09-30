@@ -108,6 +108,19 @@ void (async () => {
 
     codigo = codigo.replace(patron, () => `${kG.toString()}function AG(`)
 
+    const patronExportacion = /async function qW\(\)\{[\s\S]*?\}async function JW\(/
+    const consultaExportacion = codigo.match(patronExportacion)
+    if (!consultaExportacion) throw new Error("No se encontr\u00f3 la consulta de exportaci\u00f3n esperada")
+
+    const consultaAutorizadas = consultaExportacion[0].replace(
+      /\.in\(`estado`,\[`Autorizada`,[^\]]+\]\)/,
+      ".eq(`estado`,`Autorizada`)",
+    )
+    if (consultaAutorizadas === consultaExportacion[0]) {
+      throw new Error("No se pudo limitar la exportaci\u00f3n a solicitudes autorizadas")
+    }
+    codigo = codigo.replace(consultaExportacion[0], consultaAutorizadas)
+
     const urlOriginal = JSON.stringify(bundleUrl.href)
     codigo = codigo.replaceAll(
       "import.meta.resolve?import.meta.resolve(e):new URL(e,import.meta.url).href",
