@@ -118,6 +118,15 @@ void (async () => {
 
     codigo = codigo.replace(patron, () => `${kG.toString()}function AG(`)
 
+    const patronNavegacion = "let{usuario:e,alcance:t,logout:n}=Uc(),r=t===`gestor`?[...gl,_l]:gl;"
+    const navegacionAuxiliar = "let{usuario:e,alcance:t,logout:n}=Uc(),r=e?.Nivel===`auxiliar`?[gl[0],_l]:t===`gestor`?[...gl,_l]:gl;"
+    if (!codigo.includes(patronNavegacion)) throw new Error("No se encontr\u00f3 la navegaci\u00f3n esperada")
+    codigo = codigo.replace(patronNavegacion, navegacionAuxiliar)
+
+    const opcionCertificaciones = ",{to:`/tecnico/certificaciones`,label:`Certificaciones`}"
+    if (!codigo.includes(opcionCertificaciones)) throw new Error("No se encontr\u00f3 la opci\u00f3n Certificaciones esperada")
+    codigo = codigo.replace(opcionCertificaciones, "")
+
     const patronExportacion = /async function qW\(\)\{[\s\S]*?\}async function JW\(/
     const consultaExportacion = codigo.match(patronExportacion)
     if (!consultaExportacion) throw new Error("No se encontr\u00f3 la consulta de exportaci\u00f3n esperada")
