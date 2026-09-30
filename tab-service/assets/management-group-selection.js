@@ -1,18 +1,22 @@
 const bundleUrl = new URL("./index-DQKexbvX.js", import.meta.url)
 
 function kG({ titulo, ayuda, filas, seleccion, alternar, children }) {
-  const agrupar = filas.length > 0 && filas.every((fila) => fila.estado === "En Proceso de Extracci\u00f3n")
+  const agruparExtraccion = filas.length > 0 && filas.every((fila) => fila.estado === "En Proceso de Extracci\u00f3n")
+  const agruparEnvio = filas.length > 0 && filas.every((fila) => fila.estado === "Preparando Env\u00edo")
+  const agrupar = agruparExtraccion || agruparEnvio
   const grupos = new Map()
 
   if (agrupar) {
     for (const fila of filas) {
-      const clave = JSON.stringify([fila.numero_reserva ?? "", fila.sociedad ?? ""])
+      const clave = agruparEnvio
+        ? JSON.stringify([fila.base ?? ""])
+        : JSON.stringify([fila.numero_reserva ?? "", fila.sociedad ?? ""])
       if (!grupos.has(clave)) grupos.set(clave, [])
       grupos.get(clave).push(fila)
     }
   }
 
-  const renderFila = (fila, grupo = null) =>
+  const renderFila = (fila, grupo = null, seleccionarGrupo = false) =>
     (0, U.jsxs)("label", {
       className: `flex items-center gap-2 text-sm py-1.5 border-b border-[var(--color-border)] last:border-b-0 ${grupo ? "ml-6 pl-3 border-l-2 border-[var(--color-border)]" : ""}`,
       children: [
@@ -20,7 +24,7 @@ function kG({ titulo, ayuda, filas, seleccion, alternar, children }) {
           type: "checkbox",
           checked: seleccion.includes(fila.id),
           onChange: () => {
-            if (!grupo) return alternar(fila.id)
+            if (!seleccionarGrupo) return alternar(fila.id)
             const marcado = !seleccion.includes(fila.id)
             grupo.forEach((item) => {
               if (seleccion.includes(item.id) !== marcado) alternar(item.id)
@@ -46,12 +50,14 @@ function kG({ titulo, ayuda, filas, seleccion, alternar, children }) {
             children: [
               (0, U.jsx)("p", {
                 className: "text-sm font-semibold",
-                children: [
-                  "Sociedad: ",
-                  items[0].sociedad || "-",
-                  " | N\u00famero de reserva: ",
-                  items[0].numero_reserva || "Sin reserva asignada",
-                ],
+                children: agruparEnvio
+                  ? ["Base: ", items[0].base || "Sin base"]
+                  : [
+                      "Sociedad: ",
+                      items[0].sociedad || "-",
+                      " | N\u00famero de reserva: ",
+                      items[0].numero_reserva || "Sin reserva asignada",
+                    ],
               }),
               (0, U.jsxs)("label", {
                 className: "mt-1 mb-1 flex items-center gap-2 text-xs text-[var(--color-text-muted)]",
@@ -66,10 +72,14 @@ function kG({ titulo, ayuda, filas, seleccion, alternar, children }) {
                       })
                     },
                   }),
-                  (0, U.jsx)("span", { children: "Seleccionar todos los componentes del grupo" }),
+                  (0, U.jsx)("span", {
+                    children: agruparEnvio
+                      ? "Seleccionar todas las refacciones de esta base"
+                      : "Seleccionar todos los componentes del grupo",
+                  }),
                 ],
               }),
-              items.map((fila) => renderFila(fila, items)),
+              items.map((fila) => renderFila(fila, items, agruparExtraccion)),
             ],
           }, clave),
         ),
