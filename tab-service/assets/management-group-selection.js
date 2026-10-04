@@ -113,19 +113,43 @@ void (async () => {
     if (!respuesta.ok) throw new Error(`No se pudo cargar la aplicaci\u00f3n (${respuesta.status})`)
 
     let codigo = await respuesta.text()
+    const respuestaInventario = await fetch(new URL("./inventario-module.js", import.meta.url))
+    if (!respuestaInventario.ok) throw new Error(`No se pudo cargar Inventario (${respuestaInventario.status})`)
+    const codigoInventario = await respuestaInventario.text()
+    if (!codigoInventario.includes("function InventarioEquipos()")) throw new Error("No se encontró el componente Inventario esperado")
+    const respuestaLogin = await fetch(new URL("./login-screen.js", import.meta.url))
+    if (!respuestaLogin.ok) throw new Error(`No se pudo cargar la vista de acceso (${respuestaLogin.status})`)
+    const codigoLogin = await respuestaLogin.text()
+    if (!codigoLogin.includes("function qc()")) throw new Error("No se encontró la vista de acceso esperada")
+
+    const patronLogin = /function qc\(\)\{[\s\S]*?\}async function Jc\(/
+    if (!patronLogin.test(codigo)) throw new Error("No se encontró el login esperado en el bundle")
+    codigo = codigo.replace(patronLogin, `${codigoLogin.trim()}\nasync function Jc(`)
+
     const patron = /function kG\(\{titulo:e,ayuda:t,filas:n,seleccion:r,alternar:i,children:a\}\)\{[\s\S]*?\}function AG\(/
     if (!patron.test(codigo)) throw new Error("No se encontr\u00f3 el componente de gesti\u00f3n esperado")
 
     codigo = codigo.replace(patron, () => `${kG.toString()}function AG(`)
 
+    const marcadorGestion = "_l={to:`/tecnico/gestor`,label:`Gestión`};function vl(){"
+    if (!codigo.includes(marcadorGestion)) throw new Error("No se encontró la navegación de Gestión esperada")
+    codigo = codigo.replace(marcadorGestion, "_l={to:`/tecnico/gestor`,label:`Gestión`},_i={to:`/tecnico/inventario`,label:`Inventario`};function vl(){")
+
     const patronNavegacion = "let{usuario:e,alcance:t,logout:n}=Uc(),r=t===`gestor`?[...gl,_l]:gl;"
-    const navegacionAuxiliar = "let{usuario:e,alcance:t,logout:n}=Uc(),r=e?.Nivel===`auxiliar`?[gl[0],_l]:t===`gestor`?[...gl,_l]:gl;"
+    const navegacionAuxiliar = "let{usuario:e,alcance:t,logout:n}=Uc(),r=e?.Nivel===`auxiliar`?[gl[0],_l,_i]:t===`gestor`?[...gl,_l,...(e?.Nivel===`analista`?[]:[_i])]:e?.Nivel===`analista`?gl:[...gl,_i];"
     if (!codigo.includes(patronNavegacion)) throw new Error("No se encontr\u00f3 la navegaci\u00f3n esperada")
     codigo = codigo.replace(patronNavegacion, navegacionAuxiliar)
 
     const opcionCertificaciones = ",{to:`/tecnico/certificaciones`,label:`Certificaciones`}"
     if (!codigo.includes(opcionCertificaciones)) throw new Error("No se encontr\u00f3 la opci\u00f3n Certificaciones esperada")
     codigo = codigo.replace(opcionCertificaciones, "")
+
+    const marcadorRutaGestion = "(0,U.jsx)(zt,{path:`gestor`,element:(0,U.jsx)(AG,{})})"
+    if (!codigo.includes(marcadorRutaGestion)) throw new Error("No se encontró la ruta de Gestión esperada")
+    codigo = codigo.replace(marcadorRutaGestion, `${marcadorRutaGestion},(0,U.jsx)(zt,{path:\`inventario\`,element:(0,U.jsx)(InventarioEquipos,{})})`)
+    const marcadorRouter = "function NG(){"
+    if (!codigo.includes(marcadorRouter)) throw new Error("No se encontró el inicio del router esperado")
+    codigo = codigo.replace(marcadorRouter, `${codigoInventario}\n${marcadorRouter}`)
 
     const patronExportacion = /async function qW\(\)\{[\s\S]*?\}async function JW\(/
     const consultaExportacion = codigo.match(patronExportacion)
