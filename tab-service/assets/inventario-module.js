@@ -563,6 +563,15 @@ function InventarioEquipos() {
     ...(puedeVerCatalogoSims ? [{ value: "sims", label: "Catálogo de SIMs" }] : []),
   ]
 
+  const coloresEquipamiento = {
+    Boletera: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
+    CCTV: { backgroundColor: "#dcfce7", color: "#15803d" },
+    TPV: { backgroundColor: "#ffedd5", color: "#c2410c" },
+    Conectividad: { backgroundColor: "#f3e8ff", color: "#7e22ce" },
+    "Bitácora": { backgroundColor: "#e5e7eb", color: "#4b5563" },
+    "Cámara inteligente": { backgroundColor: "#cffafe", color: "#0e7490" },
+  }
+
   const filasSims = puedeVerCatalogoSims ? autobuses.flatMap((autobus) => {
     const item = inventarioPorAutobus.get(autobus.id);
     if (!item) return []
@@ -616,6 +625,14 @@ function InventarioEquipos() {
           Rol: autobus.rol || "",
           Estatus: autobus.estatus || "",
         }
+        const equipamiento = [
+          item?.tiene_boletera && "Boletera",
+          item?.tiene_cctv && "CCTV",
+          item?.tiene_tpv && "TPV",
+          (item?.conectividad_tiene_modem || item?.conectividad_tiene_sim) && "Conectividad",
+          item?.tiene_tablet && "Bitácora",
+          item?.tiene_camara_inteligente && "Cámara inteligente",
+        ].filter(Boolean)
         const detalle = categoriaVista === "boletera" ? {
           "Sistema operativo": item.boletera_sistema_operativo === "Otro" ? item.boletera_sistema_operativo_otro || "Otro" : item.boletera_sistema_operativo || "",
           "Punto de venta": item.boletera_punto_venta || "",
@@ -652,16 +669,9 @@ function InventarioEquipos() {
           Marca: item.camara_inteligente_marca === "Otro" ? item.camara_inteligente_marca_otro || "Otro" : item.camara_inteligente_marca || "",
           Modo: item.camara_inteligente_modo || "",
         } : {
-          Equipamiento: [
-            item?.tiene_boletera && "Boletera",
-            item?.tiene_cctv && "CCTV",
-            item?.tiene_tpv && "TPV",
-            (item?.conectividad_tiene_modem || item?.conectividad_tiene_sim) && "Conectividad",
-            item?.tiene_tablet && "Bitácora",
-            item?.tiene_camara_inteligente && "Cámara inteligente",
-          ].filter(Boolean).join(", ") || "Sin equipos registrados",
+          Equipamiento: equipamiento.join(", ") || "Sin equipos registrados",
         }
-        return [{ _autobusId: autobus.id, ...base, ...detalle }]
+        return [{ _autobusId: autobus.id, _equipamiento: equipamiento, ...base, ...detalle }]
       })
 
   const textoTabla = inventarioNormalizarTexto(busquedaVista)
@@ -855,7 +865,11 @@ function InventarioEquipos() {
                       className: "max-w-[280px] px-3 py-2.5 align-top",
                       children: columna === "Autobús"
                         ? (0, U.jsx)("button", { type: "button", title: "Consultar inventario del autobús", onClick: () => { const autobus = autobuses.find((item) => item.id === fila._autobusId); if (autobus) seleccionarAutobus(autobus) }, className: "tabular cursor-pointer font-medium text-[var(--color-teal)] hover:underline", children: fila[columna] })
-                        : fila[columna] || "—",
+                        : columna === "Equipamiento"
+                          ? fila._equipamiento?.length
+                            ? (0, U.jsx)("div", { style: { display: "flex", flexWrap: "wrap", gap: "4px" }, children: fila._equipamiento.map((sistema) => (0, U.jsx)("span", { style: { ...coloresEquipamiento[sistema], display: "inline-flex", alignItems: "center", borderRadius: "9999px", padding: "2px 8px", fontSize: "11px", fontWeight: 600, whiteSpace: "nowrap" }, children: sistema }, sistema)) })
+                            : (0, U.jsx)("span", { style: { backgroundColor: "var(--color-danger-bg)", color: "var(--color-danger)", display: "inline-flex", alignItems: "center", borderRadius: "9999px", padding: "3px 9px", fontSize: "11px", fontWeight: 600, whiteSpace: "nowrap" }, children: "Sin equipos registrados" })
+                          : fila[columna] || "—",
                     }, `${index}-${columna}`)),
                   }, `${fila._autobusId}-${index}`))
                 : (0, U.jsx)("tr", { children: (0, U.jsx)("td", { colSpan: columnasVista.length, className: "px-3 py-8 text-center text-sm text-[var(--color-text-muted)]", children: "No hay autobuses para esta vista y filtro." }) }),
