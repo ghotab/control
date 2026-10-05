@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Módulo de Bandejas CCTV — GHO</title>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Dependencias de Escaneo y Supabase -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../tab/supabase-auth.js" onerror="this.onerror=null;this.src='/tab/supabase-auth.js'"></script>
+
+    <style>
+        :root {
+            --ink: #16202b;
+            --ink-soft: #3a4552;
+            --paper: #eef0f3;
+            --surface: #ffffff;
+            --rule: #d3d8de;
+            --amber: #e2900f;
+            --amber-tint: #fbf1de;
+            --teal: #0f6f66;
+            --teal-tint: #e3efee;
+            --rust: #b33f2e;
+            --rust-tint: #f8e8e4;
+            --blue: #2b6cb0;
+            --blue-tint: #e8f0f8;
+            --cranberry: #a32638;
+            --cranberry-tint: #f6e6e9;
+            --gris: #8a94a0;
+            --gris-tint: #eef0f3;
+            --font-display: 'IBM Plex Sans Condensed', sans-serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --table-cols-alertas: 100px 180px 1fr 120px 90px 140px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--ink);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: var(--ink);
+        }
+
+        :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+        /* ===================== LAYOUT PRINCIPAL ===================== */
+        .app { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+
+        /* --- RAIL DE CONTROL LATERAL (Consola oscura) --- */
+        .rail {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--ink);
+            color: var(--paper);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 18px;
+            overflow-y: auto;
+            border-right: 1px solid #232c37;
+        }
+
+        .rail-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8b99;
+            margin-bottom: 4px;
+        }
+
+        .rail-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 24px;
+            letter-spacing: -0.01em;
+            margin-bottom: 22px;
+            color: #ffffff;
+        }
+
+        .rail-nav-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8b99;
+            margin-bottom: 8px;
+            margin-top: 18px;
+        }
+
+        .rail-tabs { display: flex; flex-direction: column; gap: 1px; }
+
+        .side-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #b9c2cc;
+            cursor: pointer;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .side-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
+
+        .side-item.active {
+            background: rgba(226, 144, 15, 0.14);
+            color: var(--paper);
+            border-left-color: var(--amber);
+            font-weight: 600;
+        }
+
+        .side-item i { width: 16px; text-align: center; margin-right: 8px; font-size: 13px; }
+
+        .select-dark {
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid #2c3644;
+            background: #1c2733;
+            color: var(--paper);
+            font-family: var(--font-body);
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .badge {
+            background: var(--rust);
+            color: white;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            font-family: var(--font-mono);
+        }
+
+        .btn-export {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 16px;
+            border-radius: 8px;
+            border: 1px solid #2c3644;
+            background: transparent;
+            color: var(--paper);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .btn-export:hover {
+            background: rgba(226, 144, 15, 0.12);
+            border-color: var(--amber);
+            color: #ffffff;
+        }
+        .btn-export i { color: var(--amber); }
+
+        .rail-status {
+            margin-top: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #7d8b99;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid #29323d;
+        }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
+        .dot.ok { background: var(--teal); }
+        .dot.error { background: var(--rust); }
+        .pulse { animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+        /* --- ÁREA DE TRABAJO (WORKSPACE) --- */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--paper);
+            min-width: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- BARRA SUPERIOR DE ACCIONES GLOBALES --- */
+        .global-topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--rule);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(22, 32, 43, 0.03);
+            z-index: 10;
+        }
+
+        .topbar-header { display: flex; flex-direction: column; gap: 2px; }
+        .topbar-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -0.01em;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .topbar-subtitle {
+            font-size: 12px;
+            color: var(--ink-soft);
+            font-family: var(--font-mono);
+        }
+
+        .global-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-act {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 15px;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(22, 32, 43, 0.05);
+        }
+
+        .btn-act-primary {
+            background: var(--ink);
+            color: var(--paper);
+            border-color: var(--ink);
+        }
+        .btn-act-primary:hover { background: #243242; }
+
+        .btn-act-secondary {
+            background: var(--surface);
+            color: var(--ink);
+            border-color: var(--rule);
+        }
+        .btn-act-secondary:hover { background: #f3f5f8; border-color: #bcc2cb; }
+
+        .btn-act-warning {
+            background: var(--amber-tint);
+            color: #925803;
+            border-color: #f1cb89;
+        }
+        .btn-act-warning:hover { background: #f5e4c3; }
+
+        .btn-return {
+            background: var(--teal);
+            color: #ffffff;
+            border-color: var(--teal);
+        }
+        .btn-return:hover { background: #0c5952; }
+
+        /* --- CONTENEDORES DE VISTAS --- */
+        .view-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .results-view {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 28px 40px 28px;
+        }
+
+        /* ===================== TABLA DE MOVIMIENTOS ===================== */
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--rule);
+            box-shadow: 0 1px 4px rgba(22, 32, 43, 0.04);
+        }
+
+        .ledger-table th {
+            position: sticky;
+            top: 0;
+            background: #f6f7f9;
+            padding: 12px 14px;
+            text-align: left;
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            border-bottom: 1px solid var(--rule);
+            z-index: 2;
+        }
+
+        .ledger-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #eef0f3;
+            font-size: 13.5px;
+            color: var(--ink);
+        }
+
+        .ledger-table tr:last-child td { border-bottom: none; }
+        .ledger-table tr:hover td { background: #fafbfc; }
+
+        .mono-tag { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; }
+        .tag-up { color: var(--blue); }
+        .tag-down { color: var(--cranberry); }
+        .eco-cell { font-family: var(--font-mono); font-weight: 700; font-size: 14px; }
+
+        /* ===================== VISTA DE ALERTAS (OWALERT) ===================== */
+        .alertas-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .tabs {
+            display: flex;
+            background: #e2e6eb;
+            padding: 3px;
+            border-radius: 10px;
+            border: 1px solid var(--rule);
+        }
+
+        .tab {
+            padding: 7px 16px;
+            font-size: 12.5px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--ink-soft);
+            transition: all 0.15s ease;
+        }
+        .tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(22,32,43,0.08); }
+
+        .search-box-input {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 8px;
+            padding: 7px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 250px;
+        }
+        .search-box-input input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 13px;
+            width: 100%;
+            font-family: var(--font-body);
+        }
+
+        .alertas-table-wrapper {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--rule);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            box-shadow: 0 1px 4px rgba(22, 32, 43, 0.04);
+        }
+
+        .alertas-table-header {
+            display: grid;
+            grid-template-columns: var(--table-cols-alertas);
+            align-items: center;
+            padding: 13px 20px;
+            gap: 16px;
+            background: #f6f7f9;
+            border-bottom: 1px solid var(--rule);
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .alertas-scroll-area { flex: 1; overflow-y: auto; display: block; }
+
+        .row-item {
+            display: grid;
+            grid-template-columns: var(--table-cols-alertas);
+            align-items: center;
+            padding: 14px 20px;
+            gap: 16px;
+            border-bottom: 1px solid #eef0f3;
+            transition: background .15s ease;
+            min-height: 56px;
+        }
+        .row-item:last-child { border-bottom: none; }
+        .row-item:hover { background: #fafbfc; }
+        .row-vacio { opacity: .55; }
+
+        .cell-bus { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: -.3px; }
+        .cell-bandeja { font-family: var(--font-mono); font-weight: 600; color: var(--ink-soft); font-size: 12.5px; }
+        .cell-base { font-size: 12px; color: var(--ink-soft); font-weight: 600; font-family: var(--font-mono); }
+        .cell-dias { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+        .cell-dias.critico { color: var(--rust); }
+        .cell-fecha { font-size: 12px; color: var(--ink-soft); font-family: var(--font-mono); }
+
+        .progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .progress-head { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .4px; }
+        .progress-bar { height: 7px; background: var(--paper); border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+
+        /* ===================== TICKETS MÓVIL Y DE RASTREO ===================== */
+        .ticket {
+            display: flex;
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid var(--rule);
+            box-shadow: 0 2px 8px rgba(22, 32, 43, 0.05);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .ticket-stub {
+            width: 52px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-right: 2px dashed var(--rule);
+            background: #fafbfc;
+        }
+        .ticket-stub::before, .ticket-stub::after {
+            content: ''; position: absolute; right: -8px; width: 16px; height: 16px;
+            border-radius: 50%; background: var(--paper);
+        }
+        .ticket-stub::before { top: -8px; }
+        .ticket-stub::after { bottom: -8px; }
+
+        .stub-id {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 12.5px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            color: var(--ink-soft);
+        }
+
+        .ticket-body { flex: 1; padding: 16px 18px; min-width: 0; }
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .ticket-eco { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); }
+        .ticket-date { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+
+        .tray-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .tray-box { background: var(--paper); border-radius: 8px; padding: 8px 10px; flex: 1; }
+        .tray-box small { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; font-weight: 700; }
+        .tray-box b { font-family: var(--font-mono); font-size: 13px; display: block; margin-top: 2px; color: var(--ink); }
+
+        .ticket-footer { font-size: 11.5px; color: var(--ink-soft); border-top: 1px dashed var(--rule); padding-top: 10px; }
+
+        /* Estilos de Ticket de Rastreo con Escalera */
+        .stamp {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border: 1.5px dashed currentColor;
+            border-radius: 6px;
+            transform: rotate(-3deg);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .stamp.ok { color: var(--teal); background: var(--teal-tint); }
+        .stamp.active { color: var(--amber); background: var(--amber-tint); }
+        .stamp.warn { color: var(--rust); background: var(--rust-tint); }
+
+        .staircase { margin-left: 4px; border-left: 2px solid var(--rule); padding-left: 20px; position: relative; }
+        .node { position: relative; margin-bottom: 16px; }
+        .node:last-child { margin-bottom: 0; }
+        .node::before {
+            content: ''; position: absolute; left: -26px; top: 3px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #c6c6c8; border: 3px solid var(--surface);
+            box-shadow: 0 0 0 1px var(--rule);
+        }
+        .node.up::before { background: var(--blue); }
+        .node.down::before { background: var(--cranberry); }
+        .node.active-node::before { background: var(--amber); }
+
+        .node-label { font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-soft); text-transform: uppercase; }
+        .node-val { font-family: var(--font-mono); font-size: 14.5px; font-weight: 600; display: block; color: var(--ink); margin-top: 2px; }
+        .node-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+        .duration-footer {
+            margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rule);
+            font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+            color: var(--ink); display: flex; align-items: center; gap: 8px;
+        }
+        .duration-footer i { color: var(--amber); }
+
+        /* ===================== MODALES INTERACTIVOS ===================== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 33, 0.65);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-card {
+            background: var(--paper);
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            border-radius: 16px;
+            border: 1px solid var(--rule);
+            box-shadow: 0 20px 45px rgba(22, 32, 43, 0.28);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUpModal {
+            from { transform: translateY(20px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            background: var(--ink);
+            color: var(--paper);
+            padding: 16px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-header-titles { text-align: left; }
+        .modal-eyebrow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8290a0; }
+        .modal-title { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: #ffffff; }
+
+        .btn-modal-close {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: var(--paper);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: background 0.15s ease;
+        }
+        .btn-modal-close:hover { background: rgba(255, 255, 255, 0.25); color: #ffffff; }
+
+        .modal-body {
+            padding: 22px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Formulario de Registro de Cambio dentro de Modal */
+        .form-group-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 0 0 8px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-group {
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid var(--rule);
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eef0f3;
+            min-height: 46px;
+        }
+        .form-row:last-child { border-bottom: none; }
+
+        .row-label { font-size: 14px; color: var(--ink-soft); width: 130px; flex-shrink: 0; font-weight: 500; }
+
+        .form-input, .form-select {
+            flex: 1;
+            border: none;
+            font-size: 15px;
+            background: transparent;
+            outline: none;
+            color: var(--ink);
+            text-align: right;
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        .scan-action { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; }
+        .btn-scan {
+            background: var(--amber-tint);
+            color: var(--amber);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        #reader {
+            width: 100% !important;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+            border: 2px solid var(--ink);
+            display: none;
+        }
+
+        .banner {
+            padding: 14px;
+            border-radius: 10px;
+            margin: 0 0 18px 0;
+            display: none;
+            animation: slideDown 0.3s ease;
+            border: 1.5px dashed;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .banner-inconsistencia {
+            background: var(--cranberry-tint);
+            border-color: var(--cranberry);
+        }
+        .banner-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--cranberry);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .banner-inner-input {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--rule);
+            padding: 8px 12px;
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 13.5px;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .banner-meta { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+        .banner-meta b { color: var(--ink); }
+
+        .btn-save-record {
+            width: 100%;
+            background-color: var(--ink);
+            color: var(--paper);
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: var(--font-body);
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(22, 32, 43, 0.2);
+            transition: opacity 0.2s ease;
+        }
+        .btn-save-record:disabled { background-color: #aeb6bf; cursor: not-allowed; }
+
+        /* Controles de Rastreo Modal */
+        .rastreo-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .rastreo-tabs {
+            display: flex;
+            background: #e2e6eb;
+            padding: 3px;
+            border-radius: 10px;
+        }
+        .rastreo-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 7px;
+            cursor: pointer;
+            color: var(--ink-soft);
+        }
+        .rastreo-tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(22,32,43,0.08); }
+
+        .rastreo-search-box {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(22, 32, 43, 0.04);
+        }
+        .rastreo-search-box input {
+            border: none; background: transparent; outline: none;
+            font-size: 14.5px; width: 100%; font-family: var(--font-body); color: var(--ink);
+        }
+
+        .empty-state { text-align: center; margin: 40px auto; color: var(--ink-soft); }
+        .empty-state i { font-size: 36px; opacity: 0.22; margin-bottom: 12px; display: block; }
+        .empty-state p { font-size: 13.5px; max-width: 320px; margin: 0 auto; line-height: 1.5; }
+
+        /* --- VISTA ESPECIAL PARA ANALISTA --- */
+        .analista-hero {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 16px;
+            padding: 36px 30px;
+            text-align: center;
+            max-width: 580px;
+            margin: 60px auto;
+            box-shadow: 0 4px 20px rgba(22, 32, 43, 0.06);
+        }
+        .analista-hero i { font-size: 46px; color: var(--blue); margin-bottom: 16px; }
+        .analista-hero h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 8px; }
+        .analista-hero p { font-size: 14px; color: var(--ink-soft); margin-bottom: 24px; line-height: 1.6; }
+
+        /* ===================== RESPONSIVE ===================== */
+        @media (max-width: 850px) {
+            .app { flex-direction: column; }
+            .rail { display: none; }
+            .ledger-table, .alertas-table-header { display: none; }
+
+            .global-topbar { padding: 14px 16px; flex-direction: column; align-items: stretch; gap: 12px; }
+            .global-actions { width: 100%; justify-content: stretch; }
+            .btn-act { flex: 1; justify-content: center; }
+
+            .results-view { padding: 14px 16px 80px 16px; }
+
+            /* Tarjetas de alertas en móvil */
+            .row-item {
+                display: flex !important; flex-direction: column !important; padding: 0 !important; margin-bottom: 14px !important;
+                border-radius: 14px !important; border: 1px solid var(--rule) !important; background: var(--surface) !important;
+                box-shadow: 0 2px 8px rgba(22,32,43,0.05) !important; overflow: hidden;
+            }
+            .card-mob-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px dashed var(--rule); }
+            .cell-bus { font-size: 19px !important; }
+            .mob-status-pill { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
+            .card-mob-progress { padding: 12px 16px; border-bottom: 1px dashed var(--rule); }
+            .row-item .progress-wrap { display: none; }
+
+            .card-mob-grid { display: grid; grid-template-columns: 1fr 1fr; padding: 12px 16px; gap: 10px; }
+            .card-mob-cell { display: flex; flex-direction: column; gap: 2px; }
+            .card-mob-label { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; }
+            .card-mob-value { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--ink); }
+
+            .row-item .cell-bandeja, .row-item .cell-base, .row-item .cell-dias, .row-item .cell-fecha { display: none; }
+        }
+
+        @media (min-width: 851px) {
+            .card-mob-header, .card-mob-progress, .card-mob-grid { display: none; }
+            .mobile-list-wrapper { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- ==================== RAIL DE CONTROL LATERAL ==================== -->
+        <aside class="rail" id="mainRail">
+            <div class="rail-eyebrow">GHO · TECNOLOGÍA A BORDO</div>
+            <div class="rail-title">Bandejas CCTV</div>
+
+            <!-- Menú de Base Operativa para Movimientos -->
+            <div id="rail-controls-movimientos">
+                <div class="rail-nav-label">Base operativa</div>
+                <nav class="rail-tabs" id="base-filters">
+                    <a href="javascript:void(0)" class="side-item active" onclick="filtrarBase('TODAS', this)">
+                        <span><i class="fa-solid fa-layer-group"></i> Todas</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('ACAP', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Acapulco</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('ATLA', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Atlacomulco</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('COLI', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Colima</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('GDLJ', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Guadalajara</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('GUZM', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Ciudad Guzmán</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('JILO', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Jilotepec</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('MORE', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Morelia</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('OFOC', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Occidente</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('JRIO', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> San Juan del Río</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('TSAT', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Saturno</span>
+                    </a>
+                    <a href="javascript:void(0)" class="side-item" onclick="filtrarBase('TOLU', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Toluca</span>
+                    </a>
+                </nav>
+
+                <div class="rail-nav-label">Periodo (CDMX)</div>
+                <select id="periodo-select" class="select-dark" onchange="cambiarPeriodo(this.value)">
+                    <option value="HOY">Hoy</option>
+                    <option value="AYER">Ayer</option>
+                    <option value="SEMANA" selected>Últimos 7 días</option>
+                    <option value="MES">Este mes (30 días)</option>
+                </select>
+
+                <button class="btn-export" onclick="exportarCSV()"><i class="fa-solid fa-download"></i> Exportar CSV</button>
+            </div>
+
+            <!-- Menú de Filtros para Alertas (visible al activar Alertas) -->
+            <div id="rail-controls-alertas" style="display: none;">
+                <div class="rail-nav-label">Categorías</div>
+                <div class="side-item active" onclick="setFiltroAlertas('todos', this)">
+                    <span><i class="fa-solid fa-grid-2"></i> Flota Completa</span>
+                </div>
+                <div class="side-item" onclick="setFiltroAlertas('critico', this)">
+                    <span><i class="fa-solid fa-triangle-exclamation" style="color:var(--rust)"></i> Riesgos Críticos</span>
+                    <span class="badge" id="badgeCriticoRail">0</span>
+                </div>
+                <div class="side-item" onclick="setFiltroAlertas('vacio', this)">
+                    <span><i class="fa-solid fa-hdd" style="color:var(--gris)"></i> Sin Disco</span>
+                </div>
+
+                <div class="rail-nav-label">Bases Detectadas</div>
+                <div id="listaBasesAlertas"></div>
+            </div>
+
+            <!-- Estado de sincronización en tiempo real -->
+            <div id="rail-status-container" class="rail-status">
+                <span class="dot pulse ok" id="status-dot"></span>
+                <span id="status-text">Sincronizado</span>
+            </div>
+        </aside>
+
+        <!-- ==================== ÁREA DE TRABAJO ==================== -->
+        <main class="workspace">
+
+            <!-- BARRA SUPERIOR DE ACCIONES GLOBALES -->
+            <header class="global-topbar">
+                <div class="topbar-header">
+                    <h1 class="topbar-title" id="mainHeaderTitle">
+                        <i class="fa-solid fa-list-check" style="color:var(--amber);"></i> Movimientos de Bandejas
+                    </h1>
+                    <span class="topbar-subtitle" id="mainHeaderSubtitle">Consulta de movimientos en tiempo real · Zona horaria CDMX</span>
+                </div>
+
+                <!-- Botones de Acción Global -->
+                <div class="global-actions" id="globalActions">
+                    <!-- Botón para Registrar Cambio (abre Modal) -->
+                    <button id="btnActionRegistrar" class="btn-act btn-act-primary" onclick="abrirModalCambio()">
+                        <i class="fa-solid fa-plus-circle"></i> Registrar Cambio
+                    </button>
+
+                    <!-- Botón de Rastreo (abre Modal) -->
+                    <button id="btnActionRastreo" class="btn-act btn-act-secondary" onclick="abrirModalRastreo()">
+                        <i class="fa-solid fa-magnifying-glass-location"></i> Rastreo
+                    </button>
+
+                    <!-- Botón de Alertas de Sobreescritura (cambia vista principal) -->
+                    <button id="btnActionAlertas" class="btn-act btn-act-warning" onclick="mostrarVista('alertas')">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Alertas de Sobreescritura
+                        <span class="badge" id="badgeCriticoTop" style="margin-left:4px;">0</span>
+                    </button>
+
+                    <!-- Botón de Retorno "Cambios" (visible sólo cuando se está en la vista de Alertas) -->
+                    <button id="btnActionVolverCambios" class="btn-act btn-return" onclick="mostrarVista('movimientos')" style="display:none;">
+                        <i class="fa-solid fa-arrow-left"></i> Cambios
+                    </button>
+                </div>
+            </header>
+
+            <!-- ==================== VISTA 1: MOVIMIENTOS (PRINCIPAL POR DEFECTO) ==================== -->
+            <section class="view-container" id="view-movimientos">
+                <main class="results-view">
+                    <!-- Tabla Desktop -->
+                    <table class="ledger-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha (CDMX)</th>
+                                <th>Económico</th>
+                                <th>Base</th>
+                                <th>Bandeja Sube</th>
+                                <th>Bandeja Baja</th>
+                                <th>Colaborador</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movimientos-body-desktop"></tbody>
+                    </table>
+
+                    <!-- Tarjetas Móvil -->
+                    <div class="mobile-list-wrapper" id="movimientos-body-mobile"></div>
+                </main>
+            </section>
+
+            <!-- ==================== VISTA 2: ALERTAS DE SOBREESCRITURA (OWALERT) ==================== -->
+            <section class="view-container" id="view-alertas" style="display: none;">
+                <main class="results-view">
+                    <div class="alertas-toolbar">
+                        <div class="tabs">
+                            <div class="tab active" id="tab-ow-todos" onclick="setFiltroAlertas('todos')">Flota Completa</div>
+                            <div class="tab" id="tab-ow-critico" onclick="setFiltroAlertas('critico')">Riesgos Críticos</div>
+                            <div class="tab" id="tab-ow-vacio" onclick="setFiltroAlertas('vacio')">Sin Disco</div>
+                        </div>
+
+                        <div class="search-box-input">
+                            <i class="fa-solid fa-magnifying-glass" style="color:var(--ink-soft)"></i>
+                            <input type="text" id="alertasSearchInput" placeholder="Buscar unidad..." oninput="filtrarAlertasQuery(this.value)">
+                        </div>
+                    </div>
+
+                    <div class="alertas-table-wrapper">
+                        <div class="alertas-table-header">
+                            <div>Unidad</div>
+                            <div>Bandeja</div>
+                            <div>Progreso / Riesgo</div>
+                            <div>Base</div>
+                            <div>Días</div>
+                            <div>Instalación</div>
+                        </div>
+                        <div class="alertas-scroll-area" id="alertasGrid">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                <p>Analizando distribución y antigüedad de discos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </section>
+
+            <!-- ==================== VISTA 3: VISTA EXCLUSIVA ANALISTA ==================== -->
+            <section class="view-container" id="view-analista" style="display: none;">
+                <main class="results-view">
+                    <div class="analista-hero">
+                        <i class="fa-solid fa-timeline"></i>
+                        <h2>Consulta de Rastreo y Trazabilidad</h2>
+                        <p>Tu perfil de <b>Analista</b> tiene acceso especializado para auditar el historial de movimientos, instalación y permanencia de bandejas por unidad o serie.</p>
+                        <button class="btn-act btn-act-primary" style="padding:12px 24px; font-size:15px;" onclick="abrirModalRastreo()">
+                            <i class="fa-solid fa-magnifying-glass-location"></i> Abrir Consola de Rastreo
+                        </button>
+                    </div>
+                </main>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODAL 1: REGISTRAR CAMBIO ==================== -->
+    <div class="modal-overlay" id="modal-cambio" onclick="if(event.target===this) cerrarModalCambio()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-header-titles">
+                    <div class="modal-eyebrow">GHO · TECNOLOGÍA A BORDO</div>
+                    <div class="modal-title">Registro de Cambio de Bandeja</div>
+                </div>
+                <button class="btn-modal-close" onclick="cerrarModalCambio()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="form-group-title">
+                    General
+                    <span onclick="borrarSesionCambio()" style="color:var(--amber); cursor:pointer; font-weight:600; text-transform:none;">Cambiar Usuario</span>
+                </p>
+
+                <div class="card-group">
+                    <div class="form-row">
+                        <span class="row-label">Ubicación</span>
+                        <select id="reg-base" class="form-select" onchange="guardarPreferencia('base', this.value)">
+                            <option value="">Seleccionar...</option>
+                            <option value="ACAP">Acapulco</option>
+                            <option value="ATLA">Atlacomulco</option>
+                            <option value="COLI">Colima</option>
+                            <option value="GDLJ">Guadalajara</option>
+                            <option value="GUZM">Ciudad Guzmán</option>
+                            <option value="JILO">Jilotepec</option>
+                            <option value="MORE">Morelia</option>
+                            <option value="OFOC">Occidente</option>
+                            <option value="JRIO">San Juan del Río</option>
+                            <option value="TSAT">Saturno</option>
+                            <option value="TOLU">Toluca</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <span class="row-label">Colaborador</span>
+                        <input type="number" id="reg-tecnico" class="form-input" placeholder="Clave colaborador" oninput="guardarPreferencia('tecnico', this.value)">
+                    </div>
+                    <div class="form-row">
+                        <span class="row-label">Autobús</span>
+                        <input type="number" id="reg-eco" class="form-input" placeholder="Económico (5 dígitos)" oninput="consultarUltimoDiscoEco()">
+                    </div>
+                </div>
+
+                <div id="reader"></div>
+
+                <div id="seccionEscaneo" style="opacity: 0.35; pointer-events: none; transition: 0.3s;">
+                    <p class="form-group-title">Bandejas</p>
+                    <div class="card-group">
+                        <div class="form-row" style="flex-direction:column; align-items:stretch;">
+                            <div class="scan-action">
+                                <span class="row-label">Bandeja que Subes</span>
+                                <button type="button" class="btn-scan" onclick="iniciarEscaneo('reg-bandejaSube')"><i class="fa-solid fa-qrcode"></i></button>
+                            </div>
+                            <input type="text" id="reg-bandejaSube" class="form-input" placeholder="Escanear o capturar entrada" style="text-align:left;">
+                        </div>
+
+                        <div class="form-row" style="flex-direction:column; align-items:stretch;">
+                            <div class="scan-action">
+                                <span class="row-label">Bandeja que Bajas</span>
+                                <button type="button" class="btn-scan" onclick="iniciarEscaneo('reg-bandejaBaja')"><i class="fa-solid fa-qrcode"></i></button>
+                            </div>
+                            <input type="text" id="reg-bandejaBaja" class="form-input" placeholder="Escanear o capturar salida" style="text-align:left;" oninput="validarInconsistencia()">
+                        </div>
+                    </div>
+
+                    <!-- Banner de Inconsistencia -->
+                    <div id="bannerInconsistencia" class="banner banner-inconsistencia">
+                        <p class="banner-title"><i class="fa-solid fa-triangle-exclamation"></i> Disco no corresponde al registro previo</p>
+                        <input type="text" id="justificacionInconsistencia" class="banner-inner-input" placeholder="Explicar motivo de discrepancia obligatoriamente">
+                        <p class="banner-meta">Esperábamos bajar el disco: <b id="discoEsperado">Ninguno</b></p>
+                    </div>
+                </div>
+
+                <p class="form-group-title">Diagnóstico</p>
+                <div class="card-group">
+                    <div class="form-row">
+                        <span class="row-label">¿Formateado?</span>
+                        <select id="reg-formateo" class="form-select" onchange="document.getElementById('divMotivo').style.display = (this.value==='SI'?'flex':'none')">
+                            <option value="NO">No</option>
+                            <option value="SI">Sí</option>
+                        </select>
+                    </div>
+                    <div class="form-row" id="divMotivo" style="display:none;">
+                        <input type="text" id="reg-motivoFormateo" class="form-input" placeholder="Razón del formateo" style="text-align:left; font-weight:normal;">
+                    </div>
+                    <div class="form-row">
+                        <span class="row-label">LED Estado</span>
+                        <select id="reg-ledStatus" class="form-select">
+                            <option value="OK">🟢 Grabando</option>
+                            <option value="FALLA">🔴 Falla</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="btnEnviarRegistro" class="btn-save-record" onclick="guardarRegistroCambio()">Guardar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 2: RASTREO (HISTORIAL Y BITÁCORA) ==================== -->
+    <div class="modal-overlay" id="modal-rastreo" onclick="if(event.target===this) cerrarModalRastreo()">
+        <div class="modal-card" style="max-width: 680px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-header-titles">
+                    <div class="modal-eyebrow">GHO · TECNOLOGÍA A BORDO</div>
+                    <div class="modal-title">Rastreo de Eventos y Bandejas</div>
+                </div>
+                <button class="btn-modal-close" onclick="cerrarModalRastreo()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="rastreo-controls">
+                    <div class="rastreo-tabs">
+                        <div id="segBus" class="rastreo-tab active" onclick="cambiarModoRastreo('bus')">
+                            <i class="fa-solid fa-bus"></i> Por Autobús
+                        </div>
+                        <div id="segDisco" class="rastreo-tab" onclick="cambiarModoRastreo('disco')">
+                            <i class="fa-solid fa-hard-drive"></i> Por Bandeja
+                        </div>
+                    </div>
+
+                    <div class="rastreo-search-box">
+                        <i class="fa-solid fa-magnifying-glass" style="color:var(--ink-soft)"></i>
+                        <input type="text" id="rastreoInput" placeholder="Ej. 55016 o MORE-55016-D2" oninput="procesarRastreo(this.value)">
+                    </div>
+                </div>
+
+                <div id="rastreo-resultados">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-timeline"></i>
+                        <p>Ingresa un número de autobús o código de bandeja para visualizar la línea de tiempo completa.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MOTOR JAVASCRIPT CONSOLIDADO -->
+    <!-- ============================================================ -->
+    <script>
+        // ============================================================
+        // 1. CONFIGURACIÓN SUPABASE & AUTENTICACIÓN
+        // ============================================================
+        const SUPABASE_URL = "https://zygisljwmxoqdplsuzjw.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z2lzbGp3bXhvcWRwbHN1emp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTE0OTYsImV4cCI6MjA5ODQyNzQ5Nn0.XeHFgDPGN5t0-6Fo1asEXD_XjGRK_N4Jiz706A3u6yg";
+
+        let db = window.db || null;
+        if (!db && window.supabase) {
+            try {
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                window.db = db;
+            } catch (e) {
+                console.error("Error inicializando Supabase:", e);
+            }
+        }
+
+        let usuarioActual = null;
+        let esAnalista = false;
+
+        // ============================================================
+        // 2. MOTOR DE ZONA HORARIA CIUDAD DE MÉXICO (America/Mexico_City)
+        // Resuelve de manera estricta y definitiva el desfase horario.
+        // ============================================================
+        const TIMEZONE_CDMX = "America/Mexico_City";
+
+        const CDMX = {
+            // Descompone una fecha en componentes de año, mes, día, hora, minuto en CDMX
+            parts(date = new Date()) {
+                const d = (date instanceof Date) ? date : new Date(date);
+                const formatter = new Intl.DateTimeFormat("en-US", {
+                    timeZone: TIMEZONE_CDMX,
+                    year: "numeric", month: "2-digit", day: "2-digit",
+                    hour: "2-digit", minute: "2-digit", second: "2-digit",
+                    hour12: false
+                });
+                const p = {};
+                formatter.formatToParts(d).forEach(item => {
+                    if (item.type !== "literal") p[item.type] = item.value;
+                });
+                return {
+                    year: parseInt(p.year, 10),
+                    month: parseInt(p.month, 10),
+                    day: parseInt(p.day, 10),
+                    hour: parseInt(p.hour, 10),
+                    minute: parseInt(p.minute, 10),
+                    second: parseInt(p.second, 10)
+                };
+            },
+
+            // Genera string ISO con offset -06:00 para consultas de Supabase
+            formatISOOffset(year, month, day, hour = 0, minute = 0, second = 0) {
+                const pad = n => String(n).padStart(2, "0");
+                return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}-06:00`;
+            },
+
+            // Calcula los rangos de consulta garantizando el calendario de Ciudad de México
+            getRange(periodo) {
+                const ahora = new Date();
+                const p = this.parts(ahora);
+
+                // Inicio del día actual en CDMX (00:00:00-06:00)
+                const inicioHoyISO = this.formatISOOffset(p.year, p.month, p.day, 0, 0, 0);
+
+                switch (periodo) {
+                    case "HOY":
+                        return { gte: inicioHoyISO };
+
+                    case "AYER": {
+                        const ayerDate = new Date(Date.now() - 864e5);
+                        const pAyer = this.parts(ayerDate);
+                        const inicioAyerISO = this.formatISOOffset(pAyer.year, pAyer.month, pAyer.day, 0, 0, 0);
+                        return { gte: inicioAyerISO, lt: inicioHoyISO };
+                    }
+
+                    case "SEMANA": {
+                        // Últimos 7 días exactos
+                        const semDate = new Date(Date.now() - 7 * 864e5);
+                        const pSem = this.parts(semDate);
+                        return { gte: this.formatISOOffset(pSem.year, pSem.month, pSem.day, 0, 0, 0) };
+                    }
+
+                    case "MES": {
+                        // Últimos 30 días
+                        const mesDate = new Date(Date.now() - 30 * 864e5);
+                        const pMes = this.parts(mesDate);
+                        return { gte: this.formatISOOffset(pMes.year, pMes.month, pMes.day, 0, 0, 0) };
+                    }
+
+                    default:
+                        return null;
+                }
+            },
+
+            // Formato amigable para tablas: "03 oct, 17:21"
+            formatTable(fechaStr) {
+                if (!fechaStr) return "—";
+                const d = new Date(fechaStr);
+                if (isNaN(d.getTime())) return "—";
+                return new Intl.DateTimeFormat("es-MX", {
+                    timeZone: TIMEZONE_CDMX,
+                    day: "2-digit",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                }).format(d);
+            },
+
+            // Formato solo fecha: "03/10/2026"
+            formatDateOnly(fechaStr) {
+                if (!fechaStr) return "Sin dato";
+                const d = new Date(fechaStr);
+                if (isNaN(d.getTime())) return "Sin dato";
+                return new Intl.DateTimeFormat("es-MX", {
+                    timeZone: TIMEZONE_CDMX,
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric"
+                }).format(d);
+            },
+
+            // Formato completo para exportación CSV
+            formatCSV(fechaStr) {
+                if (!fechaStr) return "";
+                const d = new Date(fechaStr);
+                if (isNaN(d.getTime())) return "";
+                return new Intl.DateTimeFormat("es-MX", {
+                    timeZone: TIMEZONE_CDMX,
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false
+                }).format(d);
+            },
+
+            // Días transcurridos desde la fecha de instalación
+            daysElapsed(fechaStr) {
+                if (!fechaStr) return -1;
+                const instTime = new Date(fechaStr).getTime();
+                if (isNaN(instTime)) return -1;
+                const diff = Date.now() - instTime;
+                return diff < 0 ? 0 : Math.floor(diff / 864e5);
+            },
+
+            // Marca de tiempo para nombres de archivo
+            filenameTimestamp() {
+                const p = this.parts(new Date());
+                const pad = n => String(n).padStart(2, "0");
+                return `${p.year}-${pad(p.month)}-${pad(p.day)}_${pad(p.hour)}-${pad(p.minute)}`;
+            }
+        };
+
+        // ============================================================
+        // 3. ESTADO GLOBAL DE LA APLICACIÓN
+        // ============================================================
+        let vistaActual = "movimientos"; // 'movimientos' | 'alertas' | 'analista'
+        let currentBase = "TODAS";
+        let currentPeriodo = "SEMANA"; // Por defecto: últimos 7 días
+        let datosMovimientos = [];
+
+        // Estado de Alertas (owalert)
+        let rawFlota = [];
+        let rawHistorialAlertas = [];
+        let configAlertas = { filtro: 'todos', base: 'todas', query: '' };
+        const DIAS_LIMITE = 7;
+
+        // Estado de Rastreo (historial)
+        let databaseRastreo = [];
+        let modoRastreo = "bus";
+        let qrScannerInstance = null;
+        let discoActualBD = "";
+
+        // ============================================================
+        // 4. CONTROL DE ACCESO (PERFILES)
+        // Regla: 'analista' sólo ve botón y modal de Rastreo.
+        // ============================================================
+        function aplicarSegregacionPerfiles() {
+            const btnRegistrar = document.getElementById("btnActionRegistrar");
+            const btnAlertas = document.getElementById("btnActionAlertas");
+            const btnRastreo = document.getElementById("btnActionRastreo");
+            const viewMovimientos = document.getElementById("view-movimientos");
+            const viewAlertas = document.getElementById("view-alertas");
+            const viewAnalista = document.getElementById("view-analista");
+            const railMovimientos = document.getElementById("rail-controls-movimientos");
+            const railAlertas = document.getElementById("rail-controls-alertas");
+
+            if (esAnalista) {
+                // Ocultar toda la interfaz operativa
+                btnRegistrar.style.display = "none";
+                btnAlertas.style.display = "none";
+                viewMovimientos.style.display = "none";
+                viewAlertas.style.display = "none";
+                railMovimientos.style.display = "none";
+                railAlertas.style.display = "none";
+
+                // Mostrar única y exclusivamente Rastreo
+                btnRastreo.style.display = "inline-flex";
+                viewAnalista.style.display = "flex";
+
+                document.getElementById("mainHeaderTitle").innerHTML = '<i class="fa-solid fa-timeline" style="color:var(--amber);"></i> Rastreo de Eventos';
+                document.getElementById("mainHeaderSubtitle").textContent = 'Perfil de Analista · Acceso de consulta y trazabilidad';
+            } else {
+                // Modo completo para técnico, coordinador, jefe, auxiliar, etc.
+                btnRegistrar.style.display = "inline-flex";
+                btnAlertas.style.display = "inline-flex";
+                btnRastreo.style.display = "inline-flex";
+                viewAnalista.style.display = "none";
+
+                if (vistaActual === "movimientos") {
+                    viewMovimientos.style.display = "flex";
+                    viewAlertas.style.display = "none";
+                    railMovimientos.style.display = "block";
+                    railAlertas.style.display = "none";
+                } else if (vistaActual === "alertas") {
+                    viewMovimientos.style.display = "none";
+                    viewAlertas.style.display = "flex";
+                    railMovimientos.style.display = "none";
+                    railAlertas.style.display = "block";
+                }
+            }
+        }
+
+        // ============================================================
+        // 5. NAVEGACIÓN Y CAMBIO DE VISTAS (MOVIMIENTOS / ALERTAS)
+        // ============================================================
+        function mostrarVista(vista) {
+            if (esAnalista && vista !== "analista") return;
+
+            vistaActual = vista;
+            const btnVolver = document.getElementById("btnActionVolverCambios");
+            const btnAlertas = document.getElementById("btnActionAlertas");
+            const titleEl = document.getElementById("mainHeaderTitle");
+            const subEl = document.getElementById("mainHeaderSubtitle");
+
+            if (vista === "alertas") {
+                document.getElementById("view-movimientos").style.display = "none";
+                document.getElementById("view-alertas").style.display = "flex";
+                document.getElementById("rail-controls-movimientos").style.display = "none";
+                document.getElementById("rail-controls-alertas").style.display = "block";
+
+                btnVolver.style.display = "inline-flex";
+                btnAlertas.style.display = "none";
+
+                titleEl.innerHTML = '<i class="fa-solid fa-shield-halved" style="color:var(--rust);"></i> Riesgos de Sobreescritura CCTV';
+                subEl.textContent = 'Monitoreo de permanencia en unidad frente al umbral crítico de 7 días';
+
+                cargarDatosAlertas();
+            } else {
+                document.getElementById("view-movimientos").style.display = "flex";
+                document.getElementById("view-alertas").style.display = "none";
+                document.getElementById("rail-controls-movimientos").style.display = "block";
+                document.getElementById("rail-controls-alertas").style.display = "none";
+
+                btnVolver.style.display = "none";
+                btnAlertas.style.display = "inline-flex";
+
+                titleEl.innerHTML = '<i class="fa-solid fa-list-check" style="color:var(--amber);"></i> Movimientos de Bandejas';
+                subEl.textContent = 'Consulta de movimientos en tiempo real · Zona horaria CDMX';
+
+                cargarMovimientos();
+            }
+        }
+
+        // ============================================================
+        // 6. LÓGICA VISTA PRINCIPAL: MOVIMIENTOS
+        // Carga por defecto últimos 7 días con zona horaria CDMX.
+        // ============================================================
+        function filtrarBase(base, el) {
+            currentBase = base;
+            if (el) {
+                document.querySelectorAll('#base-filters .side-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+            }
+            cargarMovimientos();
+        }
+
+        function cambiarPeriodo(periodo) {
+            currentPeriodo = periodo;
+            cargarMovimientos();
+        }
+
+        function setStatus(texto, tipo) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            if (!dot || !txt) return;
+
+            dot.className = 'dot' + (tipo === 'error' ? ' error' : (tipo === 'ok' ? ' ok' : ' pulse'));
+            txt.textContent = texto;
+        }
+
+        async function cargarMovimientos() {
+            if (esAnalista || !db) return;
+
+            setStatus("Actualizando...", "pulse");
+
+            try {
+                let consulta = db.from("tbl_cambiobandeja").select("*");
+
+                if (currentBase !== "TODAS") {
+                    consulta = consulta.eq("base", currentBase);
+                }
+
+                const rango = CDMX.getRange(currentPeriodo);
+                if (rango) {
+                    if (rango.gte) consulta = consulta.gte("fecha_hora", rango.gte);
+                    if (rango.lt) consulta = consulta.lt("fecha_hora", rango.lt);
+                }
+
+                consulta = consulta.order("fecha_hora", { ascending: false });
+
+                const { data, error } = await consulta;
+                if (error) throw error;
+
+                datosMovimientos = data || [];
+                renderMovimientos(datosMovimientos);
+
+                const horaCDMX = CDMX.parts(new Date());
+                const pad = n => String(n).padStart(2, '0');
+                setStatus(`Sincronizado ${pad(horaCDMX.hour)}:${pad(horaCDMX.minute)}`, "ok");
+            } catch (err) {
+                console.error("Error cargando movimientos:", err);
+                setStatus("Error de conexión", "error");
+            }
+        }
+
+        function renderMovimientos(data) {
+            const desktopBody = document.getElementById('movimientos-body-desktop');
+            const mobileBody = document.getElementById('movimientos-body-mobile');
+            if (!desktopBody || !mobileBody) return;
+
+            desktopBody.innerHTML = "";
+            mobileBody.innerHTML = "";
+
+            if (data.length === 0) {
+                desktopBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:36px; color:var(--ink-soft); font-size:13.5px;"><i class="fa-solid fa-inbox" style="font-size:22px; margin-bottom:8px; display:block; opacity:0.3;"></i>Sin registros para el filtro seleccionado.</td></tr>`;
+                mobileBody.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--ink-soft); font-size:13.5px;">Sin registros para el filtro seleccionado.</div>`;
+                return;
+            }
+
+            data.forEach(row => {
+                const fecha = CDMX.formatTable(row.fecha_hora);
+                const eco = row.numero_economico || "—";
+                const base = row.base || "—";
+                const sube = row.bandeja_sube || "—";
+                const baja = row.bandeja_baja || "—";
+                const tech = row.clave_colaborador || "—";
+
+                desktopBody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td class="mono-tag">${fecha}</td>
+                        <td class="eco-cell">${eco}</td>
+                        <td>${base}</td>
+                        <td class="mono-tag tag-up">${sube}</td>
+                        <td class="mono-tag tag-down">${baja}</td>
+                        <td>${tech}</td>
+                    </tr>
+                `);
+
+                mobileBody.insertAdjacentHTML('beforeend', `
+                    <div class="ticket">
+                        <div class="ticket-stub"><span class="stub-id">${eco}</span></div>
+                        <div class="ticket-body">
+                            <div class="ticket-header">
+                                <span class="ticket-eco">Bus ${eco}</span>
+                                <span class="ticket-date">${fecha}</span>
+                            </div>
+                            <div class="tray-row">
+                                <div class="tray-box"><small class="tag-up">▲ SUBE</small><b>${sube}</b></div>
+                                <div class="tray-box"><small class="tag-down">▼ BAJA</small><b>${baja}</b></div>
+                            </div>
+                            <div class="ticket-footer">Técnico: ${tech} · Base: ${base}</div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function exportarCSV() {
+            if (!datosMovimientos || datosMovimientos.length === 0) {
+                alert("No hay datos disponibles para exportar con los filtros actuales.");
+                return;
+            }
+
+            const encabezados = ["Fecha (CDMX)", "Base", "Economico", "BandejaSube", "BandejaBaja", "Tecnico", "Formateado", "MotivoFormateo", "LED"];
+            const escapar = v => {
+                const s = (v === null || v === undefined) ? "" : String(v);
+                return (s.includes(",") || s.includes('"') || s.includes("\n")) ? `"${s.replace(/"/g, '""')}"` : s;
+            };
+
+            const filas = datosMovimientos.map(r => [
+                CDMX.formatCSV(r.fecha_hora),
+                r.base,
+                r.numero_economico,
+                r.bandeja_sube,
+                r.bandeja_baja,
+                r.clave_colaborador,
+                r.formateado ? "SI" : "NO",
+                r.motivo_formateo || "",
+                r.led_status || ""
+            ].map(escapar).join(","));
+
+            const csvContent = "\uFEFF" + [encabezados.join(","), ...filas].join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `movimientos_${currentBase}_${currentPeriodo}_${CDMX.filenameTimestamp()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ============================================================
+        // 7. LÓGICA VISTA: ALERTAS DE SOBREESCRITURA (OWALERT)
+        // ============================================================
+        async function cargarDatosAlertas() {
+            if (!db) return;
+            setStatus("Calculando riesgos...", "pulse");
+
+            try {
+                // Cargar flota y movimientos en paralelo
+                const [flotaRes, historial] = await Promise.all([
+                    db.from('tbl_flota').select('autobus, estatus, base'),
+                    cargarHistorialPaginado()
+                ]);
+
+                if (flotaRes.error) throw flotaRes.error;
+
+                rawFlota = flotaRes.data || [];
+                rawHistorialAlertas = historial || [];
+
+                crearMenuBasesAlertas();
+                renderAlertas();
+                setStatus("Alertas actualizadas", "ok");
+            } catch (err) {
+                console.error("Error cargando alertas:", err);
+                setStatus("Error en alertas", "error");
+            }
+        }
+
+        async function cargarHistorialPaginado() {
+            let todos = [];
+            let desde = 0;
+            const tam = 1000;
+            let hayMas = true;
+
+            while (hayMas) {
+                const { data, error } = await db
+                    .from('tbl_cambiobandeja')
+                    .select('fecha_hora, numero_economico, bandeja_sube, bandeja_baja')
+                    .order('fecha_hora', { ascending: false })
+                    .range(desde, desde + tam - 1);
+
+                if (error) throw error;
+                todos = todos.concat(data);
+                hayMas = data.length === tam;
+                desde += tam;
+            }
+            return todos;
+        }
+
+        function crearMenuBasesAlertas() {
+            const contenedor = document.getElementById('listaBasesAlertas');
+            if (!contenedor) return;
+
+            const bases = [...new Set(rawFlota.map(u => u.base))].filter(Boolean).sort();
+            contenedor.innerHTML = `
+                <div class="side-item ${configAlertas.base === 'todas' ? 'active' : ''}" onclick="setBaseAlertas('todas', this)">
+                    <span><i class="fa-solid fa-location-dot"></i> Todas las bases</span>
+                </div>
+            `;
+            bases.forEach(b => {
+                contenedor.insertAdjacentHTML('beforeend', `
+                    <div class="side-item ${configAlertas.base === b ? 'active' : ''}" onclick="setBaseAlertas('${b}', this)">
+                        <span><i class="fa-solid fa-location-dot"></i> ${b}</span>
+                    </div>
+                `);
+            });
+        }
+
+        function setFiltroAlertas(f, el) {
+            configAlertas.filtro = f;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-ow-' + f)?.classList.add('active');
+            if (el) {
+                document.querySelectorAll('#rail-controls-alertas .side-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+            }
+            renderAlertas();
+        }
+
+        function setBaseAlertas(b, el) {
+            configAlertas.base = b;
+            document.querySelectorAll('#listaBasesAlertas .side-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            renderAlertas();
+        }
+
+        function filtrarAlertasQuery(val) {
+            configAlertas.query = val.trim().toUpperCase();
+            renderAlertas();
+        }
+
+        function renderAlertas() {
+            const grid = document.getElementById('alertasGrid');
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            let criticosTotal = 0;
+            const estadoActualBuses = {};
+            const lista = [];
+
+            // 1. Mapeo de estados del historial
+            rawHistorialAlertas.forEach(fila => {
+                const eco = fila.numero_economico ? String(fila.numero_economico).trim() : null;
+                if (!eco || estadoActualBuses[eco]) return;
+
+                const bSube = (fila.bandeja_sube || "").trim();
+                const bBaja = (fila.bandeja_baja || "").trim();
+                if (bSube !== "") {
+                    estadoActualBuses[eco] = { registro: fila, tieneDisco: true };
+                } else if (bBaja !== "") {
+                    estadoActualBuses[eco] = { registro: fila, tieneDisco: false };
+                }
+            });
+
+            // 2. Cruce con catálogo de flota
+            rawFlota.forEach(unidad => {
+                const busId = unidad.autobus ? String(unidad.autobus).trim() : null;
+                if (!busId) return;
+
+                const infoActual = estadoActualBuses[busId];
+                let dias = -1;
+                let fechaUnix = 0;
+
+                if (infoActual && infoActual.tieneDisco) {
+                    fechaUnix = new Date(infoActual.registro.fecha_hora).getTime();
+                    dias = CDMX.daysElapsed(infoActual.registro.fecha_hora);
+                }
+
+                lista.push({
+                    busId,
+                    base: unidad.base || 'N/D',
+                    estatus: unidad.estatus || 'S/E',
+                    dias,
+                    fechaUnix,
+                    discoData: (infoActual && infoActual.tieneDisco) ? infoActual.registro : null
+                });
+            });
+
+            // 3. Orden: sin disco al final, resto por antigüedad
+            lista.sort((a, b) => {
+                if (a.dias === -1 && b.dias !== -1) return 1;
+                if (a.dias !== -1 && b.dias === -1) return -1;
+                return a.fechaUnix - b.fechaUnix;
+            });
+
+            // 4. Renderizar
+            lista.forEach(item => {
+                if (configAlertas.query && !item.busId.includes(configAlertas.query)) return;
+                if (configAlertas.base !== 'todas' && item.base !== configAlertas.base) return;
+
+                let tipo = "vacio";
+                let pct = 0;
+                if (item.dias !== -1) {
+                    pct = Math.min((item.dias / DIAS_LIMITE) * 100, 100);
+                    tipo = pct >= 90 ? "critico" : (pct >= 65 ? "alerta" : "seguro");
+                    if (tipo === "critico") criticosTotal++;
+                }
+
+                if (configAlertas.filtro === 'critico' && tipo !== 'critico') return;
+                if (configAlertas.filtro === 'vacio' && tipo !== 'vacio') return;
+
+                const color = tipo === 'critico' ? 'var(--rust)' : (tipo === 'alerta' ? 'var(--amber)' : (tipo === 'vacio' ? 'var(--gris)' : 'var(--teal)'));
+                const pillBg = tipo === 'critico' ? 'var(--rust-tint)' : (tipo === 'alerta' ? 'var(--amber-tint)' : (tipo === 'vacio' ? 'var(--gris-tint)' : 'var(--teal-tint)'));
+
+                const bandeja = item.discoData ? (item.discoData.bandeja_sube || '---') : '---';
+                const fecha = item.discoData ? CDMX.formatDateOnly(item.discoData.fecha_hora) : 'Sin dato';
+                const diasTxt = item.dias === -1 ? '-' : `${item.dias} días`;
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="row-item ${item.dias === -1 ? 'row-vacio' : ''}">
+                        <div class="cell-bus">${item.busId}</div>
+                        <div class="cell-bandeja">${bandeja}</div>
+                        <div class="progress-wrap">
+                            <div class="progress-head" style="color:${color}">
+                                <span>${tipo.toUpperCase()}</span>
+                                <span>${item.dias === -1 ? '0%' : Math.round(pct) + '%'}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${pct}%; background:${color};"></div>
+                            </div>
+                        </div>
+                        <div class="cell-base">${item.base}</div>
+                        <div class="cell-dias ${item.dias >= 6 ? 'critico' : ''}">${diasTxt}</div>
+                        <div class="cell-fecha">${fecha}</div>
+
+                        <!-- Card móvil -->
+                        <div class="card-mob-header">
+                            <div class="cell-bus">Unidad ${item.busId}</div>
+                            <span class="mob-status-pill" style="background:${pillBg}; color:${color}">${tipo.toUpperCase()}</span>
+                        </div>
+                        <div class="card-mob-progress">
+                            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; font-weight:700; color:${color}; margin-bottom:5px;">
+                                <span>Riesgo de sobreescritura</span>
+                                <span>${item.dias === -1 ? '0%' : Math.round(pct) + '%'}</span>
+                            </div>
+                            <div class="progress-bar" style="height:7px;">
+                                <div class="progress-fill" style="width:${pct}%; background:${color};"></div>
+                            </div>
+                        </div>
+                        <div class="card-mob-grid">
+                            <div class="card-mob-cell"><span class="card-mob-label">Bandeja</span><span class="card-mob-value">${bandeja}</span></div>
+                            <div class="card-mob-cell"><span class="card-mob-label">Base</span><span class="card-mob-value">${item.base}</span></div>
+                            <div class="card-mob-cell"><span class="card-mob-label">Días</span><span class="card-mob-value" style="color:${item.dias >= 6 ? 'var(--rust)' : 'var(--ink)'}">${diasTxt}</span></div>
+                            <div class="card-mob-cell"><span class="card-mob-label">Instalación</span><span class="card-mob-value" style="color:var(--ink-soft);">${fecha}</span></div>
+                        </div>
+                    </div>
+                `);
+            });
+
+            document.getElementById('badgeCriticoTop').innerText = criticosTotal;
+            document.getElementById('badgeCriticoRail').innerText = criticosTotal;
+        }
+
+        // ============================================================
+        // 8. MODAL 1: REGISTRAR CAMBIO DE BANDEJAS
+        // ============================================================
+        function abrirModalCambio() {
+            document.getElementById('modal-cambio').style.display = 'flex';
+
+            // Restaurar preferencias guardadas
+            const b = localStorage.getItem('base');
+            const t = localStorage.getItem('tecnico');
+            if (b) document.getElementById('reg-base').value = b;
+            if (t) document.getElementById('reg-tecnico').value = t;
+
+            validarProgresoRegistro();
+        }
+
+        function cerrarModalCambio() {
+            if (qrScannerInstance) {
+                try {
+                    qrScannerInstance.stop().then(() => {
+                        document.getElementById('reader').style.display = 'none';
+                    }).catch(() => {});
+                } catch(e) {}
+            }
+            document.getElementById('modal-cambio').style.display = 'none';
+        }
+
+        function guardarPreferencia(k, v) {
+            localStorage.setItem(k, v);
+            validarProgresoRegistro();
+        }
+
+        function borrarSesionCambio() {
+            if (confirm("¿Deseas reiniciar la Base y la Clave de Colaborador predeterminadas?")) {
+                localStorage.removeItem('base');
+                localStorage.removeItem('tecnico');
+                document.getElementById('reg-base').value = '';
+                document.getElementById('reg-tecnico').value = '';
+                validarProgresoRegistro();
+            }
+        }
+
+        function validarProgresoRegistro() {
+            const base = document.getElementById('reg-base').value;
+            const tecnico = document.getElementById('reg-tecnico').value.trim();
+            const eco = document.getElementById('reg-eco').value.trim();
+            const sec = document.getElementById('seccionEscaneo');
+
+            if (base && tecnico.length >= 7 && eco.length === 5) {
+                sec.style.opacity = "1";
+                sec.style.pointerEvents = "auto";
+            } else {
+                sec.style.opacity = "0.35";
+                sec.style.pointerEvents = "none";
+            }
+        }
+
+        async function consultarUltimoDiscoEco() {
+            const eco = document.getElementById('reg-eco').value.trim();
+            validarProgresoRegistro();
+
+            if (eco.length === 5 && db) {
+                try {
+                    const { data, error } = await db
+                        .from('tbl_cambiobandeja')
+                        .select('bandeja_sube')
+                        .eq('numero_economico', eco)
+                        .order('fecha_hora', { ascending: false })
+                        .limit(1);
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0 && data[0].bandeja_sube) {
+                        discoActualBD = data[0].bandeja_sube.toString().trim().toUpperCase();
+                        document.getElementById('discoEsperado').innerText = discoActualBD;
+                    } else {
+                        discoActualBD = "VACÍO";
+                        document.getElementById('discoEsperado').innerText = "Sin registro previo";
+                    }
+                    validarInconsistencia();
+                } catch (e) {
+                    console.error("Error al consultar último disco:", e);
+                }
+            }
+        }
+
+        function validarInconsistencia() {
+            const baja = document.getElementById('reg-bandejaBaja').value.trim().toUpperCase();
+            const banner = document.getElementById('bannerInconsistencia');
+            if (baja && discoActualBD && discoActualBD !== "VACÍO") {
+                banner.style.display = (baja !== discoActualBD) ? 'block' : 'none';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        function iniciarEscaneo(targetInputId) {
+            const eco = document.getElementById('reg-eco').value.trim();
+            if (eco.length !== 5) {
+                alert("⚠️ Primero ingresa el número económico de la unidad (5 dígitos).");
+                return;
+            }
+
+            if (!window.Html5Qrcode) {
+                alert("Lector de QR no disponible. Puedes capturar el código manualmente.");
+                return;
+            }
+
+            const readerEl = document.getElementById('reader');
+            readerEl.style.display = 'block';
+
+            if (!qrScannerInstance) {
+                qrScannerInstance = new Html5Qrcode("reader");
+            }
+
+            qrScannerInstance.start({ facingMode: "environment" }, { fps: 15, qrbox: 240 }, (decodedText) => {
+                const val = decodedText.trim().toUpperCase();
+                document.getElementById(targetInputId).value = val;
+
+                qrScannerInstance.stop().then(() => {
+                    readerEl.style.display = 'none';
+                    validarInconsistencia();
+                });
+            }).catch(err => {
+                console.error("Error iniciando cámara QR:", err);
+                alert("No se pudo iniciar la cámara para escanear. Por favor ingresa el código manualmente.");
+                readerEl.style.display = 'none';
+            });
+        }
+
+        async function guardarRegistroCambio() {
+            if (!db) {
+                alert("❌ Sin conexión con la base de datos.");
+                return;
+            }
+
+            const base = document.getElementById('reg-base').value;
+            const tecnico = document.getElementById('reg-tecnico').value.trim();
+            const eco = document.getElementById('reg-eco').value.trim();
+            const sube = document.getElementById('reg-bandejaSube').value.trim().toUpperCase();
+            const baja = document.getElementById('reg-bandejaBaja').value.trim().toUpperCase();
+            const formateo = document.getElementById('reg-formateo').value;
+            const motivo = document.getElementById('reg-motivoFormateo').value.trim();
+            const led = document.getElementById('reg-ledStatus').value;
+
+            const bannerVisible = document.getElementById('bannerInconsistencia').style.display === "block";
+            const justificacion = document.getElementById('justificacionInconsistencia').value.trim();
+            const btn = document.getElementById('btnEnviarRegistro');
+
+            if (!base || !tecnico || !eco || !sube) {
+                alert("⚠️ Por favor completa los campos obligatorios: Base, Colaborador, Económico y Bandeja que Sube.");
+                return;
+            }
+
+            if (bannerVisible && !justificacion) {
+                alert("⚠️ Existe una discrepancia de disco. Debes justificar el motivo para poder registrar.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...';
+
+            try {
+                // Registrar movimiento
+                const { error } = await db.from('tbl_cambiobandeja').insert({
+                    base,
+                    clave_colaborador: tecnico,
+                    numero_economico: eco,
+                    bandeja_sube: sube,
+                    bandeja_baja: baja || null,
+                    formateado: (formateo === "SI"),
+                    motivo_formateo: motivo || "N/A",
+                    led_status: led,
+                    justificacion_discrepancia: justificacion || null
+                });
+
+                if (error) throw error;
+
+                alert("✅ Registro de cambio guardado exitosamente.");
+
+                // Limpiar campos variables
+                document.getElementById('reg-eco').value = "";
+                document.getElementById('reg-bandejaSube').value = "";
+                document.getElementById('reg-bandejaBaja').value = "";
+                document.getElementById('justificacionInconsistencia').value = "";
+                document.getElementById('bannerInconsistencia').style.display = "none";
+                discoActualBD = "";
+                validarProgresoRegistro();
+
+                cerrarModalCambio();
+
+                // Recargar tabla de movimientos inmediatamente
+                cargarMovimientos();
+            } catch (err) {
+                console.error("Error guardando registro:", err);
+                if (err.message && err.message.toLowerCase().includes("fetch")) {
+                    alert("⚠️ No fue posible comunicarse con el servidor. Si utilizas red móvil Telcel, asegúrate de utilizar protocolo APN IPv4.");
+                } else {
+                    alert("❌ Error al guardar el registro:\n\n" + err.message);
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar Registro';
+            }
+        }
+
+        // ============================================================
+        // 9. MODAL 2: RASTREO (HISTORIAL Y LÍNEA DE TIEMPO)
+        // Con paginación completa en bloques de 1000 registros
+        // ============================================================
+        function abrirModalRastreo() {
+            document.getElementById('modal-rastreo').style.display = 'flex';
+            if (databaseRastreo.length === 0) {
+                cargarHistorialRastreo();
+            }
+        }
+
+        function cerrarModalRastreo() {
+            document.getElementById('modal-rastreo').style.display = 'none';
+        }
+
+        function cambiarModoRastreo(modo) {
+            modoRastreo = modo;
+            document.getElementById('segBus').classList.toggle('active', modo === 'bus');
+            document.getElementById('segDisco').classList.toggle('active', modo === 'disco');
+            procesarRastreo(document.getElementById('rastreoInput').value);
+        }
+
+        async function cargarHistorialRastreo() {
+            if (!db) return;
+            try {
+                let todos = [];
+                let desde = 0;
+                const tamano = 1000;
+                let hayMas = true;
+
+                while (hayMas) {
+                    const { data, error } = await db
+                        .from('tbl_cambiobandeja')
+                        .select('fecha_hora, base, clave_colaborador, numero_economico, bandeja_sube, bandeja_baja')
+                        .order('fecha_hora', { ascending: true })
+                        .range(desde, desde + tamano - 1);
+
+                    if (error) throw error;
+                    todos = todos.concat(data);
+                    hayMas = data.length === tamano;
+                    desde += tamano;
+                }
+
+                databaseRastreo = todos;
+                procesarRastreo(document.getElementById('rastreoInput').value);
+            } catch (e) {
+                console.error("Error cargando historial de rastreo:", e);
+            }
+        }
+
+        function procesarRastreo(val) {
+            const container = document.getElementById('rastreo-resultados');
+            const query = (val || "").trim().toUpperCase();
+
+            if (!query) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-timeline"></i>
+                        <p>Ingresa un número de autobús o código de bandeja para visualizar la línea de tiempo completa.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = "";
+
+            let subset = modoRastreo === 'bus'
+                ? databaseRastreo.filter(r => r.numero_economico && String(r.numero_economico).trim() === query)
+                : databaseRastreo.filter(r =>
+                    (r.bandeja_sube && r.bandeja_sube.toUpperCase() === query) ||
+                    (r.bandeja_baja && r.bandeja_baja.toUpperCase() === query)
+                );
+
+            const subidas = subset.filter(r => {
+                if (modoRastreo === "bus") return r.bandeja_sube;
+                return r.bandeja_sube && r.bandeja_sube.toUpperCase() === query;
+            });
+
+            if (subidas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <p>No se encontraron registros para "${query}". Revisa el identificador e intenta nuevamente.</p>
+                    </div>`;
+                return;
+            }
+
+            // Orden más reciente primero para display
+            subidas.sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
+
+            subidas.forEach(rSube => {
+                const tSube = new Date(rSube.fecha_hora).getTime();
+                const idBandejaSube = rSube.bandeja_sube;
+                const idBusSube = rSube.numero_economico;
+
+                const rBaja = databaseRastreo.find(r =>
+                    r.bandeja_baja && r.bandeja_baja.toString().toUpperCase() === (modoRastreo === 'bus' ? idBandejaSube.toUpperCase() : query) &&
+                    new Date(r.fecha_hora).getTime() > tSube
+                );
+
+                const proximaSubida = databaseRastreo.find(r => {
+                    const tRef = new Date(r.fecha_hora).getTime();
+                    if (modoRastreo === 'bus') {
+                        return r.numero_economico && String(r.numero_economico).trim() === query && r.bandeja_sube && tRef > tSube;
+                    } else {
+                        return r.bandeja_sube && r.bandeja_sube.toString().toUpperCase() === query && tRef > tSube;
+                    }
+                });
+
+                let status = "activo";
+                if (rBaja) {
+                    if (proximaSubida && new Date(rBaja.fecha_hora).getTime() > new Date(proximaSubida.fecha_hora).getTime()) {
+                        status = "inconsistente";
+                    } else {
+                        status = "finalizado";
+                    }
+                } else if (proximaSubida) {
+                    status = "inconsistente";
+                }
+
+                const titulo = modoRastreo === 'bus' ? idBandejaSube : `Unidad ${idBusSube}`;
+                container.insertAdjacentHTML('beforeend', renderTicketRastreo(titulo, rSube, (status === "finalizado" ? rBaja : null), status));
+            });
+        }
+
+        function renderTicketRastreo(titulo, sube, baja, status) {
+            let stampClass = "active", stampLabel = "En operación", stampIcon = "fa-circle-play";
+            let duracionStr = "En tránsito";
+
+            if (status === "finalizado") {
+                stampClass = "ok"; stampLabel = "Ciclo cerrado"; stampIcon = "fa-circle-check";
+                const diff = Math.abs(new Date(baja.fecha_hora) - new Date(sube.fecha_hora));
+                duracionStr = `${Math.floor(diff / 864e5)}d ${Math.floor((diff % 864e5) / 36e5)}h en DVR`;
+            } else if (status === "inconsistente") {
+                stampClass = "warn"; stampLabel = "Sin cierre"; stampIcon = "fa-triangle-exclamation";
+                duracionStr = "Revisar registro";
+            }
+
+            const stubText = titulo.length > 10 ? titulo.slice(0, 13) : titulo;
+            const f1 = CDMX.formatTable(sube.fecha_hora);
+            const f2 = baja ? CDMX.formatTable(baja.fecha_hora) : (status === "inconsistente" ? "Desconocida" : "Operando");
+
+            return `
+            <div class="ticket">
+                <div class="ticket-stub"><span class="stub-id">${stubText}</span></div>
+                <div class="ticket-body">
+                    <div class="ticket-header">
+                        <div class="ticket-eco">${titulo}</div>
+                        <div class="stamp ${stampClass}"><i class="fa-solid ${stampIcon}"></i> ${stampLabel}</div>
+                    </div>
+                    <div class="staircase">
+                        <div class="node up">
+                            <span class="node-label">Instalación (subida) · CDMX</span>
+                            <span class="node-val">${f1}</span>
+                            <span class="node-meta">${sube.clave_colaborador || '—'} · ${sube.base || '—'}</span>
+                        </div>
+                        <div class="node ${status === 'finalizado' ? 'down' : 'active-node'}">
+                            <span class="node-label">${status === 'finalizado' ? 'Retiro (bajada) · CDMX' : 'Estado actual'}</span>
+                            <span class="node-val">${f2}</span>
+                            <span class="node-meta">${baja ? ((baja.clave_colaborador || '—') + ' · ' + (baja.base || '—')) : 'Bandeja en unidad activa'}</span>
+                        </div>
+                    </div>
+                    <div class="duration-footer">
+                        <i class="fa-solid fa-hourglass-half"></i> Permanencia: ${duracionStr}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // ============================================================
+        // 10. INICIALIZACIÓN GENERAL DEL MÓDULO
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Manejo de tecla Escape para cerrar modales
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    cerrarModalCambio();
+                    cerrarModalRastreo();
+                }
+            });
+
+            // Autenticación Supabase
+            try {
+                if (window.supabaseAuth && window.supabaseAuth.requireAuth) {
+                    await window.supabaseAuth.requireAuth();
+                    usuarioActual = window.supabaseAuth.profile || (await window.supabaseAuth.getProfile?.());
+                }
+            } catch (err) {
+                console.warn("Auth check warning:", err);
+            }
+
+            // Detección de perfil analista
+            const rol = String(
+                usuarioActual?.Nivel || usuarioActual?.nivel || usuarioActual?.rol || localStorage.getItem('rol') || ''
+            ).trim().toLowerCase();
+
+            esAnalista = (rol === 'analista');
+
+            aplicarSegregacionPerfiles();
+
+            if (!esAnalista) {
+                cargarMovimientos();
+            }
+        });
+
+        // Refresco periódico automático de Movimientos (cada 30s)
+        setInterval(() => {
+            if (!document.hidden && vistaActual === "movimientos" && !esAnalista) {
+                cargarMovimientos();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
