@@ -69,6 +69,28 @@ export const HOJA_REGISTRO_SINIESTRO_CANDIDATOS = [
 ];
 export const HOJA_MONITOREO_CANDIDATOS = ["BA MonitoreoAutobús", "ASJ BA Monitoreo-Gestión de"];
 
+// --- Hojas por empresa (vista de jefe: carga separada GHO / ASJ) -----------
+// Mismas hojas que arriba, pero acotadas a una sola empresa: así, si alguien
+// sube por error el archivo de GHO en la columna de ASJ (o viceversa), el
+// mensaje de error lo deja claro en vez de "adivinar" con el candidato que
+// sea que encuentre primero.
+export const EMPRESAS_WF = [
+  {
+    id: "GHO",
+    nombre: "GHO",
+    hojaSoporteTecnico: "BA Soporte Técnico GHO-Gestión",
+    hojaRegistroSiniestro: "GHO BA Registro del Siniestro",
+    hojaMonitoreo: "BA MonitoreoAutobús",
+  },
+  {
+    id: "ASJ",
+    nombre: "ASJ",
+    hojaSoporteTecnico: "ASJ BA Soporte Técnico-Gestión",
+    hojaRegistroSiniestro: "ASJ BA Registro del siniestro",
+    hojaMonitoreo: "ASJ BA Monitoreo-Gestión de",
+  },
+];
+
 // --- Heurística "¿se compartió el video?" -----------------------------------
 // No hay un campo booleano para esto en Workflow: se deduce de si hay algún
 // link de video cargado Y de si el comentario en "Observaciones para personal

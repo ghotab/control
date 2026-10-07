@@ -16,6 +16,7 @@ import {
   HOJA_REGISTRO_SINIESTRO_CANDIDATOS,
   HOJA_MONITOREO_CANDIDATOS,
   PALABRAS_VIDEO_COMPARTIDO,
+  EMPRESAS_WF,
 } from "./config.js";
 import { actualizarDatosWF, obtenerDatosWF } from "./wf-store.js";
 
@@ -446,10 +447,13 @@ export function esc(s) {
 // UI compartida (dropzone, tarjetas)
 // ============================================================================
 
-function dropzoneHtml(inputId, file, titulo, subtitulo, variante) {
+function dropzoneHtml(inputId, file, titulo, subtitulo, variante, datos = {}) {
   const clases = variante === "alerta" ? "dropzone dropzone-alerta" : "dropzone";
+  const atributosDatos = Object.entries(datos)
+    .map(([k, v]) => ` data-${k}="${esc(v)}"`)
+    .join("");
   return `
-    <label class="${clases}" for="${inputId}" data-dropzone>
+    <label class="${clases}" for="${inputId}" data-dropzone${atributosDatos}>
       <input id="${inputId}" type="file" accept=".xlsx" data-file-input />
       <div class="dropzone-icon">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -512,6 +516,7 @@ function tarjetasHtml(filas, opts = {}) {
                 <span class="pwf-driver">${esc(f.nombre) || "Sin nombre"} ${f.clave ? `· <span class="tabular">${esc(f.clave)}</span>` : ""}</span>
               </div>
               <div class="pwf-card-badges">
+                ${f.empresa ? `<span class="badge muted">${esc(f.empresa)}</span>` : ""}
                 ${opts.mostrarBase ? `<span class="badge muted">${esc(f.base || "Sin base")}</span>` : ""}
                 ${badgeDias(f.diasTranscurridos)}
               </div>
@@ -997,21 +1002,41 @@ function montarVistaBase(root, baseUsuario) {
 // ============================================================================
 
 function montarVistaJefe(root) {
-  const estado = {
-    pendientes: { archivo: null, archivoSiniestro: null, registrosCrudos: null, necesitaSiniestro: false, cargando: false, error: null, filas: null },
-    terminadas: { archivo: null, archivoSiniestro: null, registrosCrudos: null, necesitaSiniestro: false, cargando: false, error: null, filas: null },
-  };
+  function crearEstadoTipo() {
+    return {
+      archivo: null,
+      archivoSiniestro: null,
+      registrosCrudos: null,
+      totalLeidas: undefined,
+      necesitaSiniestro: false,
+      cargando: false,
+      error: null,
+      filas: null,
+      sinAutobus: 0,
+      sinBase: 0,
+    };
+  }
+
+  // Un bloque de carga independiente por empresa (GHO / ASJ) — cada una con
+  // su propio "1. Cargar pendientes" / "2. Cargar terminadas" y su propio
+  // paso obligatorio de Registro del Siniestro. No es obligatorio cargar las
+  // dos: se puede trabajar solo con una y dejar la otra vacía.
+  const estado = {};
+  EMPRESAS_WF.forEach((e) => {
+    estado[e.id] = { pendientes: crearEstadoTipo(), terminadas: crearEstadoTipo() };
+  });
+
   let baseSeleccionada = "TODAS";
   let pestañaActiva = "pendientes";
-  // Pendientes + terminadas ya combinados con el "segundo tipo" (Monitoreo
-  // sin video) — es lo que se usa para pintar KPIs, indicadores y tarjetas,
-  // para que esta página muestre exactamente lo mismo que "Indicadores" y
-  // "Pendientes" en el sidebar.
+  // Pendientes + terminadas de GHO y ASJ, ya combinados con el "segundo tipo"
+  // (Monitoreo sin video) — es lo que se usa para pintar KPIs, indicadores y
+  // tarjetas, para que esta página muestre exactamente lo mismo que
+  // "Indicadores" y "Pendientes" en el sidebar: un solo indicador homogéneo.
   let combinadoActual = { pendientes: [], terminadas: [] };
 
   const TITULOS = {
-    pendientes: { archivo: "1. Cargar pendientes (todas las bases)", sub: "Exportación de Workflow · tareas pendientes" },
-    terminadas: { archivo: "2. Cargar terminadas (todas las bases)", sub: "Exportación de Workflow · tareas terminadas" },
+    pendientes: { archivo: "1. Cargar pendientes", sub: "Exportación de Workflow · tareas pendientes" },
+    terminadas: { archivo: "2. Cargar terminadas", sub: "Exportación de Workflow · tareas terminadas" },
   };
 
   render();
@@ -1019,12 +1044,13 @@ function montarVistaJefe(root) {
   function render() {
     const datosPendientes = combinadoActual.pendientes;
     const datosTerminadas = combinadoActual.terminadas;
-    const hayDatos = estado.pendientes.filas || estado.terminadas.filas;
+    const hayDatos = EMPRESAS_WF.some((e) => estado[e.id].pendientes.filas || estado[e.id].terminadas.filas);
 
     try {
       root.innerHTML = `
-        ${panelCargaHtml("pendientes")}
-        ${panelCargaHtml("terminadas")}
+        <div class="empresas-grid">
+          ${EMPRESAS_WF.map((e) => columnaEmpresaHtml(e)).join("")}
+        </div>
         ${hayDatos ? panelUniversoHtml(datosPendientes, datosTerminadas) : ""}
       `;
       wireEvents();
@@ -1034,11 +1060,26 @@ function montarVistaJefe(root) {
     }
   }
 
-  function panelCargaHtml(tipo) {
-    const st = estado[tipo];
+  function columnaEmpresaHtml(empresa) {
+    const stP = estado[empresa.id].pendientes;
+    const stT = estado[empresa.id].terminadas;
+    const cargados = (stP.filas ? 1 : 0) + (stT.filas ? 1 : 0);
+    return `
+      <div class="empresa-columna">
+        <div class="empresa-columna-head">
+          <span class="empresa-chip">${esc(empresa.nombre)}</span>
+          ${cargados > 0 ? `<span class="badge ok">${cargados === 2 ? "Pendientes y terminadas cargados" : "Cargado"}</span>` : `<span class="badge muted">Sin cargar</span>`}
+        </div>
+        ${panelCargaHtml(empresa, "pendientes")}
+        ${panelCargaHtml(empresa, "terminadas")}
+      </div>`;
+  }
+
+  function panelCargaHtml(empresa, tipo) {
+    const st = estado[empresa.id][tipo];
     const totalCrudo = st.registrosCrudos ? st.registrosCrudos.length : 0;
     const descartadas = st.sinAutobus || 0;
-    const bloqueado = tipo === "terminadas" && estado.pendientes.necesitaSiniestro && !st.archivo;
+    const bloqueado = tipo === "terminadas" && estado[empresa.id].pendientes.necesitaSiniestro && !st.archivo;
 
     if (bloqueado) {
       return `
@@ -1052,8 +1093,9 @@ function montarVistaJefe(root) {
           </div>
           <div class="panel-body">
             <div class="locked-note">
-              Primero completa el <strong>paso obligatorio</strong> que pide el panel de arriba (cargar el
-              archivo de Registro del Siniestro para tus pendientes). En cuanto lo subas, este paso se habilita.
+              Primero completa el <strong>paso obligatorio</strong> que pide el panel de arriba (cargar, para
+              ${esc(empresa.nombre)}, el archivo de Registro del Siniestro de sus pendientes). En cuanto lo subas,
+              este paso se habilita.
             </div>
           </div>
         </div>`;
@@ -1070,21 +1112,23 @@ function montarVistaJefe(root) {
         </div>
         <div class="panel-body">
           ${dropzoneHtml(
-            `input-${tipo}`,
+            `input-${empresa.id}-${tipo}`,
             st.archivo,
-            `Arrastra aquí el archivo de ${tipo}`,
-            `Exportación de Workflow · tareas ${tipo} (.xlsx)`
+            `Arrastra aquí el archivo de ${tipo} ${empresa.nombre}`,
+            `Exportación de Workflow ${empresa.nombre} · tareas ${tipo} (.xlsx)`,
+            undefined,
+            { empresa: empresa.id, tipo, siniestro: "0" }
           )}
           ${st.archivo && !st.error && st.totalLeidas !== undefined
-            ? `<div class="callout info">Archivo leído: <strong>${st.totalLeidas}</strong> fila${st.totalLeidas === 1 ? "" : "s"} encontradas en la hoja de "${tipo}".</div>`
+            ? `<div class="callout info">Archivo leído: <strong>${st.totalLeidas}</strong> fila${st.totalLeidas === 1 ? "" : "s"} encontradas en la hoja de "${tipo}" (${esc(empresa.nombre)}).</div>`
             : ""}
-          ${st.necesitaSiniestro ? bloqueSiniestroHtml(tipo) : ""}
+          ${st.necesitaSiniestro ? bloqueSiniestroHtml(empresa, tipo) : ""}
           ${st.error ? `<div class="callout error">${esc(st.error)}</div>` : ""}
           ${st.cargando ? cargandoHtml() : ""}
           ${
             st.filas && descartadas > 0
               ? `<div class="callout warn">
-                  De ${totalCrudo} filas de "${tipo}" en el archivo, <strong>${descartadas}</strong> no se pudieron
+                  De ${totalCrudo} filas de "${tipo}" (${esc(empresa.nombre)}) en el archivo, <strong>${descartadas}</strong> no se pudieron
                   identificar (sin No. Económico) y no aparecen abajo. Lo más común es que su "ID Ej. Flujo" no se
                   encontró en el archivo de Registro del Siniestro que subiste — confirma que ese archivo incluya
                   <strong>todas las bases</strong> y el periodo correspondiente a estos pendientes.
@@ -1095,8 +1139,8 @@ function montarVistaJefe(root) {
       </div>`;
   }
 
-  function bloqueSiniestroHtml(tipo) {
-    const st = estado[tipo];
+  function bloqueSiniestroHtml(empresa, tipo) {
+    const st = estado[empresa.id][tipo];
     return `
       <div class="subpaso-alerta">
         <div class="subpaso-alerta-head">
@@ -1107,21 +1151,22 @@ function montarVistaJefe(root) {
             </svg>
           </div>
           <div>
-            <h4>Paso obligatorio · falta completar estos ${tipo}</h4>
+            <h4>Paso obligatorio · falta completar estos ${tipo} (${esc(empresa.nombre)})</h4>
             <p>
-              Tu archivo de <strong>${tipo}</strong> trae tareas sin datos capturados todavía. Filtra en Workflow
-              las <strong>tareas terminadas del flujo "Registro del Siniestro"</strong>, expórtalas y cárgalas aquí
-              abajo. <strong>Ojo:</strong> este archivo es distinto al que subirás en el paso "Cargar terminadas" —
-              ese paso se habilita hasta que termines este.
+              Tu archivo de <strong>${tipo} ${esc(empresa.nombre)}</strong> trae tareas sin datos capturados
+              todavía. Filtra en Workflow las <strong>tareas terminadas del flujo "Registro del Siniestro"</strong>
+              de ${esc(empresa.nombre)}, expórtalas y cárgalas aquí abajo. <strong>Ojo:</strong> este archivo es
+              distinto al que subirás en el paso "Cargar terminadas" — ese paso se habilita hasta que termines este.
             </p>
           </div>
         </div>
         ${dropzoneHtml(
-          `input-siniestro-${tipo}`,
+          `input-siniestro-${empresa.id}-${tipo}`,
           st.archivoSiniestro,
-          "Arrastra aquí el archivo de Registro del Siniestro",
-          "Exportación de Workflow del flujo Registro del Siniestro (.xlsx)",
-          "alerta"
+          `Arrastra aquí el archivo de Registro del Siniestro ${empresa.nombre}`,
+          `Exportación de Workflow ${empresa.nombre} del flujo Registro del Siniestro (.xlsx)`,
+          "alerta",
+          { empresa: empresa.id, tipo, siniestro: "1" }
         )}
       </div>`;
   }
@@ -1260,15 +1305,16 @@ function montarVistaJefe(root) {
   }
 
   function wireEvents() {
-    ["pendientes", "terminadas"].forEach((tipo) => {
-      const input = document.getElementById(`input-${tipo}`);
-      if (input) input.addEventListener("change", (e) => { const f = e.target.files[0]; if (f) manejarArchivo(tipo, f); });
-      const inputSin = document.getElementById(`input-siniestro-${tipo}`);
-      if (inputSin) inputSin.addEventListener("change", (e) => { const f = e.target.files[0]; if (f) manejarArchivoSiniestro(tipo, f); });
+    EMPRESAS_WF.forEach((empresa) => {
+      ["pendientes", "terminadas"].forEach((tipo) => {
+        const input = document.getElementById(`input-${empresa.id}-${tipo}`);
+        if (input) input.addEventListener("change", (e) => { const f = e.target.files[0]; if (f) manejarArchivo(empresa, tipo, f); });
+        const inputSin = document.getElementById(`input-siniestro-${empresa.id}-${tipo}`);
+        if (inputSin) inputSin.addEventListener("change", (e) => { const f = e.target.files[0]; if (f) manejarArchivoSiniestro(empresa, tipo, f); });
+      });
     });
 
     document.querySelectorAll("[data-dropzone]").forEach((zona) => {
-      const input = zona.querySelector("[data-file-input]");
       zona.addEventListener("dragover", (e) => { e.preventDefault(); zona.classList.add("drag"); });
       zona.addEventListener("dragleave", () => zona.classList.remove("drag"));
       zona.addEventListener("drop", (e) => {
@@ -1276,10 +1322,11 @@ function montarVistaJefe(root) {
         zona.classList.remove("drag");
         const f = e.dataTransfer?.files?.[0];
         if (!f) return;
-        if (input.id === "input-pendientes") manejarArchivo("pendientes", f);
-        else if (input.id === "input-terminadas") manejarArchivo("terminadas", f);
-        else if (input.id === "input-siniestro-pendientes") manejarArchivoSiniestro("pendientes", f);
-        else if (input.id === "input-siniestro-terminadas") manejarArchivoSiniestro("terminadas", f);
+        const { empresa: empresaId, tipo, siniestro } = zona.dataset;
+        const empresa = EMPRESAS_WF.find((x) => x.id === empresaId);
+        if (!empresa || !tipo) return;
+        if (siniestro === "1") manejarArchivoSiniestro(empresa, tipo, f);
+        else manejarArchivo(empresa, tipo, f);
       });
     });
 
@@ -1291,8 +1338,8 @@ function montarVistaJefe(root) {
     });
   }
 
-  async function manejarArchivo(tipo, file) {
-    const st = estado[tipo];
+  async function manejarArchivo(empresa, tipo, file) {
+    const st = estado[empresa.id][tipo];
     st.archivo = file;
     st.archivoSiniestro = null;
     st.necesitaSiniestro = false;
@@ -1304,8 +1351,8 @@ function montarVistaJefe(root) {
     try {
       const wb = await leerWorkbook(file);
       acumularMonitoreo(wb);
-      const resultado = extraerRegistros(wb, HOJA_SOPORTE_TECNICO_CANDIDATOS);
-      validarExtraccion(resultado, "BA Soporte Técnico GHO-Gestión");
+      const resultado = extraerRegistros(wb, [empresa.hojaSoporteTecnico]);
+      validarExtraccion(resultado, `${empresa.hojaSoporteTecnico} (${empresa.nombre})`);
       const { registros } = resultado;
       st.registrosCrudos = registros;
       st.totalLeidas = registros.length;
@@ -1317,7 +1364,7 @@ function montarVistaJefe(root) {
         render();
         return;
       }
-      await procesarUniverso(tipo, registros);
+      await procesarUniverso(empresa, tipo, registros);
     } catch (err) {
       console.error(err);
       st.error = err.message || "No se pudo procesar el archivo.";
@@ -1326,8 +1373,8 @@ function montarVistaJefe(root) {
     }
   }
 
-  async function manejarArchivoSiniestro(tipo, file) {
-    const st = estado[tipo];
+  async function manejarArchivoSiniestro(empresa, tipo, file) {
+    const st = estado[empresa.id][tipo];
     st.archivoSiniestro = file;
     st.cargando = true;
     st.error = null;
@@ -1336,14 +1383,14 @@ function montarVistaJefe(root) {
     try {
       const wb = await leerWorkbook(file);
       acumularMonitoreo(wb);
-      const resultadoSiniestro = extraerRegistros(wb, HOJA_REGISTRO_SINIESTRO_CANDIDATOS);
-      validarExtraccion(resultadoSiniestro, "GHO BA Registro del Siniestro");
+      const resultadoSiniestro = extraerRegistros(wb, [empresa.hojaRegistroSiniestro]);
+      validarExtraccion(resultadoSiniestro, `${empresa.hojaRegistroSiniestro} (${empresa.nombre})`);
       const { registros: registrosSiniestro } = resultadoSiniestro;
       const indice = {};
       registrosSiniestro.forEach((r) => (indice[r.idEjFlujo] = r));
       const fusionados = st.registrosCrudos.map((r) => (esIncompleto(r) ? fusionarConSiniestro(r, indice[r.idEjFlujo]) : r));
       st.necesitaSiniestro = false;
-      await procesarUniverso(tipo, fusionados);
+      await procesarUniverso(empresa, tipo, fusionados);
     } catch (err) {
       console.error(err);
       st.error = err.message || "No se pudo procesar el archivo de tareas terminadas.";
@@ -1352,11 +1399,11 @@ function montarVistaJefe(root) {
     }
   }
 
-  async function procesarUniverso(tipo, registros) {
-    const st = estado[tipo];
+  async function procesarUniverso(empresa, tipo, registros) {
+    const st = estado[empresa.id][tipo];
     try {
       const { filas, sinAutobus, sinBase } = await enriquecerRegistros(registros);
-      st.filas = filas;
+      st.filas = filas.map((f) => ({ ...f, empresa: empresa.id }));
       st.sinAutobus = sinAutobus;
       st.sinBase = sinBase;
       await publicarEnStore();
@@ -1370,12 +1417,13 @@ function montarVistaJefe(root) {
     }
   }
 
-  /** Publica pendientes + terminadas (con Monitoreo ya cruzado, incluyendo el
-   * "segundo tipo" de pendientes que solo vive en esa hoja) para que
-   * "Indicadores" y "Pendientes" en el sidebar los vean sin cargar nada de nuevo. */
+  /** Publica pendientes + terminadas de GHO y ASJ juntas (con Monitoreo ya
+   * cruzado, incluyendo el "segundo tipo" de pendientes que solo vive en esa
+   * hoja) para que "Indicadores" y "Pendientes" en el sidebar vean un solo
+   * universo homogéneo, sin cargar nada de nuevo. */
   async function publicarEnStore() {
-    const pendientes = estado.pendientes.filas || [];
-    const terminadas = estado.terminadas.filas || [];
+    const pendientes = EMPRESAS_WF.flatMap((e) => estado[e.id].pendientes.filas || []);
+    const terminadas = EMPRESAS_WF.flatMap((e) => estado[e.id].terminadas.filas || []);
     const combinado = await calcularListaCompacta(pendientes, terminadas, monitoreoAcumulado);
     combinadoActual = combinado;
     actualizarDatosWF({

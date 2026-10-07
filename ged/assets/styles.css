@@ -432,6 +432,39 @@ input, select { font-family: inherit; }
 .panel-bloqueado { background: var(--color-bg); }
 .panel-bloqueado .panel-header { opacity: .6; }
 
+/* ---------- Carga por empresa (vista de jefe: columnas GHO / ASJ) ---------- */
+.empresas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 22px;
+}
+.empresa-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: rgba(13, 92, 83, 0.03);
+}
+.empresa-columna .panel { margin: 0; }
+.empresa-columna-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px;
+}
+.empresa-chip {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: .02em;
+  color: var(--color-primary, #0d5c53);
+}
+
 .panel-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .tabs { display: flex; gap: 4px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 9px; padding: 3px; }
