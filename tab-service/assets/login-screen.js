@@ -14,9 +14,20 @@ function qc() {
     // Si es modo DEMO, purgar tokens previos de Supabase para evitar 'Failed to fetch' por tokens expirados
     if (clave.trim().toUpperCase() === "DEMO" && password.trim().toUpperCase() === "DEMO") {
       try {
+        localStorage.removeItem("modo_demo_jefe")
         Object.keys(localStorage).forEach((k) => {
           if (k.startsWith("sb-")) localStorage.removeItem(k)
         })
+      } catch {}
+    }
+
+    if (clave.trim().toUpperCase() === "JEFE" && password.trim().toUpperCase() === "DEMO") {
+      try {
+        localStorage.removeItem("modo_demo")
+        localStorage.setItem("modo_demo_jefe", "true")
+        window.location.hash = "/tecnico/refacciones"
+        window.location.reload()
+        return
       } catch {}
     }
 
@@ -84,7 +95,34 @@ function qc() {
               className: "w-full rounded-lg bg-[var(--color-navy)] py-2.5 font-medium text-white transition-colors hover:bg-[var(--color-navy-light)] disabled:opacity-50",
               children: enviando ? "Entrando…" : "Entrar",
             }),
-            (0, U.jsxs)("p", { className: "pt-1 text-center text-xs text-[var(--color-text-muted)]", children: ["¿Eres operador? Usa ", (0, U.jsx)("button", { type: "button", onClick: () => { setClave("DEMO"); setPassword("DEMO"); }, className: "tabular font-medium underline hover:text-white transition-colors cursor-pointer", children: "DEMO / DEMO" })] }),
+            (0, U.jsxs)("div", {
+              className: "pt-1 flex items-center justify-center gap-3 text-xs text-[var(--color-text-muted)]",
+              children: [
+                (0, U.jsxs)("span", {
+                  children: [
+                    "Operador: ",
+                    (0, U.jsx)("button", {
+                      type: "button",
+                      onClick: () => { setClave("DEMO"); setPassword("DEMO"); },
+                      className: "tabular font-medium underline hover:text-white transition-colors cursor-pointer",
+                      children: "DEMO / DEMO"
+                    })
+                  ]
+                }),
+                (0, U.jsx)("span", { children: "·" }),
+                (0, U.jsxs)("span", {
+                  children: [
+                    "Vista Jefe: ",
+                    (0, U.jsx)("button", {
+                      type: "button",
+                      onClick: () => { setClave("JEFE"); setPassword("DEMO"); },
+                      className: "tabular font-medium underline hover:text-white transition-colors cursor-pointer",
+                      children: "JEFE / DEMO"
+                    })
+                  ]
+                })
+              ]
+            }),
           ],
         }),
       ] }),

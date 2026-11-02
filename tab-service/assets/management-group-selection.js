@@ -122,6 +122,11 @@ void (async () => {
     const codigoLogin = await respuestaLogin.text()
     if (!codigoLogin.includes("function qc()")) throw new Error("No se encontró la vista de acceso esperada")
 
+    const respuestaReserva = await fetch(new URL(`./reserva-modal.js?t=${Date.now()}`, import.meta.url))
+    if (!respuestaReserva.ok) throw new Error(`No se pudo cargar Gestión de Reservas (${respuestaReserva.status})`)
+    const codigoReserva = await respuestaReserva.text()
+    if (!codigoReserva.includes("function BotonGestionReservas(")) throw new Error("No se encontró el componente Gestión de Reservas esperado")
+
     const patronLogin = /function qc\(\)\{[\s\S]*?\}async function Jc\(/
     if (!patronLogin.test(codigo)) throw new Error("No se encontró el login esperado en el bundle")
     codigo = codigo.replace(patronLogin, `${codigoLogin.trim()}\nasync function Jc(`)
@@ -133,10 +138,10 @@ void (async () => {
 
     const marcadorGestion = "_l={to:`/tecnico/gestor`,label:`Gestión`};function vl(){"
     if (!codigo.includes(marcadorGestion)) throw new Error("No se encontró la navegación de Gestión esperada")
-    codigo = codigo.replace(marcadorGestion, "_l={to:`/tecnico/gestor`,label:`Gestión`},_i={to:`/tecnico/inventario`,label:`Inventario`};function vl(){")
+    codigo = codigo.replace(marcadorGestion, "_l={to:`/tecnico/gestor`,label:`Gestión`},_i={to:`/tecnico/inventario`,label:`Inventario`},_b={to:`/tecnico/bandejas`,label:`Bandejas`};function vl(){")
 
     const patronNavegacion = "let{usuario:e,alcance:t,logout:n}=Uc(),r=t===`gestor`?[...gl,_l]:gl;"
-    const navegacionAuxiliar = "let{usuario:e,alcance:t,logout:n}=Uc(),r=e?.Nivel===`auxiliar`?[gl[0],_l,_i]:t===`gestor`?[...gl,_l,...(e?.Nivel===`analista`?[]:[_i])]:e?.Nivel===`analista`?gl:[...gl,_i];"
+    const navegacionAuxiliar = "let{usuario:e,alcance:t,logout:n}=Uc(),r=e?.Nivel===`auxiliar`?[gl[0],_l,_i,_b]:t===`gestor`?[...gl,_l,...(e?.Nivel===`analista`?[]:[_i]),_b]:e?.Nivel===`analista`?[...gl,_b]:[...gl,_i,_b];"
     if (!codigo.includes(patronNavegacion)) throw new Error("No se encontr\u00f3 la navegaci\u00f3n esperada")
     codigo = codigo.replace(patronNavegacion, navegacionAuxiliar)
 
@@ -146,10 +151,15 @@ void (async () => {
 
     const marcadorRutaGestion = "(0,U.jsx)(zt,{path:`gestor`,element:(0,U.jsx)(AG,{})})"
     if (!codigo.includes(marcadorRutaGestion)) throw new Error("No se encontró la ruta de Gestión esperada")
-    codigo = codigo.replace(marcadorRutaGestion, `${marcadorRutaGestion},(0,U.jsx)(zt,{path:\`inventario\`,element:(0,U.jsx)(InventarioEquipos,{})})`)
+    codigo = codigo.replace(marcadorRutaGestion, `${marcadorRutaGestion},(0,U.jsx)(zt,{path:\`inventario\`,element:(0,U.jsx)(InventarioEquipos,{})}),(0,U.jsx)(zt,{path:\`bandejas\`,element:(0,U.jsx)(BandejasModulo,{})})`)
+    const componenteBandejas = "function BandejasModulo(){return (0,U.jsx)(\"iframe\",{src:\"/cctv/bandejas/index.html\",title:\"Bandejas\",className:\"w-full border-0\",style:{height:\"calc(100vh - 64px)\",minHeight:\"600px\",background:\"transparent\"}})}"
     const marcadorRouter = "function NG(){"
     if (!codigo.includes(marcadorRouter)) throw new Error("No se encontró el inicio del router esperado")
-    codigo = codigo.replace(marcadorRouter, `${codigoInventario}\n${marcadorRouter}`)
+    codigo = codigo.replace(marcadorRouter, `${codigoInventario}\n${componenteBandejas}\n${codigoReserva}\n${marcadorRouter}`)
+
+    const patronBotonExportar = /r&&\(0,U\.jsx\)\(`button`,{onClick:F,disabled:j,className:`rounded-lg border border-\[var\(--color-border\)\] text-\[var\(--color-text\)\] text-sm font-medium px-4 py-2 disabled:opacity-50`,children:j\?`Exportando[\s\S]`:`Exportar CSV`}\)/
+    if (!patronBotonExportar.test(codigo)) throw new Error("No se encontró el botón de exportación en Refacciones")
+    codigo = codigo.replace(patronBotonExportar, (match) => `r&&(0,U.jsx)(BotonGestionReservas,{alActualizar:P}),${match}`)
 
     const patronExportacion = /async function qW\(\)\{[\s\S]*?\}async function JW\(/
     const consultaExportacion = codigo.match(patronExportacion)
@@ -163,6 +173,15 @@ void (async () => {
       throw new Error("No se pudo limitar la exportaci\u00f3n a solicitudes autorizadas")
     }
     codigo = codigo.replace(consultaExportacion[0], consultaAutorizadas)
+
+    const patronDemoAuth = "if(localStorage.getItem(Bc)===`true`){e&&n(`demo`);return}"
+    if (codigo.includes(patronDemoAuth)) {
+      codigo = codigo.replace(
+        patronDemoAuth,
+        "if(localStorage.getItem(`modo_demo_jefe`)===`true`){e&&(i({Nivel:`jefe`,Nombre:`Jefe Demostraci\u00f3n`,Clave:`JEFE`}),n(`autenticado`));return}" + patronDemoAuth
+      )
+    }
+    codigo = codigo.replace("localStorage.removeItem(Bc)", "localStorage.removeItem(Bc),localStorage.removeItem(`modo_demo_jefe`)")
 
     const urlOriginal = JSON.stringify(bundleUrl.href)
     codigo = codigo.replaceAll(
