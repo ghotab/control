@@ -248,74 +248,34 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
   }
 
   return (0, U.jsx)("div", {
-    style: {
-      position: "fixed",
-      inset: 0,
-      zIndex: 9999,
-      backgroundColor: "rgba(11, 18, 32, 0.70)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "16px",
-      boxSizing: "border-box"
-    },
+    className: "fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-hidden",
     onClick: (e) => {
       if (e.target === e.currentTarget) alCerrar()
     },
     children: (0, U.jsxs)("div", {
-      style: {
-        position: "relative",
-        width: "100%",
-        maxWidth: "1100px",
-        height: "min(88vh, 820px)",
-        maxHeight: "calc(100vh - 32px)",
-        backgroundColor: "#ffffff",
-        borderRadius: "16px",
-        border: "1px solid #e3e6eb",
-        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden"
-      },
+      className: "relative w-full max-w-5xl bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[850px]",
       children: [
-        // Header (Fijo)
+        // Header
         (0, U.jsxs)("div", {
-          style: {
-            padding: "16px 24px",
-            backgroundColor: "#0b1220",
-            color: "#ffffff",
-            borderBottom: "1px solid #e3e6eb",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0
-          },
+          className: "flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-navy)] text-white flex-shrink-0",
           children: [
             (0, U.jsxs)("div", {
               children: [
                 (0, U.jsxs)("div", {
-                  style: { display: "flex", alignItems: "center", gap: "10px" },
+                  className: "flex items-center gap-2",
                   children: [
                     (0, U.jsx)("h3", {
-                      style: { fontSize: "18px", fontWeight: 600, color: "#ffffff", margin: 0 },
+                      className: "font-[var(--font-display)] text-lg font-semibold",
                       children: "Consulta y Gestión de Reservas"
                     }),
                     (0, U.jsx)("span", {
-                      style: {
-                        backgroundColor: "rgba(15, 158, 142, 0.25)",
-                        color: "#2dd4bf",
-                        border: "1px solid rgba(45, 212, 191, 0.4)",
-                        borderRadius: "6px",
-                        padding: "2px 8px",
-                        fontSize: "11px",
-                        fontWeight: 600
-                      },
+                      className: "px-2 py-0.5 rounded text-[11px] font-medium bg-[var(--color-teal)]/20 text-[var(--color-teal)] border border-[var(--color-teal)]/40",
                       children: "Jefe / Gerente"
                     })
                   ]
                 }),
                 (0, U.jsx)("p", {
-                  style: { fontSize: "12px", color: "rgba(255,255,255,0.7)", margin: "4px 0 0 0" },
+                  className: "text-xs text-white/70 mt-0.5",
                   children: "Consulta el estatus de cada material por número de reserva y revierte manualmente sus estados si se cancela."
                 })
               ]
@@ -323,20 +283,10 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
             (0, U.jsx)("button", {
               type: "button",
               onClick: alCerrar,
-              style: {
-                borderRadius: "8px",
-                padding: "8px",
-                color: "rgba(255,255,255,0.7)",
-                backgroundColor: "transparent",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              },
+              className: "rounded-lg p-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer",
               title: "Cerrar ventana",
               children: (0, U.jsx)("svg", {
-                style: { width: "20px", height: "20px" },
+                className: "w-5 h-5",
                 fill: "none",
                 stroke: "currentColor",
                 strokeWidth: "2",
@@ -351,17 +301,9 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
           ]
         }),
 
-        // Top Controls: Buscador + Reservas recientes + Alertas (Fijo)
+        // Top Controls: Buscador + Reservas recientes + Alertas (fijos arriba)
         (0, U.jsxs)("div", {
-          style: {
-            padding: "16px 24px",
-            borderBottom: "1px solid #e3e6eb",
-            backgroundColor: "#f8fafc",
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px"
-          },
+          className: "px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-bg)]/40 flex-shrink-0 space-y-3",
           children: [
             // Search Input
             (0, U.jsxs)("form", {
@@ -369,45 +311,23 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
                 e.preventDefault()
                 ejecutarBusqueda()
               },
-              style: { display: "flex", gap: "10px", alignItems: "center" },
+              className: "flex gap-2 items-center",
               children: [
                 (0, U.jsx)("div", {
-                  style: { position: "relative", flex: 1 },
+                  className: "relative flex-1",
                   children: (0, U.jsx)("input", {
                     type: "text",
                     value: busqueda,
                     onChange: (e) => setBusqueda(e.target.value),
                     placeholder: "Captura o pega el número de reserva (ej. 1002345)...",
                     autoFocus: true,
-                    style: {
-                      width: "100%",
-                      padding: "10px 16px",
-                      fontSize: "14px",
-                      borderRadius: "8px",
-                      border: "1px solid #cbd5e1",
-                      backgroundColor: "#ffffff",
-                      color: "#1a2332",
-                      outline: "none",
-                      boxSizing: "border-box",
-                      fontFamily: "inherit"
-                    }
+                    className: "tabular w-full rounded-lg border border-[var(--color-border)] px-3.5 py-2 text-sm outline-none focus:border-[var(--color-teal)] bg-white text-[var(--color-text)]"
                   })
                 }),
                 (0, U.jsx)("button", {
                   type: "submit",
                   disabled: cargando || !busqueda.trim(),
-                  style: {
-                    padding: "10px 22px",
-                    borderRadius: "8px",
-                    backgroundColor: "#0b1220",
-                    color: "#ffffff",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    border: "none",
-                    cursor: cargando || !busqueda.trim() ? "not-allowed" : "pointer",
-                    opacity: cargando || !busqueda.trim() ? 0.6 : 1,
-                    whiteSpace: "nowrap"
-                  },
+                  className: "rounded-lg bg-[var(--color-navy)] text-white text-sm font-medium px-5 py-2 hover:bg-[var(--color-navy-light)] transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer",
                   children: cargando ? "Buscando…" : "Buscar Reserva"
                 }),
                 reservaActual && (0, U.jsx)("button", {
@@ -418,17 +338,7 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
                     setMateriales([])
                     setMensaje(null)
                   },
-                  style: {
-                    padding: "10px 18px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    backgroundColor: "#ffffff",
-                    color: "#64748b",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap"
-                  },
+                  className: "rounded-lg border border-[var(--color-border)] text-[var(--color-text-muted)] text-sm font-medium px-3 py-2 hover:bg-[var(--color-bg)] transition-colors cursor-pointer",
                   children: "Limpiar"
                 })
               ]
@@ -436,160 +346,98 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
 
             // Reservas recientes sugeridas
             reservasRecientes.length > 0 && (0, U.jsxs)("div", {
-              style: { display: "flex", flexDirection: "column", gap: "6px" },
+              className: "space-y-1.5",
               children: [
                 (0, U.jsx)("p", {
-                  style: {
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    color: "#64748b",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    margin: 0
-                  },
+                  className: "text-[11px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider",
                   children: "Reservas recientes registradas:"
                 }),
                 (0, U.jsx)("div", {
-                  style: {
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "8px",
-                    maxHeight: "85px",
-                    overflowY: "auto",
-                    padding: "8px 10px",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "10px",
-                    border: "1px solid #e2e8f0"
-                  },
-                  children: reservasRecientes.slice(0, 15).map((r) => {
-                    const estaSeleccionada = reservaActual === r.numero
-                    return (0, U.jsxs)("button", {
+                  className: "flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1 bg-white/70 rounded-xl border border-[var(--color-border)]/60",
+                  children: reservasRecientes.slice(0, 15).map((r) => (
+                    (0, U.jsxs)("button", {
                       key: r.numero,
                       type: "button",
                       onClick: () => {
                         setBusqueda(r.numero)
                         ejecutarBusqueda(r.numero)
                       },
-                      style: {
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "5px 12px",
-                        borderRadius: "8px",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        border: estaSeleccionada ? "1px solid #0b1220" : "1px solid #e2e8f0",
-                        backgroundColor: estaSeleccionada ? "#0b1220" : "#f8fafc",
-                        color: estaSeleccionada ? "#ffffff" : "#1a2332",
-                        fontWeight: estaSeleccionada ? 600 : 500,
-                        transition: "all 0.15s ease"
-                      },
+                      className: `tabular text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                        reservaActual === r.numero
+                          ? "bg-[var(--color-navy)] text-white border-[var(--color-navy)] font-semibold shadow-sm"
+                          : "border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-teal)]"
+                      }`,
                       children: [
-                        (0, U.jsx)("span", { style: { fontFamily: "JetBrains Mono, monospace" }, children: r.numero }),
+                        (0, U.jsx)("span", { children: r.numero }),
                         (0, U.jsxs)("span", {
-                          style: {
-                            padding: "2px 7px",
-                            borderRadius: "9999px",
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            backgroundColor: estaSeleccionada ? "rgba(255,255,255,0.2)" : "#e2e8f0",
-                            color: estaSeleccionada ? "#ffffff" : "#64748b"
-                          },
+                          className: `text-[10px] px-1.5 py-0.2 rounded-full ${
+                            reservaActual === r.numero ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--color-text-muted)]"
+                          }`,
                           children: [r.total, " mat."]
                         })
                       ]
                     })
-                  })
+                  ))
                 })
               ]
             }),
 
             // Mensajes de alerta
             mensaje && (0, U.jsx)("div", {
-              style: {
-                padding: "10px 16px",
-                borderRadius: "8px",
-                fontSize: "13px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                backgroundColor: mensaje.tipo === "ok" ? "#e6f5f3" : mensaje.tipo === "error" ? "#fbe7e7" : "#fcf1dd",
-                color: mensaje.tipo === "ok" ? "#0f9e8e" : mensaje.tipo === "error" ? "#d63b3b" : "#c9820a",
-                border: `1px solid ${mensaje.tipo === "ok" ? "rgba(15,158,142,0.3)" : mensaje.tipo === "error" ? "rgba(214,59,59,0.3)" : "rgba(201,130,10,0.3)"}`
-              },
+              className: `text-xs rounded-lg px-3.5 py-2.5 flex items-center justify-between ${
+                mensaje.tipo === "ok"
+                  ? "bg-[var(--color-teal-bg)] text-[var(--color-teal)] border border-[var(--color-teal)]/30"
+                  : mensaje.tipo === "error"
+                  ? "bg-[var(--color-danger-bg)] text-[var(--color-danger)] border border-[var(--color-danger)]/30"
+                  : "bg-[var(--color-amber-bg)] text-[var(--color-amber)] border border-[var(--color-amber)]/30"
+              }`,
               children: (0, U.jsx)("span", { children: mensaje.texto })
             })
           ]
         }),
 
-        // Body: Scrollable Material Content
+        // Body: Contenido con scroll independiente
         (0, U.jsxs)("div", {
-          style: {
-            padding: "20px 24px",
-            overflowY: "auto",
-            flex: 1,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px"
-          },
+          className: "p-6 space-y-4 overflow-y-auto flex-1 min-h-0",
           children: [
             // Loading state
             cargando && (0, U.jsx)("div", {
-              style: { padding: "48px 0", textAlign: "center", color: "#64748b", fontSize: "14px" },
+              className: "py-16 text-center text-sm text-[var(--color-text-muted)] space-y-2",
               children: (0, U.jsx)("p", { children: "Consultando materiales de la reserva en base de datos…" })
             }),
 
             // Estado vacío inicial
             !cargando && !reservaActual && (0, U.jsxs)("div", {
-              style: { padding: "48px 20px", textAlign: "center", color: "#64748b", display: "flex", flexDirection: "column", gap: "8px" },
+              className: "py-16 text-center space-y-2 text-[var(--color-text-muted)]",
               children: [
-                (0, U.jsx)("p", { style: { fontSize: "15px", fontWeight: 600, color: "#334155", margin: 0 }, children: "Selecciona una reserva reciente o ingresa un número arriba para consultar sus materiales." }),
-                (0, U.jsx)("p", { style: { fontSize: "13px", margin: 0 }, children: "Podrás cambiar el estatus de cada material individualmente o cancelar la reserva completa." })
+                (0, U.jsx)("p", { className: "text-sm font-medium", children: "Selecciona una reserva reciente o ingresa un número arriba para consultar sus materiales." }),
+                (0, U.jsx)("p", { className: "text-xs", children: "Podrás cambiar el estatus de cada material individualmente o cancelar la reserva completa." })
               ]
             }),
 
             // Detalle de la reserva consultada
             !cargando && reservaActual && materiales.length > 0 && (0, U.jsxs)("div", {
-              style: { display: "flex", flexDirection: "column", gap: "16px" },
+              className: "space-y-4",
               children: [
                 // Barra de control de la reserva
                 (0, U.jsxs)("div", {
-                  style: {
-                    padding: "16px 20px",
-                    backgroundColor: "#f8fafc",
-                    borderRadius: "12px",
-                    border: "1px solid #e2e8f0",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: "12px"
-                  },
+                  className: "flex items-center justify-between flex-wrap gap-3 p-4 bg-[var(--color-bg)] rounded-xl border border-[var(--color-border)]",
                   children: [
                     (0, U.jsxs)("div", {
                       children: [
                         (0, U.jsxs)("div", {
-                          style: { display: "flex", alignItems: "center", gap: "8px" },
+                          className: "flex items-center gap-2",
                           children: [
-                            (0, U.jsx)("span", { style: { fontSize: "12px", color: "#64748b", textTransform: "uppercase", fontWeight: 600 }, children: "Reserva:" }),
-                            (0, U.jsx)("span", { style: { fontFamily: "JetBrains Mono, monospace", fontSize: "17px", fontWeight: 700, color: "#0f172a" }, children: reservaActual }),
+                            (0, U.jsx)("span", { className: "text-xs text-[var(--color-text-muted)] uppercase font-semibold", children: "Reserva:" }),
+                            (0, U.jsx)("span", { className: "font-[var(--font-mono)] text-base font-bold text-[var(--color-text)]", children: reservaActual }),
                             (0, U.jsxs)("span", {
-                              style: {
-                                marginLeft: "10px",
-                                padding: "3px 10px",
-                                borderRadius: "9999px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                backgroundColor: "#eff6ff",
-                                color: "#1d4ed8"
-                              },
+                              className: "ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700",
                               children: [materiales.length, " ", materiales.length === 1 ? "material" : "materiales"]
                             })
                           ]
                         }),
                         (0, U.jsxs)("p", {
-                          style: { fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" },
+                          className: "text-xs text-[var(--color-text-muted)] mt-1",
                           children: [
                             "Sociedad: ",
                             materiales[0]?.sociedad || "-",
@@ -603,24 +451,10 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
                       type: "button",
                       onClick: cancelarTodaLaReserva,
                       disabled: guardandoId !== null,
-                      style: {
-                        padding: "9px 18px",
-                        borderRadius: "8px",
-                        border: "1px solid #d63b3b",
-                        backgroundColor: "#ffffff",
-                        color: "#d63b3b",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        cursor: guardandoId !== null ? "not-allowed" : "pointer",
-                        opacity: guardandoId !== null ? 0.5 : 1,
-                        transition: "all 0.15s ease"
-                      },
+                      className: "rounded-lg border border-[var(--color-danger)] text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] text-xs font-medium px-4 py-2 transition-colors disabled:opacity-50 flex items-center gap-1.5",
                       children: [
                         (0, U.jsx)("svg", {
-                          style: { width: "16px", height: "16px" },
+                          className: "w-4 h-4",
                           fill: "none",
                           stroke: "currentColor",
                           strokeWidth: "2",
@@ -639,39 +473,26 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
 
                 // Tabla de materiales
                 (0, U.jsx)("div", {
-                  style: {
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    backgroundColor: "#ffffff",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-                  },
+                  className: "border border-[var(--color-border)] rounded-xl overflow-hidden bg-white shadow-sm",
                   children: (0, U.jsx)("div", {
-                    style: { overflowX: "auto" },
+                    className: "overflow-x-auto",
                     children: (0, U.jsxs)("table", {
-                      style: { width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "13px" },
+                      className: "w-full text-left text-xs",
                       children: [
                         (0, U.jsx)("thead", {
                           children: (0, U.jsxs)("tr", {
-                            style: {
-                              borderBottom: "1px solid #e2e8f0",
-                              backgroundColor: "#f1f5f9",
-                              color: "#475569",
-                              fontSize: "11px",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.05em"
-                            },
+                            className: "border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 text-[var(--color-text-muted)] uppercase tracking-wider font-semibold",
                             children: [
-                              (0, U.jsx)("th", { style: { padding: "12px 18px" }, children: "Folio / Unidad" }),
-                              (0, U.jsx)("th", { style: { padding: "12px 18px" }, children: "Componente" }),
-                              (0, U.jsx)("th", { style: { padding: "12px 18px" }, children: "Estatus Actual" }),
-                              (0, U.jsx)("th", { style: { padding: "12px 18px" }, children: "Revertir / Cambiar Estatus" }),
-                              (0, U.jsx)("th", { style: { padding: "12px 18px", textAlign: "right" }, children: "Acción" })
+                              (0, U.jsx)("th", { className: "px-3.5 py-3", children: "Folio / Unidad" }),
+                              (0, U.jsx)("th", { className: "px-3.5 py-3", children: "Componente" }),
+                              (0, U.jsx)("th", { className: "px-3.5 py-3", children: "Estatus Actual" }),
+                              (0, U.jsx)("th", { className: "px-3.5 py-3", children: "Revertir / Cambiar Estatus" }),
+                              (0, U.jsx)("th", { className: "px-3.5 py-3 text-right", children: "Acción" })
                             ]
                           })
                         }),
                         (0, U.jsx)("tbody", {
+                          className: "divide-y divide-[var(--color-border)]",
                           children: materiales.map((mat) => {
                             const config = edicion[mat.id] || { nuevoEstado: mat.estado, limpiarReserva: false }
                             const hayCambio = config.nuevoEstado !== mat.estado || config.limpiarReserva
@@ -679,42 +500,24 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
 
                             return (0, U.jsxs)("tr", {
                               key: mat.id,
-                              style: { borderBottom: "1px solid #f1f5f9", transition: "background-color 0.15s ease" },
+                              className: "hover:bg-[var(--color-bg)]/40 transition-colors",
                               children: [
                                 // Folio & Autobús
                                 (0, U.jsxs)("td", {
-                                  style: { padding: "14px 18px", whiteSpace: "nowrap" },
+                                  className: "px-3.5 py-3 whitespace-nowrap",
                                   children: [
-                                    (0, U.jsx)("div", {
-                                      style: { fontFamily: "JetBrains Mono, monospace", fontWeight: 600, color: "#0f172a", fontSize: "13px" },
-                                      children: mat.folio
-                                    }),
-                                    (0, U.jsxs)("div", {
-                                      style: { fontSize: "12px", color: "#64748b", fontFamily: "JetBrains Mono, monospace", marginTop: "2px" },
-                                      children: ["Unidad: ", mat.autobus_numero]
-                                    })
+                                    (0, U.jsx)("div", { className: "tabular font-semibold text-[var(--color-text)]", children: mat.folio }),
+                                    (0, U.jsxs)("div", { className: "text-[11px] text-[var(--color-text-muted)] tabular", children: ["Unidad: ", mat.autobus_numero] })
                                   ]
                                 }),
 
                                 // Componente
                                 (0, U.jsxs)("td", {
-                                  style: { padding: "14px 18px" },
+                                  className: "px-3.5 py-3",
                                   children: [
-                                    (0, U.jsx)("div", {
-                                      style: { fontWeight: 500, color: "#1e293b", fontSize: "13px", lineHeight: "1.4" },
-                                      children: mat.catalogo_componentes?.nombre || "-"
-                                    }),
+                                    (0, U.jsx)("div", { className: "font-medium text-[var(--color-text)] line-clamp-1", children: mat.catalogo_componentes?.nombre || "-" }),
                                     mat.catalogo_componentes?.clave_material && (0, U.jsxs)("div", {
-                                      style: {
-                                        display: "inline-block",
-                                        fontSize: "11px",
-                                        color: "#64748b",
-                                        backgroundColor: "#f1f5f9",
-                                        padding: "2px 6px",
-                                        borderRadius: "4px",
-                                        fontFamily: "JetBrains Mono, monospace",
-                                        marginTop: "4px"
-                                      },
+                                      className: "text-[10px] text-[var(--color-text-muted)] tabular font-mono",
                                       children: ["Clave: ", mat.catalogo_componentes.clave_material]
                                     })
                                   ]
@@ -722,53 +525,32 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
 
                                 // Estatus Actual
                                 (0, U.jsx)("td", {
-                                  style: { padding: "14px 18px", whiteSpace: "nowrap" },
+                                  className: "px-3.5 py-3 whitespace-nowrap",
                                   children: (0, U.jsx)(pG, { estado: mat.estado })
                                 }),
 
                                 // Revertir / Cambiar Estatus
                                 (0, U.jsxs)("td", {
-                                  style: { padding: "14px 18px" },
+                                  className: "px-3.5 py-3",
                                   children: [
                                     (0, U.jsx)("select", {
                                       value: config.nuevoEstado,
                                       onChange: (e) => actualizarEstadoItem(mat.id, e.target.value),
                                       disabled: guardandoEste || guardandoId === "todos",
-                                      style: {
-                                        width: "100%",
-                                        minWidth: "220px",
-                                        padding: "8px 12px",
-                                        fontSize: "12px",
-                                        borderRadius: "8px",
-                                        border: "1px solid #cbd5e1",
-                                        backgroundColor: "#ffffff",
-                                        color: "#1e293b",
-                                        outline: "none",
-                                        cursor: "pointer",
-                                        boxSizing: "border-box"
-                                      },
+                                      className: "w-full max-w-[210px] rounded-lg border border-[var(--color-border)] px-2 py-1.5 text-xs bg-white text-[var(--color-text)] focus:border-[var(--color-teal)] outline-none",
                                       children: LISTA_ESTADOS_RESERVA.map((est) => (
                                         (0, U.jsx)("option", { value: est, children: est }, est)
                                       ))
                                     }),
                                     (0, U.jsxs)("label", {
-                                      style: {
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                        marginTop: "8px",
-                                        fontSize: "12px",
-                                        color: "#64748b",
-                                        cursor: "pointer",
-                                        userSelect: "none"
-                                      },
+                                      className: "flex items-center gap-1.5 mt-1 text-[11px] text-[var(--color-text-muted)] cursor-pointer select-none",
                                       children: [
                                         (0, U.jsx)("input", {
                                           type: "checkbox",
                                           checked: config.limpiarReserva,
                                           onChange: (e) => actualizarLimpiarReservaItem(mat.id, e.target.checked),
                                           disabled: guardandoEste || guardandoId === "todos",
-                                          style: { width: "16px", height: "16px", cursor: "pointer", accentColor: "#0b1220" }
+                                          className: "rounded border-gray-300 text-[var(--color-navy)] focus:ring-0"
                                         }),
                                         (0, U.jsx)("span", { children: "Quitar número de reserva" })
                                       ]
@@ -778,23 +560,16 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
 
                                 // Botón Guardar individual
                                 (0, U.jsx)("td", {
-                                  style: { padding: "14px 18px", whiteSpace: "nowrap", textAlign: "right" },
+                                  className: "px-3.5 py-3 whitespace-nowrap text-right",
                                   children: (0, U.jsx)("button", {
                                     type: "button",
                                     onClick: () => guardarCambioItem(mat),
                                     disabled: !hayCambio || guardandoEste || guardandoId !== null,
-                                    style: {
-                                      padding: "8px 18px",
-                                      borderRadius: "8px",
-                                      fontSize: "12px",
-                                      fontWeight: 600,
-                                      border: "none",
-                                      cursor: hayCambio && !guardandoEste && guardandoId === null ? "pointer" : "not-allowed",
-                                      backgroundColor: hayCambio ? "#0b1220" : "#f1f5f9",
-                                      color: hayCambio ? "#ffffff" : "#94a3b8",
-                                      boxShadow: hayCambio ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
-                                      transition: "all 0.15s ease"
-                                    },
+                                    className: `px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                      hayCambio
+                                        ? "bg-[var(--color-navy)] text-white hover:bg-[var(--color-navy-light)] shadow-sm cursor-pointer"
+                                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+                                    }`,
                                     children: guardandoEste ? "Guardando…" : "Aplicar"
                                   })
                                 })
@@ -811,19 +586,9 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
           ]
         }),
 
-        // Footer (Fijo)
+        // Footer
         (0, U.jsxs)("div", {
-          style: {
-            padding: "14px 24px",
-            borderTop: "1px solid #e3e6eb",
-            backgroundColor: "#f8fafc",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: "12px",
-            color: "#64748b",
-            flexShrink: 0
-          },
+          className: "px-6 py-3 border-t border-[var(--color-border)] bg-[var(--color-bg)]/50 flex items-center justify-between text-xs text-[var(--color-text-muted)] flex-shrink-0",
           children: [
             (0, U.jsx)("span", {
               children: "Al revertir un material a 'Autorizada' y quitar la reserva, volverá a estar disponible en Gestión de Almacén."
@@ -831,17 +596,7 @@ function ModalGestionReservas({ alCerrar, alActualizar }) {
             (0, U.jsx)("button", {
               type: "button",
               onClick: alCerrar,
-              style: {
-                padding: "8px 22px",
-                borderRadius: "8px",
-                border: "1px solid #cbd5e1",
-                backgroundColor: "#ffffff",
-                color: "#1a2332",
-                fontSize: "13px",
-                fontWeight: 500,
-                cursor: "pointer",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-              },
+              className: "rounded-lg border border-[var(--color-border)] bg-white px-4 py-1.5 text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors cursor-pointer",
               children: "Cerrar"
             })
           ]

@@ -345,7 +345,7 @@ function InventarioEquipos() {
 
   function validarRegistro() {
     if (!registro) return "Selecciona un autobús."
-    if (aplicaRegular && registro.tiene_boletera && registro.boletera_sistema_operativo === "Otro" && !registro.boletera_sistema_operativo_otro.trim()) return "Especifica el sistema operativo de la boletera."
+    if (aplicaBoletera && registro.tiene_boletera && registro.boletera_sistema_operativo === "Otro" && !registro.boletera_sistema_operativo_otro.trim()) return "Especifica el sistema operativo de la boletera."
     if (aplicaCctv && registro.tiene_cctv && registro.cctv_dvr === "Otro" && !registro.cctv_dvr_otro.trim()) return "Especifica el DVR instalado."
     if (aplicaCctv && registro.tiene_cctv && registro.cctv_modulo_sim && registro.cctv_sim_instalada) {
       if (!registro.cctv_operadora || !registro.cctv_icc || !inventarioIccValido(registro.cctv_icc)) return "Revisa la operadora y el ICC del CCTV (19 o 20 caracteres alfanuméricos)."
@@ -359,6 +359,7 @@ function InventarioEquipos() {
   }
 
   function limpiarCamposDesactivados(payload, aplicarBoletera, aplicarCctv, aplicarTpv, aplicarConectividad, aplicarTableta, aplicarInteligente) {
+    if (!aplicarBoletera) payload.tiene_boletera = false
     if (!aplicarBoletera || !payload.tiene_boletera) {
       payload.boletera_sistema_operativo = null
       payload.boletera_sistema_operativo_otro = null
@@ -432,7 +433,7 @@ function InventarioEquipos() {
       const plus = ["plus", "plus doble piso"].includes(servicio)
       const payload = limpiarCamposDesactivados(
         { ...registro },
-        regular,
+        regular || plus,
         regular || plus,
         regular,
         regular || plus,
@@ -534,6 +535,7 @@ function InventarioEquipos() {
   const servicio = inventarioNormalizarTexto(busSeleccionado?.servicio)
   const aplicaRegular = ["regular", "suburbano"].includes(servicio)
   const aplicaPlus = ["plus", "plus doble piso"].includes(servicio)
+  const aplicaBoletera = aplicaRegular || aplicaPlus
   const aplicaCctv = aplicaRegular || aplicaPlus
   const catalogoPosiciones = catalogoCctv
     .filter((item) => item.categoria === "posicion_camara")
@@ -917,7 +919,7 @@ function InventarioEquipos() {
             ],
           }),
           !aplicaRegular && !aplicaPlus && (0, U.jsx)("p", { className: "rounded-lg bg-[var(--color-amber-bg)] px-3 py-2 text-sm text-[var(--color-amber)]", children: "El servicio de esta unidad no corresponde a las categorías configuradas para el inventario." }),
-          aplicaRegular && (0, U.jsx)(InventarioSeccion, { titulo: "Boletera", children: (0, U.jsxs)("div", { className: "space-y-3", children: [
+          aplicaBoletera && (0, U.jsx)(InventarioSeccion, { titulo: "Boletera", children: (0, U.jsxs)("div", { className: "space-y-3", children: [
             check("Tiene boletera", "tiene_boletera"),
             registro.tiene_boletera && (0, U.jsxs)("div", { className: "grid gap-3 border-l-2 border-[var(--color-border)] pl-4 sm:grid-cols-2", children: [
               campo("Sistema operativo", "boletera_sistema_operativo", { tipo: "select", opciones: ["Windows", "Ubuntu", "Debian", "Otro"].map((value) => ({ value, label: value })) }),
