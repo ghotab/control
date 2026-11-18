@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAB Scout • Evaluación de Talento | Tecnología a Bordo</title>
+    <meta name="description" content="Portal de Evaluación Conductual y Técnica para candidatos del área de Tecnología a Bordo (TAB).">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155'
+                        },
+                        brand: {
+                            600: '#2563EB',
+                            700: '#1D4ED8'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <!-- Supabase JS v2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen flex flex-col telemetry-grid-bg text-[#1E293B]">
+
+    <!-- =================================================================== -->
+    <!-- ENCABEZADO SUPERIOR CORPORATIVO (ESTILO SAMSARA / MOTIVE)           -->
+    <!-- =================================================================== -->
+    <header class="bg-[#0F172A] text-white border-b border-slate-800 sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <!-- Marca e Identidad -->
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-[#2563EB] flex items-center justify-center shadow-inner">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold tracking-tight text-sm sm:text-base text-white">TAB SCOUT</span>
+                        <span class="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                            Telemetría &amp; Flota
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-none mt-0.5">Tecnología a Bordo • Evaluación Técnica y Conductual</p>
+                </div>
+            </div>
+
+            <!-- Indicadores activos durante el Wizard -->
+            <div id="header-telemetry-bar" class="hidden items-center gap-2.5 sm:gap-4">
+                <!-- Estado de auto-guardado -->
+                <div id="autosave-indicator" class="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-md">
+                    <span id="autosave-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="autosave-text">Sincronizado</span>
+                </div>
+
+                <!-- Temporizador discreto informativo -->
+                <div class="flex items-center gap-1.5 text-xs font-mono text-slate-200 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-md" title="Tiempo transcurrido de sesión (informativo)">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span id="session-timer">00:00</span>
+                </div>
+
+                <!-- Badge del rol activo -->
+                <span id="header-role-badge" class="role-pill role-tecnico">TÉCNICO</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- =================================================================== -->
+    <!-- AVISO DE CONFIGURACIÓN PENDIENTE (Solo si config.js tiene placeholders) -->
+    <!-- =================================================================== -->
+    <div id="config-warning-banner" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
+            <div class="flex items-center gap-2">
+                <span class="status-pill status-pending"><span class="status-dot"></span>CONFIGURACIÓN</span>
+                <span>
+                    Credenciales de Supabase pendientes en <code class="font-mono font-semibold bg-amber-100 px-1.5 py-0.5 rounded">js/config.js</code>.
+                    Puedes explorar con un token de demostración (<code class="font-mono font-bold">DEMO-COORD</code>, <code class="font-mono font-bold">DEMO-TEC</code> o <code class="font-mono font-bold">DEMO-AUX</code>) o conectar tu base de datos Supabase.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- CONTENEDOR PRINCIPAL                                                -->
+    <!-- =================================================================== -->
+    <main class="flex-1 flex flex-col justify-center py-6 sm:py-10 px-4 sm:px-6">
+        <div class="w-full max-w-3xl mx-auto">
+
+            <!-- =========================================================== -->
+            <!-- VISTA 1: INGRESO DE TOKEN DE ACCESO                         -->
+            <!-- =========================================================== -->
+            <section id="view-token-entry" class="saas-card-elevated p-6 sm:p-10">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E2E8F0]">
+                    <div>
+                        <span class="status-pill status-in_progress mb-2.5">
+                            <span class="status-dot"></span>ACCESO DE CANDIDATO
+                        </span>
+                        <h1 class="text-xl sm:text-2xl font-bold text-[#1E293B] tracking-tight">
+                            Portal de Evaluación Tecnología a Bordo
+                        </h1>
+                        <p class="text-sm text-[#64748B] mt-1">
+                            Ingresa tu código de acceso único proporcionado por el equipo de Reclutamiento o Coordinación TAB.
+                        </p>
+                    </div>
+                </div>
+
+                <form id="form-token-access" class="mt-6 space-y-5" novalidate>
+                    <div>
+                        <label for="input-token" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-2">
+                            Token de Evaluación (Un solo uso)
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="input-token"
+                                name="token"
+                                autocomplete="off"
+                                spellcheck="false"
+                                placeholder="Ej. GHO-8F4A-92C1"
+                                class="w-full px-4 py-3.5 text-base sm:text-lg font-mono font-semibold tracking-wider uppercase bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B] placeholder-[#94A3B8] transition"
+                                required
+                            >
+                        </div>
+                        <p class="text-xs text-[#64748B] mt-2">
+                            Si recibiste un enlace directo durante tu sesión de Google Meet, el código se validará automáticamente.
+                        </p>
+                    </div>
+
+                    <!-- Alerta de error de validación -->
+                    <div id="token-error-alert" class="hidden rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                        </svg>
+                        <div>
+                            <p class="font-semibold">No fue posible validar el token</p>
+                            <p id="token-error-message" class="text-xs text-red-700 mt-0.5"></p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 text-xs text-[#64748B]">
+                            <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                            </svg>
+                            <span>Sesión cifrada con auto-guardado en tiempo real</span>
+                        </div>
+
+                        <button
+                            type="submit"
+                            id="btn-validate-token"
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition disabled:opacity-60"
+                        >
+                            <span>Validar Código</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- =========================================================== -->
+            <!-- VISTA 2: BIENVENIDA E INSTRUCCIONES DEL CANDIDATO           -->
+            <!-- =========================================================== -->
+            <section id="view-welcome" class="hidden saas-card-elevated p-6 sm:p-10">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Ficha de Evaluación Verificada</p>
+                        <h2 id="welcome-candidate-name" class="text-2xl font-bold text-[#1E293B] mt-1">Nombre del Candidato</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="welcome-status-badge" class="status-pill status-pending">
+                            <span class="status-dot"></span>PENDIENTE
+                        </span>
+                        <span id="welcome-role-badge" class="role-pill role-tecnico">TÉCNICO</span>
+                    </div>
+                </div>
+
+                <!-- Metadatos del candidato -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
+                    <div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Puesto a Evaluar</span>
+                        <span id="welcome-meta-role" class="text-sm font-bold text-[#1E293B] mt-0.5 block">Técnico TAB</span>
+                    </div>
+                    <div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Base / Ubicación</span>
+                        <span id="welcome-meta-base" class="text-sm font-bold text-[#1E293B] mt-0.5 block">Occidente</span>
+                    </div>
+                    <div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Token Asignado</span>
+                        <span id="welcome-meta-token" class="text-sm font-mono font-bold text-[#2563EB] mt-0.5 block">GHO-0000-0000</span>
+                    </div>
+                </div>
+
+                <!-- Instrucciones claras -->
+                <div class="space-y-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5">
+                    <h3 class="text-sm font-bold text-[#1E293B] flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                        </svg>
+                        Instrucciones antes de comenzar
+                    </h3>
+                    <ul class="text-xs sm:text-sm text-[#475569] space-y-2.5 leading-relaxed">
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                            <span><strong>Estructura:</strong> La evaluación consta de <strong>30 preguntas</strong> divididas en 3 bloques (Cultura y Disponibilidad, Competencias del Puesto y Escenarios de Toma de Decisiones).</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                            <span><strong>Tiempo estimado:</strong> Toma aproximadamente <strong>15 a 20 minutos</strong>. El cronómetro en pantalla es únicamente informativo.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                            <span><strong>Honestidad y ejemplos reales:</strong> Buscamos conocer tu criterio operativo real. Responde con ejemplos concretos de tu experiencia, no con respuestas teóricas.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                            <span><strong>Respaldo automático:</strong> Cada vez que avances de pregunta, tus respuestas se guardan automáticamente. Al presionar <em>"Finalizar y Enviar Evaluación"</em> al final, el enlace quedará cerrado permanentemente.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Aviso de progreso previo detectado -->
+                <div id="welcome-resume-banner" class="hidden mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3.5 text-xs text-blue-900 flex items-center justify-between">
+                    <span>Se detectó avance guardado previamente en este token. Continuarás donde te quedaste.</span>
+                    <span id="welcome-resume-count" class="font-bold"></span>
+                </div>
+
+                <div class="mt-7 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <button
+                        type="button"
+                        id="btn-change-token"
+                        class="w-full sm:w-auto text-xs font-semibold text-[#64748B] hover:text-[#1E293B] py-2 px-3 transition"
+                    >
+                        ← Usar otro código de acceso
+                    </button>
+
+                    <button
+                        type="button"
+                        id="btn-start-wizard"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition"
+                    >
+                        <span id="btn-start-wizard-label">Comenzar Evaluación</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- =========================================================== -->
+            <!-- VISTA 3: WIZARD INTERACTIVO PAGINADO (ANTI-FATIGA)          -->
+            <!-- =========================================================== -->
+            <section id="view-wizard" class="hidden space-y-4">
+
+                <!-- Barra de Progreso Superior Precisa -->
+                <div class="saas-card p-4 sm:p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span id="wizard-step-counter" class="text-xs sm:text-sm font-bold text-[#1E293B]">
+                                Pregunta 1 de 30
+                            </span>
+                            <span class="text-slate-300">•</span>
+                            <span id="wizard-section-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-[#1E293B] border border-slate-200">
+                                Sección: Cultura, Actitud y Disponibilidad
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="wizard-progress-percent" class="text-xs font-bold text-[#2563EB]">3%</span>
+                        </div>
+                    </div>
+
+                    <!-- Barra visual -->
+                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/70">
+                        <div
+                            id="wizard-progress-bar"
+                            class="h-full bg-[#2563EB] transition-all duration-300 ease-out rounded-full"
+                            style="width: 3.33%"
+                        ></div>
+                    </div>
+
+                    <!-- Mini navegador de bloques -->
+                    <div class="mt-3 flex items-center justify-between text-[11px] text-[#64748B]">
+                        <span id="wizard-candidate-pill" class="font-medium truncate">Candidato: —</span>
+                        <span class="hidden sm:inline">Atajo rápido: <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono text-slate-700">Ctrl + Enter</kbd> para avanzar</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de la Pregunta Actual -->
+                <div id="wizard-question-card" class="saas-card-elevated p-6 sm:p-8 wizard-question-enter">
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        <span id="question-module-tag" class="text-[11px] font-bold uppercase tracking-wider text-[#2563EB]">
+                            BLOQUE 1 DE 3 • CULTURA Y ACTITUD
+                        </span>
+                        <span id="question-id-tag" class="text-[11px] font-mono text-[#64748B]">
+                            Reactivo #1
+                        </span>
+                    </div>
+
+                    <h2 id="question-text" class="text-lg sm:text-xl font-bold text-[#1E293B] leading-snug mb-6">
+                        ¿Qué te motivó a buscar oportunidades en esta empresa y qué esperas de nuestro entorno de trabajo?
+                    </h2>
+
+                    <div>
+                        <label for="answer-textarea" class="sr-only">Tu respuesta</label>
+                        <textarea
+                            id="answer-textarea"
+                            rows="6"
+                            placeholder="Escribe tu respuesta aquí con un ejemplo real o situación concreta..."
+                            class="w-full p-4 text-sm sm:text-base text-[#1E293B] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl leading-relaxed resize-y transition placeholder-[#94A3B8]"
+                        ></textarea>
+
+                        <!-- Barra inferior del textarea: retroalimentación de caracteres -->
+                        <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <div id="char-feedback-box" class="flex items-center gap-1.5 text-[#64748B]">
+                                <span id="char-feedback-dot" class="w-2 h-2 rounded-full bg-slate-300"></span>
+                                <span id="char-feedback-text">Recomendado: al menos 40 caracteres para detallar tu ejemplo.</span>
+                            </div>
+                            <div class="font-mono text-xs text-[#64748B]">
+                                <span id="char-count-number" class="font-semibold text-[#1E293B]">0</span> caracteres
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje de validación si está vacío -->
+                    <div id="answer-validation-msg" class="hidden mt-3 text-xs font-medium text-red-600 flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                        </svg>
+                        <span>Por favor escribe una respuesta antes de continuar a la siguiente pregunta.</span>
+                    </div>
+
+                    <!-- Controles de Navegación del Wizard -->
+                    <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
+                        <button
+                            type="button"
+                            id="btn-prev-question"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-[#1E293B] font-semibold text-xs sm:text-sm transition disabled:opacity-40 disabled:pointer-events-none"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                            </svg>
+                            <span>Anterior</span>
+                        </button>
+
+                        <div class="flex items-center gap-3">
+                            <!-- Botón Siguiente (Preguntas 1 a 29) -->
+                            <button
+                                type="button"
+                                id="btn-next-question"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-60"
+                            >
+                                <span id="btn-next-label">Siguiente</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                                </svg>
+                            </button>
+
+                            <!-- Botón Finalizar (Pregunta 30) -->
+                            <button
+                                type="button"
+                                id="btn-finish-evaluation"
+                                class="hidden inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-60"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Finalizar y Enviar Evaluación</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =========================================================== -->
+            <!-- VISTA 4: TOKEN EXPIRADO / EVALUACIÓN FINALIZADA (BLOQUEO)   -->
+            <!-- =========================================================== -->
+            <section id="view-locked" class="hidden saas-card-elevated p-8 sm:p-10 text-center">
+                <div id="locked-icon-wrapper" class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center mb-5">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+
+                <div class="mb-3">
+                    <span id="locked-status-pill" class="status-pill status-completed">
+                        <span class="status-dot"></span>COMPLETADO
+                    </span>
+                </div>
+
+                <h2 id="locked-title" class="text-xl sm:text-2xl font-bold text-[#1E293B]">
+                    Evaluación finalizada / Token expirado
+                </h2>
+                <p id="locked-subtitle" class="text-sm text-[#64748B] max-w-md mx-auto mt-2 leading-relaxed">
+                    Este enlace de acceso único ya fue utilizado. Tus respuestas han sido registradas y selladas en el sistema de Tecnología a Bordo.
+                </p>
+
+                <div id="locked-details-box" class="mt-6 max-w-md mx-auto p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#475569] space-y-1.5">
+                    <div class="flex justify-between">
+                        <span class="font-medium text-[#64748B]">Estado del Token:</span>
+                        <span class="font-bold text-[#1E293B]">Cerrado permanentemente (Un solo uso)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-[#64748B]">Siguiente paso:</span>
+                        <span class="font-semibold text-[#1E293B]">Notifica a tu entrevistador en la llamada</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- MODAL DE CONFIRMACIÓN DE ENVÍO FINAL (CADUCIDAD IRREVERSIBLE)       -->
+    <!-- =================================================================== -->
+    <div id="modal-confirm-submit" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="saas-card-elevated max-w-md w-full p-6 sm:p-7">
+            <div class="flex items-start gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-[#1E293B]">¿Finalizar y sellar evaluación?</h3>
+                    <p class="text-xs sm:text-sm text-[#64748B] mt-1 leading-relaxed">
+                        Al confirmar el envío, tus 30 respuestas quedarán registradas y <strong>este token caducará de forma permanente</strong>. No podrás volver a abrir ni editar el cuestionario.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <button
+                    type="button"
+                    id="btn-cancel-submit"
+                    class="px-4 py-2 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-xs sm:text-sm font-semibold text-[#1E293B] transition"
+                >
+                    Revisar respuestas
+                </button>
+                <button
+                    type="button"
+                    id="btn-confirm-submit"
+                    class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition"
+                >
+                    <span>Sí, enviar definitivamente</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- PIE DE PÁGINA                                                       -->
+    <!-- =================================================================== -->
+    <footer class="py-4 px-4 sm:px-6 border-t border-[#E2E8F0] bg-white/80 text-xs text-[#64748B]">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>© Tecnología a Bordo (TAB) • Grupo Herradura Occidente</span>
+            <a href="./admin.html" class="text-[#64748B] hover:text-[#0F172A] font-medium transition">
+                Consola de Administración →
+            </a>
+        </div>
+    </footer>
+
+    <!-- Lógica del Portal del Candidato -->
+    <script type="module" src="./js/candidate.js"></script>
+</body>
+</html>
+

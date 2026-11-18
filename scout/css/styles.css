@@ -1,0 +1,197 @@
+/* ==========================================================================
+   TAB SCOUT — Estilos de Interfaz SaaS B2B (Estilo Samsara / Motive)
+   Paleta:
+   - Fondo base: #F8FAFC
+   - Tarjetas: #FFFFFF con bordes #E2E8F0
+   - Encabezado / Barra lateral: #0F172A (Deep Slate / Navy)
+   - Acento primario: #2563EB (Electric Blue / Indigo)
+   - Texto primario: #1E293B | Texto secundario: #64748B
+   ========================================================================== */
+
+:root {
+    --bg-app: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --border-subtle: #E2E8F0;
+    --border-strong: #CBD5E1;
+    --navy-header: #0F172A;
+    --navy-surface: #1E293B;
+    --primary-blue: #2563EB;
+    --primary-blue-hover: #1D4ED8;
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Patrón técnico sutil estilo plataforma de telemetría */
+.telemetry-grid-bg {
+    background-color: #F8FAFC;
+    background-image: radial-gradient(#CBD5E1 0.85px, transparent 0.85px);
+    background-size: 24px 24px;
+}
+
+/* Tarjetas SaaS de alta precisión */
+.saas-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+}
+
+.saas-card-elevated {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.875rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+}
+
+/* Transiciones suaves para el Wizard de preguntas */
+.wizard-question-enter {
+    animation: wizardSlideFade 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wizardSlideFade {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Badges / Pills con indicador de punto (Dot Indicators) */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 9999px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* Estados: PENDIENTE (ámbar), EN PROGRESO (azul), COMPLETADO (verde), EXPIRADO/REVOCADO (rojo) */
+.status-pending {
+    background-color: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+}
+.status-pending .status-dot {
+    background-color: #F59E0B;
+}
+
+.status-in_progress {
+    background-color: #DBEAFE;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+}
+.status-in_progress .status-dot {
+    background-color: #2563EB;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.status-completed {
+    background-color: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #BBF7D0;
+}
+.status-completed .status-dot {
+    background-color: #16A34A;
+}
+
+.status-revoked,
+.status-expired {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+    border: 1px solid #FECACA;
+}
+.status-revoked .status-dot,
+.status-expired .status-dot {
+    background-color: #DC2626;
+}
+
+/* Badges de Rol (COORDINADOR, TÉCNICO, AUXILIAR) */
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.role-coordinador {
+    background-color: #EEF2FF;
+    color: #3730A3;
+    border: 1px solid #C7D2FE;
+}
+
+.role-tecnico {
+    background-color: #EFF6FF;
+    color: #1E40AF;
+    border: 1px solid #BFDBFE;
+}
+
+.role-auxiliar {
+    background-color: #F1F5F9;
+    color: #334155;
+    border: 1px solid #CBD5E1;
+}
+
+/* Focus rings limpios y corporativos */
+textarea:focus,
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
+}
+
+/* Scrollbar limpio para modales y tablas */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+

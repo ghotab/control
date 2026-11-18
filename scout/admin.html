@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAB Scout • Consola de Administración | Tecnología a Bordo</title>
+    <meta name="description" content="Consola administrativa de evaluación de talento y generación de tokens de un solo uso para Tecnología a Bordo.">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <!-- Supabase JS v2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen flex flex-col bg-[#F8FAFC] text-[#1E293B]">
+
+    <!-- =================================================================== -->
+    <!-- ENCABEZADO SUPERIOR DE CONSOLA (ESTILO SAMSARA / MOTIVE)            -->
+    <!-- =================================================================== -->
+    <header class="bg-[#0F172A] text-white border-b border-slate-800 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-[#2563EB] flex items-center justify-center shadow-inner">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold tracking-tight text-sm sm:text-base text-white">TAB SCOUT CONSOLE</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                            ADMIN TELEMETRÍA
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-none mt-0.5">Control de Tokens y Perfilamiento Conductual • Tecnología a Bordo</p>
+                </div>
+            </div>
+
+            <!-- Acciones de sesión -->
+            <div class="flex items-center gap-3">
+                <a
+                    href="./index.html"
+                    target="_blank"
+                    class="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+                >
+                    <span>Portal Candidato</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                    </svg>
+                </a>
+
+                <div id="admin-user-bar" class="hidden items-center gap-3">
+                    <span id="admin-user-email" class="hidden md:inline-block text-xs font-mono text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded border border-slate-700"></span>
+                    <button
+                        type="button"
+                        id="btn-logout"
+                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-300 hover:text-white hover:bg-red-600/80 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+                    >
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- =================================================================== -->
+    <!-- BANNER DE AVISO CUANDO SUPABASE NO ESTÁ CONFIGURADO                 -->
+    <!-- =================================================================== -->
+    <div id="admin-config-banner" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900">
+            <div class="flex items-center gap-2">
+                <span class="status-pill status-pending"><span class="status-dot"></span>MODO DEMO LOCAL</span>
+                <span>
+                    Falta configurar <code class="font-mono font-bold bg-amber-100 px-1.5 py-0.5 rounded">js/config.js</code> con tus credenciales de Supabase.
+                    Puedes iniciar sesión en Modo Demo para probar el generador de tokens, filtros, prompt de IA y exportación CSV.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- VISTA 1: LOGIN DE ADMINISTRADOR (SUPABASE AUTH)                     -->
+    <!-- =================================================================== -->
+    <section id="view-admin-login" class="flex-1 flex items-center justify-center p-4 sm:p-6 telemetry-grid-bg">
+        <div class="saas-card-elevated max-w-md w-full p-7 sm:p-9">
+            <div class="mb-6">
+                <span class="status-pill status-in_progress mb-2.5">
+                    <span class="status-dot"></span>AUTENTICACIÓN REQUERIDA
+                </span>
+                <h1 class="text-xl sm:text-2xl font-bold text-[#1E293B]">Consola de Reclutamiento TAB</h1>
+                <p class="text-xs sm:text-sm text-[#64748B] mt-1">
+                    Inicia sesión con tu cuenta de administrador de Supabase Auth para gestionar tokens y auditar evaluaciones.
+                </p>
+            </div>
+
+            <form id="form-admin-login" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-1.5">
+                        Correo Electrónico
+                    </label>
+                    <input
+                        type="email"
+                        id="login-email"
+                        required
+                        placeholder="admin@gho.com.mx"
+                        class="w-full px-3.5 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B]"
+                    >
+                </div>
+
+                <div>
+                    <label for="login-password" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-1.5">
+                        Contraseña
+                    </label>
+                    <input
+                        type="password"
+                        id="login-password"
+                        required
+                        placeholder="••••••••••••"
+                        class="w-full px-3.5 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B]"
+                    >
+                </div>
+
+                <div id="login-error-box" class="hidden rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700 font-medium"></div>
+
+                <button
+                    type="submit"
+                    id="btn-login-submit"
+                    class="w-full py-3 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition"
+                >
+                    <span>Iniciar Sesión</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VISTA 2: DASHBOARD ADMINISTRATIVO COMPLETO                          -->
+    <!-- =================================================================== -->
+    <main id="view-admin-dashboard" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+        <!-- 1. KPIs ESTILO TELEMETRÍA -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="saas-card p-4 sm:p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Total Evaluaciones</span>
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                </div>
+                <p id="kpi-total" class="text-2xl sm:text-3xl font-extrabold text-[#1E293B] mt-2">0</p>
+                <p class="text-[11px] text-[#64748B] mt-1">Tokens emitidos en el sistema</p>
+            </div>
+
+            <div class="saas-card p-4 sm:p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pendientes</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                </div>
+                <p id="kpi-pending" class="text-2xl sm:text-3xl font-extrabold text-[#1E293B] mt-2">0</p>
+                <p class="text-[11px] text-[#64748B] mt-1">Esperando ingreso del candidato</p>
+            </div>
+
+            <div class="saas-card p-4 sm:p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-[#2563EB]">En Progreso</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-pulse"></span>
+                </div>
+                <p id="kpi-in-progress" class="text-2xl sm:text-3xl font-extrabold text-[#2563EB] mt-2">0</p>
+                <p class="text-[11px] text-[#64748B] mt-1">Respondiendo en tiempo real</p>
+            </div>
+
+            <div class="saas-card p-4 sm:p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Completadas</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                </div>
+                <p id="kpi-completed" class="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-2">0</p>
+                <p class="text-[11px] text-[#64748B] mt-1">Listas para análisis con IA</p>
+            </div>
+        </section>
+
+        <!-- 2. GENERADOR RÁPIDO DE TOKENS DE UN SOLO USO -->
+        <section class="saas-card p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#E2E8F0]">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-[#1E293B] flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+                        </svg>
+                        Generador de Acceso Único (Meet / Entrevista)
+                    </h2>
+                    <p class="text-xs text-[#64748B] mt-0.5">
+                        Crea un token vinculado al nombre, base y puesto del candidato. El enlace caducará automáticamente al finalizar sus 30 preguntas.
+                    </p>
+                </div>
+            </div>
+
+            <form id="form-generate-token" class="mt-4 grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+                <div class="sm:col-span-4">
+                    <label for="gen-candidate-name" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-1.5">
+                        Nombre Completo del Candidato
+                    </label>
+                    <input
+                        type="text"
+                        id="gen-candidate-name"
+                        required
+                        placeholder="Ej. Roberto Sánchez Morales"
+                        class="w-full px-3.5 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B]"
+                    >
+                </div>
+
+                <div class="sm:col-span-3">
+                    <label for="gen-base-location" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-1.5">
+                        Base / Ubicación
+                    </label>
+                    <input
+                        type="text"
+                        id="gen-base-location"
+                        list="bases-datalist"
+                        required
+                        placeholder="Ej. Guadalajara, Morelia..."
+                        class="w-full px-3.5 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B]"
+                    >
+                    <datalist id="bases-datalist">
+                        <option value="Atlacomulco"></option>
+                        <option value="Occidente"></option>
+                        <option value="Morelia"></option>
+                        <option value="Jilotepec"></option>
+                        <option value="Guadalajara"></option>
+                        <option value="Tepic"></option>
+                        <option value="Querétaro"></option>
+                        <option value="Observatorio / CDMX"></option>
+                    </datalist>
+                </div>
+
+                <div class="sm:col-span-3">
+                    <label for="gen-role" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-1.5">
+                        Puesto a Evaluar
+                    </label>
+                    <select
+                        id="gen-role"
+                        required
+                        class="w-full px-3.5 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B] font-medium"
+                    >
+                        <option value="Técnico">Técnico</option>
+                        <option value="Coordinador">Coordinador</option>
+                        <option value="Auxiliar">Auxiliar</option>
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <button
+                        type="submit"
+                        id="btn-generate-token"
+                        class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        <span>Generar Acceso</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Resultado recién generado con botones de copiado rápido -->
+            <div id="generated-token-result" class="hidden mt-5 p-4 rounded-xl bg-blue-50/80 border border-blue-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-[#2563EB] text-white flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
+                        TOKEN
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="res-token-code" class="font-mono font-extrabold text-base sm:text-lg text-[#0F172A] tracking-wider">GHO-0000-0000</span>
+                            <span id="res-token-role" class="role-pill role-tecnico">TÉCNICO</span>
+                            <span id="res-token-candidate" class="text-xs font-semibold text-[#475569]"></span>
+                        </div>
+                        <p id="res-token-url" class="text-xs font-mono text-[#2563EB] break-all mt-0.5"></p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button
+                        type="button"
+                        id="btn-copy-only-token"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#1E293B] shadow-2xs transition"
+                    >
+                        <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Copiar solo Token</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        id="btn-copy-meet-link"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 text-xs font-semibold text-white shadow-2xs transition"
+                    >
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+                        </svg>
+                        <span>Copiar Link Directo para Meet</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TABLA DE CANDIDATOS, FILTROS Y EXPORTACIÓN -->
+        <section class="saas-card overflow-hidden">
+            <!-- Barra de herramientas y filtros -->
+            <div class="p-4 sm:p-5 border-b border-[#E2E8F0] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+                    <!-- Buscador -->
+                    <div class="relative flex-1 max-w-md">
+                        <svg class="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                        </svg>
+                        <input
+                            type="text"
+                            id="filter-search"
+                            placeholder="Buscar por candidato, token o base..."
+                            class="w-full pl-9 pr-3.5 py-2 text-xs sm:text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B]"
+                        >
+                    </div>
+
+                    <!-- Filtro por Puesto -->
+                    <select
+                        id="filter-role"
+                        class="px-3 py-2 text-xs sm:text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B] font-medium"
+                    >
+                        <option value="ALL">Todos los puestos</option>
+                        <option value="Coordinador">Coordinador</option>
+                        <option value="Técnico">Técnico</option>
+                        <option value="Auxiliar">Auxiliar</option>
+                    </select>
+
+                    <!-- Filtro por Estado -->
+                    <select
+                        id="filter-status"
+                        class="px-3 py-2 text-xs sm:text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B] font-medium"
+                    >
+                        <option value="ALL">Todos los estados</option>
+                        <option value="pending">● Pendiente</option>
+                        <option value="in_progress">● En Progreso</option>
+                        <option value="completed">● Completado</option>
+                        <option value="revoked">● Expirado / Revocado</option>
+                    </select>
+                </div>
+
+                <!-- Botones de refresco y exportación CSV -->
+                <div class="flex items-center gap-2.5">
+                    <button
+                        type="button"
+                        id="btn-refresh-table"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-xs font-semibold text-[#1E293B] transition"
+                        title="Actualizar datos desde Supabase"
+                    >
+                        <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                        </svg>
+                        <span>Actualizar</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        id="btn-export-csv"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 text-xs font-semibold text-white transition"
+                    >
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                        </svg>
+                        <span>Exportar CSV</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla responsiva -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+                            <th class="py-3.5 px-4">Candidato / Base</th>
+                            <th class="py-3.5 px-4">Token</th>
+                            <th class="py-3.5 px-4">Puesto</th>
+                            <th class="py-3.5 px-4">Estado / Avance</th>
+                            <th class="py-3.5 px-4">Creación / Finalización</th>
+                            <th class="py-3.5 px-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candidates-table-body" class="divide-y divide-[#E2E8F0] text-xs sm:text-sm">
+                        <!-- Filas inyectadas dinámicamente por admin.js -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado vacío -->
+            <div id="table-empty-state" class="hidden py-12 px-4 text-center">
+                <p class="text-sm font-semibold text-[#1E293B]">No se encontraron evaluaciones con los filtros actuales</p>
+                <p class="text-xs text-[#64748B] mt-1">Genera un nuevo token arriba o ajusta los criterios de búsqueda.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- MODAL: VISOR COMPLETO DE RESPUESTAS Y COPIADO PARA ANÁLISIS CON IA  -->
+    <!-- =================================================================== -->
+    <div id="modal-answers" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6">
+        <div class="saas-card-elevated max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Header del Modal -->
+            <div class="px-6 py-4 bg-[#0F172A] text-white flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h3 id="modal-candidate-name" class="text-base sm:text-lg font-bold">Nombre del Candidato</h3>
+                        <span id="modal-role-badge" class="role-pill role-tecnico">TÉCNICO</span>
+                        <span id="modal-status-badge" class="status-pill status-completed"><span class="status-dot"></span>COMPLETADO</span>
+                    </div>
+                    <p id="modal-candidate-meta" class="text-xs text-slate-300 mt-1">
+                        Base: — • Token: — • Tiempo: —
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        id="btn-modal-copy-ai"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-xs font-semibold text-white shadow-sm transition"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                        </svg>
+                        <span>Copiar para Análisis con IA</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        id="btn-close-modal"
+                        class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                        aria-label="Cerrar modal"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cuerpo scrolleable con las 30 preguntas y respuestas -->
+            <div id="modal-answers-body" class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 bg-[#F8FAFC]">
+                <!-- Bloques de preguntas inyectados dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TOAST DE NOTIFICACIÓN RÁPIDA                                        -->
+    <!-- =================================================================== -->
+    <div id="admin-toast" class="hidden fixed bottom-5 right-5 z-50 bg-[#0F172A] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center gap-2.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="admin-toast-text">Copiado al portapapeles</span>
+    </div>
+
+    <!-- Lógica de la Consola de Administración -->
+    <script type="module" src="./js/admin.js"></script>
+</body>
+</html>
+
