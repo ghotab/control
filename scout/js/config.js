@@ -1,8 +1,7 @@
 /**
  * TAB SCOUT — Configuración de Conexión a Supabase
  * ---------------------------------------------------------------------------
- * Reemplaza los valores de SUPABASE_URL y SUPABASE_ANON_KEY con las
- * credenciales de tu proyecto en Supabase (Project Settings -> API).
+ * Conectado al proyecto oficial: https://sfeqkigtnnpftuwxyufi.supabase.co
  *
  * Nota de seguridad: La clave ANON (pública) es segura de incluir en el
  * frontend siempre y cuando Row Level Security (RLS) y las funciones RPC
@@ -15,7 +14,10 @@ export const SUPABASE_CONFIG = {
     APP_NAME: 'TAB Scout • Tecnología a Bordo',
     ORGANIZATION: 'Grupo Herradura Occidente',
     TOKEN_PREFIX: 'GHO',
-    RECOMMENDED_MIN_CHARS: 40
+    RECOMMENDED_MIN_CHARS: 40,
+    CV_BUCKET: 'candidate-cvs',
+    CV_MAX_SIZE_BYTES: 5 * 1024 * 1024, // 5 MB
+    REQUIRE_CV_BEFORE_START: true
 };
 
 /**
@@ -59,4 +61,3 @@ export function getSupabaseClient() {
 
     return supabaseInstance;
 }
-

@@ -57,7 +57,7 @@ html, body {
 
 /* Transiciones suaves para el Wizard de preguntas */
 .wizard-question-enter {
-    animation: wizardSlideFade 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: wizardSlideFade 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes wizardSlideFade {
@@ -167,9 +167,170 @@ html, body {
     border: 1px solid #CBD5E1;
 }
 
+/* ==========================================================================
+   COMPONENTES INTERACTIVOS HÍBRIDOS (CHOICE CARDS, SLIDER 1-10, DRAG & DROP)
+   ========================================================================== */
+
+/* 1. Tarjetas de Elección Forzada (type: 'choice') */
+.choice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    width: 100%;
+    text-align: left;
+    padding: 1rem 1.125rem;
+    border-radius: 0.75rem;
+    background-color: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    position: relative;
+}
+
+.choice-card:hover {
+    background-color: #FFFFFF;
+    border-color: #94A3B8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+.choice-card.selected {
+    background-color: #EFF6FF;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.choice-key-badge {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.5rem;
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+}
+
+.choice-card.selected .choice-key-badge {
+    background-color: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+}
+
+.choice-check-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    border: 1.5px solid #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-top: 0.2rem;
+    color: transparent;
+    background-color: #FFFFFF;
+    transition: all 150ms ease;
+}
+
+.choice-card.selected .choice-check-icon {
+    background-color: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+}
+
+/* 2. Escala Visual / Espectro 1 a 10 (type: 'slider') */
+.telemetry-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 10px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #DBEAFE 0%, #2563EB 100%);
+    outline: none;
+    cursor: pointer;
+}
+
+.telemetry-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #2563EB;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.28), 0 0 0 3px rgba(37, 99, 235, 0.2);
+    cursor: pointer;
+    transition: transform 120ms ease, background-color 120ms ease;
+}
+
+.telemetry-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    background: #1D4ED8;
+}
+
+.telemetry-slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #2563EB;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.28), 0 0 0 3px rgba(37, 99, 235, 0.2);
+    cursor: pointer;
+    transition: transform 120ms ease;
+}
+
+.slider-tick-btn {
+    height: 2rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid #E2E8F0;
+    background-color: #FFFFFF;
+    color: #64748B;
+    transition: all 140ms ease;
+}
+
+.slider-tick-btn:hover {
+    border-color: #94A3B8;
+    color: #1E293B;
+}
+
+.slider-tick-btn.active {
+    background-color: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+/* 3. Zona Drag & Drop de CV en PDF */
+.cv-dropzone {
+    border: 2px dashed #CBD5E1;
+    border-radius: 0.875rem;
+    background-color: #F8FAFC;
+    transition: all 180ms ease;
+}
+
+.cv-dropzone:hover,
+.cv-dropzone.drag-over {
+    border-color: #2563EB;
+    background-color: #EFF6FF;
+}
+
+.cv-dropzone.cv-loaded {
+    border-style: solid;
+    border-color: #86EFAC;
+    background-color: #F0FDF4;
+}
+
 /* Focus rings limpios y corporativos */
 textarea:focus,
-input:focus,
+input:not([type="range"]):focus,
 select:focus {
     outline: none;
     border-color: #2563EB !important;
@@ -194,4 +355,3 @@ select:focus {
 ::-webkit-scrollbar-thumb:hover {
     background: #94A3B8;
 }
-

@@ -6,12 +6,16 @@
  * - Generador de Tokens de un solo uso (`GHO-XXXX-XXXX`) con botones de copiado
  *   rápido ("Copiar solo Token" y "Copiar Link Directo para Meet")
  * - Tabla de candidatos con buscador, filtro por puesto y estado
- * - Acciones por fila: Revocar Token, Ver Respuestas (Modal), Copiar para Análisis
- *   con IA (Markdown estructurado para LLM) y Exportación CSV completa.
+ * - Acciones por fila:
+ *     1) Ver / Descargar CV (PDF) mediante URL firmada temporal (`createSignedUrl`)
+ *     2) Ver Respuestas (Modal con soporte híbrido: Choice, Slider y Text)
+ *     3) Copiar para Análisis con IA (Markdown estructurado para LLM con los 3 tipos)
+ *     4) Revocar Token
+ *     5) Exportación CSV completa
  */
 
 import { SUPABASE_CONFIG, isSupabaseConfigured, getSupabaseClient } from './config.js';
-import { getQuestionsForRole, normalizeRole } from './questions.js';
+import { getQuestionsForRole, normalizeRole, formatAnswerForDisplay } from './questions.js';
 
 const state = {
     isDemoMode: !isSupabaseConfigured(),
@@ -68,6 +72,7 @@ const dom = {
     modalStatusBadge: document.getElementById('modal-status-badge'),
     modalCandidateMeta: document.getElementById('modal-candidate-meta'),
     modalAnswersBody: document.getElementById('modal-answers-body'),
+    btnModalViewCv: document.getElementById('btn-modal-view-cv'),
     btnModalCopyAi: document.getElementById('btn-modal-copy-ai'),
     btnCloseModal: document.getElementById('btn-close-modal'),
 
@@ -137,6 +142,13 @@ function bindEvents() {
             dom.modalAnswers.classList.add('hidden');
         }
     });
+
+    if (dom.btnModalViewCv) {
+        dom.btnModalViewCv.addEventListener('click', () => {
+            if (!state.activeModalRecord || !state.activeModalRecord.cv_path) return;
+            handleOpenSignedCvUrl(state.activeModalRecord);
+        });
+    }
 
     dom.btnModalCopyAi.addEventListener('click', () => {
         if (!state.activeModalRecord) return;
@@ -251,9 +263,6 @@ async function loadEvaluations() {
     }
 }
 
-/**
- * Genera un token único legible en formato GHO-XXXX-XXXX (alfanumérico sin caracteres ambiguos)
- */
 function createReadableToken() {
     const prefix = SUPABASE_CONFIG.TOKEN_PREFIX || 'GHO';
     const alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -294,6 +303,7 @@ async function handleGenerateToken() {
                 base_location: baseLocation,
                 role,
                 status: 'pending',
+                cv_path: null,
                 answers: {},
                 current_step: 0,
                 elapsed_seconds: 0,
@@ -327,7 +337,6 @@ async function handleGenerateToken() {
             }
         }
 
-        // Mostrar tarjeta del token recién generado
         const directUrl = buildDirectCandidateUrl(token);
         state.lastGeneratedToken = token;
         state.lastGeneratedUrl = directUrl;
@@ -338,7 +347,6 @@ async function handleGenerateToken() {
         applyRoleBadge(dom.resTokenRole, role);
         dom.generatedTokenResult.classList.remove('hidden');
 
-        // Limpiar inputs de nombre
         dom.genCandidateName.value = '';
         renderTableAndKpis();
         showToast(`Acceso ${token} generado exitosamente`);
@@ -354,7 +362,6 @@ async function handleGenerateToken() {
 // RENDERIZADO DE KPIS Y TABLA DE CANDIDATOS
 // ============================================================================
 function renderTableAndKpis() {
-    // 1. Actualizar KPIs globales
     const total = state.evaluations.length;
     const pending = state.evaluations.filter((e) => e.status === 'pending').length;
     const inProgress = state.evaluations.filter((e) => e.status === 'in_progress').length;
@@ -365,7 +372,6 @@ function renderTableAndKpis() {
     dom.kpiInProgress.textContent = String(inProgress);
     dom.kpiCompleted.textContent = String(completed);
 
-    // 2. Aplicar filtros de búsqueda, puesto y estado
     const search = dom.filterSearch.value.trim().toLowerCase();
     const roleFilter = dom.filterRole.value;
     const statusFilter = dom.filterStatus.value;
@@ -396,15 +402,23 @@ function renderTableAndKpis() {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50/90 transition';
 
+        const roleQuestions = getQuestionsForRole(record.role);
+        const totalExpected = roleQuestions.length;
         const answeredCount = countAnsweredInRecord(record);
         const directLink = buildDirectCandidateUrl(record.token);
         const canRevoke = record.status === 'pending' || record.status === 'in_progress';
+        const hasCv = Boolean(record.cv_path && String(record.cv_path).trim());
 
         tr.innerHTML = `
             <td class="py-3.5 px-4">
                 <div class="font-bold text-[#1E293B]">${escapeHtml(record.candidate_name)}</div>
-                <div class="text-xs text-[#64748B] mt-0.5 flex items-center gap-1.5">
+                <div class="text-xs text-[#64748B] mt-0.5 flex flex-wrap items-center gap-2">
                     <span>Base: <strong class="font-semibold text-[#475569]">${escapeHtml(record.base_location)}</strong></span>
+                    ${
+                        hasCv
+                            ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">● CV PDF</span>`
+                            : `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-medium">Sin CV</span>`
+                    }
                 </div>
             </td>
             <td class="py-3.5 px-4">
@@ -432,7 +446,7 @@ function renderTableAndKpis() {
                 <div class="flex flex-col items-start gap-1">
                     ${renderStatusBadgeHtml(record.status)}
                     <span class="text-[11px] text-[#64748B] font-medium">
-                        ${answeredCount}/30 respuestas ${record.elapsed_seconds ? `• ${formatDuration(record.elapsed_seconds)}` : ''}
+                        ${answeredCount}/${totalExpected} respuestas ${record.elapsed_seconds ? `• ${formatDuration(record.elapsed_seconds)}` : ''}
                     </span>
                 </div>
             </td>
@@ -445,6 +459,23 @@ function renderTableAndKpis() {
             </td>
             <td class="py-3.5 px-4 text-right">
                 <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                    ${
+                        hasCv
+                            ? `<button
+                                type="button"
+                                data-action="view-cv"
+                                data-id="${escapeHtml(record.id)}"
+                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition"
+                                title="Abrir CV en PDF en pestaña nueva"
+                            >
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                </svg>
+                                <span>Ver / Descargar CV (PDF)</span>
+                            </button>`
+                            : ''
+                    }
+
                     <button
                         type="button"
                         data-action="view-answers"
@@ -482,12 +513,13 @@ function renderTableAndKpis() {
             </td>
         `;
 
-        // Eventos por fila
         tr.querySelectorAll('button[data-action]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const action = btn.getAttribute('data-action');
                 if (action === 'copy-link') {
                     copyToClipboard(btn.getAttribute('data-link'), 'Link directo para Meet copiado');
+                } else if (action === 'view-cv') {
+                    handleOpenSignedCvUrl(record);
                 } else if (action === 'view-answers') {
                     openAnswersModal(record);
                 } else if (action === 'copy-ai') {
@@ -500,6 +532,40 @@ function renderTableAndKpis() {
 
         dom.tableBody.appendChild(tr);
     });
+}
+
+// ============================================================================
+// ACCIÓN: ABRIR / DESCARGAR CV EN PDF (SUPABASE STORAGE SIGNED URL)
+// ============================================================================
+async function handleOpenSignedCvUrl(record) {
+    if (!record || !record.cv_path) {
+        showToast('Este candidato no tiene un CV adjunto.');
+        return;
+    }
+
+    try {
+        if (state.isDemoMode) {
+            showToast(`Modo Demo: Simulando apertura de ${record.cv_path}`);
+            return;
+        }
+
+        showToast('Generando enlace seguro de CV...');
+        const supabase = getSupabaseClient();
+        const bucket = SUPABASE_CONFIG.CV_BUCKET || 'candidate-cvs';
+
+        const { data, error } = await supabase.storage
+            .from(bucket)
+            .createSignedUrl(record.cv_path, 3600); // URL firmada válida por 1 hora
+
+        if (error || !data || !data.signedUrl) {
+            throw new Error((error && error.message) || 'No se pudo generar la URL firmada del CV.');
+        }
+
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+        console.error('[TAB Scout Admin] Error abriendo CV firmado:', err);
+        alert(err.message || 'No fue posible abrir el archivo PDF del candidato.');
+    }
 }
 
 // ============================================================================
@@ -535,7 +601,7 @@ async function handleRevokeToken(record) {
 }
 
 // ============================================================================
-// ACCIÓN: MODAL VISOR DE RESPUESTAS
+// ACCIÓN: MODAL VISOR DE RESPUESTAS HÍBRIDAS (CHOICE / SLIDER / TEXT)
 // ============================================================================
 function openAnswersModal(record) {
     state.activeModalRecord = record;
@@ -546,9 +612,19 @@ function openAnswersModal(record) {
     dom.modalStatusBadge = document.getElementById('modal-status-badge');
 
     const durationStr = calculateRecordDurationText(record);
-    dom.modalCandidateMeta.textContent = `Base: ${record.base_location} • Token: ${record.token} • Duración: ${durationStr}`;
+    const hasCv = Boolean(record.cv_path && String(record.cv_path).trim());
+    dom.modalCandidateMeta.textContent = `Base: ${record.base_location} • Token: ${record.token} • Duración: ${durationStr} • CV: ${hasCv ? 'Adjunto (PDF)' : 'No adjunto'}`;
+
+    if (dom.btnModalViewCv) {
+        if (hasCv) {
+            dom.btnModalViewCv.classList.remove('hidden');
+        } else {
+            dom.btnModalViewCv.classList.add('hidden');
+        }
+    }
 
     const questions = getQuestionsForRole(record.role);
+    const totalQ = questions.length;
     const answers = record.answers || {};
 
     dom.modalAnswersBody.innerHTML = '';
@@ -567,18 +643,52 @@ function openAnswersModal(record) {
             dom.modalAnswersBody.appendChild(sectionHeader);
         }
 
-        const rawAnswer = answers[q.key];
-        const hasAnswer = typeof rawAnswer === 'string' && rawAnswer.trim().length > 0;
+        const formatted = formatAnswerForDisplay(q, answers[q.key]);
+
+        let typeBadgeHtml = `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-200">Texto Libre</span>`;
+        if (q.type === 'choice') {
+            typeBadgeHtml = `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Elección Forzada</span>`;
+        } else if (q.type === 'slider') {
+            typeBadgeHtml = `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Escala 1-10</span>`;
+        }
+
+        let answerBodyHtml = '';
+        if (!formatted.hasAnswer) {
+            answerBodyHtml = `<div class="p-3 rounded-lg bg-amber-50/60 border border-amber-200/80 text-amber-800 italic text-xs sm:text-sm">Sin respuesta registrada.</div>`;
+        } else if (q.type === 'choice') {
+            answerBodyHtml = `
+                <div class="p-3.5 rounded-lg bg-indigo-50/60 border border-indigo-200 text-[#1E293B] text-xs sm:text-sm flex items-start gap-2.5">
+                    <span class="px-2 py-0.5 rounded bg-[#2563EB] text-white font-bold text-xs flex-shrink-0">${escapeHtml(formatted.choiceKey || '')}</span>
+                    <span class="font-medium leading-relaxed">${escapeHtml(formatted.choiceLabel || formatted.shortText)}</span>
+                </div>
+            `;
+        } else if (q.type === 'slider') {
+            answerBodyHtml = `
+                <div class="p-3.5 rounded-lg bg-emerald-50/50 border border-emerald-200 text-[#1E293B] text-xs sm:text-sm space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#0F172A] text-white font-extrabold text-sm">${escapeHtml(String(formatted.sliderValue))} / 10</span>
+                        <span class="font-semibold text-emerald-900">Posición en el espectro</span>
+                    </div>
+                    <p class="text-[11px] text-[#64748B]">${escapeHtml(q.minLabel)}  ⟷  ${escapeHtml(q.maxLabel)}</p>
+                </div>
+            `;
+        } else {
+            answerBodyHtml = `<div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#1E293B] text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">${escapeHtml(formatted.shortText)}</div>`;
+        }
 
         const card = document.createElement('div');
         card.className = 'saas-card p-4';
         card.innerHTML = `
-            <div class="flex items-center justify-between gap-2 mb-1.5">
-                <span class="text-xs font-bold text-[#0F172A]">Pregunta ${q.stepNumber} de 30</span>
-                <span class="text-[11px] font-mono text-[#64748B]">ID Banco #${q.id}</span>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-[#0F172A]">Pregunta ${q.stepNumber} de ${totalQ}</span>
+                    ${typeBadgeHtml}
+                    ${q.subBlock ? `<span class="text-[10px] font-semibold text-[#64748B]">• ${escapeHtml(q.subBlock)}</span>` : ''}
+                </div>
+                <span class="text-[11px] font-mono text-[#64748B]">Reactivo #${q.id}</span>
             </div>
             <p class="text-xs sm:text-sm font-semibold text-[#1E293B] mb-2.5">${escapeHtml(q.text)}</p>
-            <div class="p-3 rounded-lg ${hasAnswer ? 'bg-[#F8FAFC] border border-[#E2E8F0] text-[#1E293B]' : 'bg-amber-50/60 border border-amber-200/80 text-amber-800 italic'} text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">${hasAnswer ? escapeHtml(rawAnswer) : 'Sin respuesta registrada.'}</div>
+            ${answerBodyHtml}
         `;
         dom.modalAnswersBody.appendChild(card);
     });
@@ -587,30 +697,38 @@ function openAnswersModal(record) {
 }
 
 // ============================================================================
-// ACCIÓN: COPIAR PARA ANÁLISIS CON IA (MARKDOWN ESTRUCTURADO PARA LLM)
+// ACCIÓN: COPIAR PARA ANÁLISIS CON IA (MARKDOWN HÍBRIDO PARA LLM)
 // ============================================================================
 function copyAiAnalysisPrompt(record) {
     const questions = getQuestionsForRole(record.role);
+    const totalQ = questions.length;
     const answers = record.answers || {};
     const durationText = calculateRecordDurationText(record);
     const answeredCount = countAnsweredInRecord(record);
 
     const lines = [
-        `# EVALUACIÓN CONDUCTUAL Y TÉCNICA — TECNOLOGÍA A BORDO (TAB)`,
+        `# EVALUACIÓN CONDUCTUAL, TÉCNICA Y DE TEMPERAMENTO — TECNOLOGÍA A BORDO (TAB)`,
         ``,
         `## 1. FICHA DEL CANDIDATO`,
         `- **Nombre del Candidato:** ${record.candidate_name}`,
         `- **Puesto al que aplica:** ${normalizeRole(record.role)}`,
         `- **Base / Ubicación:** ${record.base_location}`,
         `- **Token de Evaluación:** \`${record.token}\``,
-        `- **Estado:** ${record.status.toUpperCase()} (${answeredCount}/30 preguntas respondidas)`,
+        `- **CV Adjunto (PDF):** ${record.cv_path ? `Sí (${record.cv_path})` : 'No adjuntado'}`,
+        `- **Estado:** ${record.status.toUpperCase()} (${answeredCount}/${totalQ} preguntas respondidas)`,
         `- **Tiempo empleado:** ${durationText}`,
         `- **Fecha de Creación:** ${formatDateTime(record.created_at)}`,
         `- **Fecha de Finalización:** ${record.completed_at ? formatDateTime(record.completed_at) : 'En curso / No finalizado'}`,
         ``,
-        `## 2. INSTRUCCIÓN SUGERIDA PARA EL ANALISTA IA (LLM)`,
-        `> Analiza las siguientes 30 respuestas del candidato para el puesto de **${normalizeRole(record.role)}** en el área de Tecnología a Bordo (telemetría, boleteras, CCTV, GPS y operación en bases de autobuses).`,
-        `> Identifica: (1) Nivel de apego a normas y procedimientos, (2) Consistencia o contradicciones entre el Módulo 1 y el Módulo 5 de Validación y Contraste, (3) Competencia técnica/operativa real según su rol, (4) Alertas tempranas o focos rojos (Red Flags) de rotación, conflicto o deshonestidad, y (5) Recomendación de contratación con preguntas clave de seguimiento para la entrevista.`,
+        `## 2. INSTRUCCIÓN PARA EL ANALISTA IA (LLM DE PERFILAMIENTO DE RIESGO)`,
+        `> Actúa como un Especialista Senior en Evaluación de Talento Operativo y Psicometría Laboral para el área de **Tecnología a Bordo (TAB)** (telemetría, boleteras, CCTV, GPS y operación en bases de autobuses).`,
+        `> Analiza las respuestas híbridas del candidato (**${normalizeRole(record.role)}**): elecciones forzadas (A/B/C/D), posicionamiento en escalas del 1 al 10 y experiencias pasadas abiertas.`,
+        `> Entrega un diagnóstico ejecutivo con:`,
+        `> 1. **Apego a Normas e Integridad Operativa:** Manejo de evidencia, cumplimiento de procedimientos y respuesta ante errores propios o ajenos.`,
+        `> 2. **Temperamento e Inteligencia Emocional:** Detección de perfiles volubles, pasivo-agresivos (uso de sarcasmo/ironía), ego frágil ante correcciones o perfil "quedabien" (decir que sí sin comprometerse).`,
+        `> 3. **Consistencia vs. Contraste:** Contradicciones entre lo que afirma en el Módulo 1 y sus decisiones en el Módulo 5.`,
+        `> 4. **Competencia en el Rol (${normalizeRole(record.role)}):** Capacidad práctica en campo/gestión.`,
+        `> 5. **Semáforo de Riesgo (Verde / Ámbar / Rojo)** y 3 preguntas punzantes de seguimiento para la entrevista final.`,
         ``,
         `---`,
         ``
@@ -624,11 +742,29 @@ function copyAiAnalysisPrompt(record) {
             lines.push(``);
         }
 
-        const ans = (answers[q.key] || '').trim() || '[SIN RESPUESTA]';
-        lines.push(`### Pregunta ${q.stepNumber} (Reactivo #${q.id})`);
+        const formatted = formatAnswerForDisplay(q, answers[q.key]);
+        const typeLabel = q.type === 'choice' ? 'ELECCIÓN FORZADA' : q.type === 'slider' ? 'ESCALA 1-10' : 'TEXTO LIBRE';
+
+        lines.push(`### Pregunta ${q.stepNumber} de ${totalQ} [Reactivo #${q.id} • ${typeLabel}]`);
+        if (q.subBlock) {
+            lines.push(`*Dimensión: ${q.subBlock}*`);
+        }
         lines.push(`**Pregunta:** ${q.text}`);
-        lines.push(`**Respuesta del candidato:**`);
-        lines.push(`${ans}`);
+
+        if (q.type === 'choice' && Array.isArray(q.options)) {
+            lines.push(`**Opciones disponibles:**`);
+            q.options.forEach((opt) => {
+                const isPicked = formatted.choiceKey === opt.key;
+                lines.push(`- ${isPicked ? '**[SELECCIONADA]** ' : ''}${opt.key}) ${opt.label}`);
+            });
+            lines.push(`**Respuesta elegida:** ${formatted.aiText}`);
+        } else if (q.type === 'slider') {
+            lines.push(`**Extremos de la escala:** [${q.minLabel}] ⟷ [${q.maxLabel}]`);
+            lines.push(`**Valor seleccionado por el candidato:** ${formatted.aiText}`);
+        } else {
+            lines.push(`**Respuesta del candidato:**`);
+            lines.push(`${formatted.aiText}`);
+        }
         lines.push(``);
     });
 
@@ -640,7 +776,7 @@ function copyAiAnalysisPrompt(record) {
 }
 
 // ============================================================================
-// ACCIÓN: EXPORTAR BASE DE DATOS A CSV
+// ACCIÓN: EXPORTAR BASE DE DATOS A CSV (55 REACTIVOS + CV_PATH)
 // ============================================================================
 function exportEvaluationsToCsv() {
     if (!state.evaluations.length) {
@@ -648,7 +784,6 @@ function exportEvaluationsToCsv() {
         return;
     }
 
-    // Cabeceras: metadatos + las 50 preguntas del banco oficial (q_1..q_50)
     const headers = [
         'ID',
         'Token',
@@ -656,6 +791,7 @@ function exportEvaluationsToCsv() {
         'Base',
         'Puesto',
         'Estado',
+        'CV_Path',
         'Respuestas_Completadas',
         'Tiempo_Segundos',
         'Tiempo_Formateado',
@@ -664,7 +800,7 @@ function exportEvaluationsToCsv() {
         'Fecha_Finalizacion'
     ];
 
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 55; i++) {
         headers.push(`Q_${i}`);
     }
 
@@ -683,6 +819,7 @@ function exportEvaluationsToCsv() {
             rec.base_location,
             normalizeRole(rec.role),
             rec.status,
+            rec.cv_path || '',
             countAnsweredInRecord(rec),
             rec.elapsed_seconds || 0,
             calculateRecordDurationText(rec),
@@ -691,14 +828,13 @@ function exportEvaluationsToCsv() {
             rec.completed_at || ''
         ];
 
-        for (let i = 1; i <= 50; i++) {
+        for (let i = 1; i <= 55; i++) {
             baseCols.push(ans[`q_${i}`] || '');
         }
 
         return baseCols.map(escapeCsvCell).join(',');
     });
 
-    // BOM UTF-8 para que Excel abra acentos y eñes correctamente
     const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -721,7 +857,7 @@ function exportEvaluationsToCsv() {
 function countAnsweredInRecord(record) {
     if (!record || !record.answers || typeof record.answers !== 'object') return 0;
     return Object.entries(record.answers).filter(
-        ([k, v]) => k.startsWith('q_') && typeof v === 'string' && v.trim().length > 0
+        ([k, v]) => k.startsWith('q_') && v !== undefined && v !== null && String(v).trim().length > 0
     ).length;
 }
 
@@ -836,9 +972,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-/**
- * Datos semilla para Modo Demo cuando Supabase aún no está configurado
- */
 function seedDemoEvaluationsIfEmpty() {
     if (localStorage.getItem('tab_scout_admin_demo_list')) return;
     const now = Date.now();
@@ -850,73 +983,49 @@ function seedDemoEvaluationsIfEmpty() {
             base_location: 'Guadalajara',
             role: 'Técnico',
             status: 'completed',
-            elapsed_seconds: 1045,
+            cv_path: 'GHO-8F4A-92C1/CV_Miguel_Torres.pdf',
+            elapsed_seconds: 890,
             created_at: new Date(now - 7200 * 1000).toISOString(),
             started_at: new Date(now - 5400 * 1000).toISOString(),
-            completed_at: new Date(now - 4355 * 1000).toISOString(),
+            completed_at: new Date(now - 4510 * 1000).toISOString(),
             answers: {
                 q_1: 'Busco estabilidad y crecimiento técnico en sistemas de telemetría y CCTV de transporte de pasajeros.',
-                q_2: 'En un taller anterior había poca comunicación entre turnos; implementé una bitácora fotográfica por unidad.',
-                q_3: 'Una política de no retirar unidades a mantenimiento preventivo en temporada alta; la respeté programando revisiones nocturnas.',
+                q_2: '9',
+                q_3: 'A',
                 q_4: 'Conecté invertido un arnés de cámara auxiliar; lo reporté de inmediato a mi coordinador y reemplacé el fusible.',
-                q_5: 'Clasifico por impacto en salida de autobús: primero unidades por salir a ruta, luego correctivos en patio.',
+                q_5: 'A',
                 q_6: 'Diría que a veces soy demasiado meticuloso con el peinado de cableado antes de cerrar tableros.',
-                q_7: 'Solo una emergencia médica o familiar grave, avisando con anticipación al coordinador de turno.',
-                q_8: 'Escucho los puntos técnicos, pido ver la evidencia del fallo y ajusto mi procedimiento.',
-                q_9: 'Revisión de pendientes del turno nocturno, diagnóstico de unidades en fosa y cierre con inventario de refacciones.',
-                q_10: 'Me frustra que no dejen documentado qué cables o fusibles revisaron; lo sobrellevo pidiendo checklist de entrega.',
+                q_7: '8',
+                q_8: 'A',
+                q_9: '9',
+                q_10: 'En un taller anterior había poca comunicación entre turnos; implementé una bitácora fotográfica por unidad.',
                 q_21: 'Un DVR se reiniciaba solo cuando el autobús frenaba; descubrí que el cable de ignición hacía falso contacto con el pedal.',
-                q_22: 'Busco asegurar la operatividad sin improvisar empalmes riesgosos y solicito préstamo o envío urgente entre bases.',
-                q_23: 'Con calma le explico que la revisión toma 5 minutos más y que salir con la boletera fallando le afectará en su liquidación.',
+                q_22: 'A',
+                q_23: '6',
                 q_24: 'Primero mido voltaje en batería y fusible, luego continuidad en arnés de alimentación y finalmente consumo de la tarjeta.',
-                q_25: 'Dañé la punta de un multímetro midiendo amperaje; lo reporté y repuse el fusible cerámico interno.',
-                q_26: 'Leo los manuales técnicos del fabricante y reviso diagramas de pinout antes de intervenir.',
-                q_27: 'Le muestro técnicamente dónde rozará el arnés o cuánto calor recibe para elegir juntos una ubicación segura.',
-                q_28: 'Prefiero 10 problemas rutinarios bien resueltos para mantener la flota operando, aunque disfruto los diagnósticos complejos.',
-                q_29: 'Registro número económico de autobús, falla reportada, pruebas realizadas, pieza cambiada y serie.',
-                q_30: 'Con una falla de protocolo CAN-Bus en un modelo nuevo; pedí apoyo al especialista del proveedor y tomé notas.',
-                q_41: 'En una temporada navideña con 8 autobuses detenidos; aprendí a escalar a tiempo cuando la carga supera el turno.',
-                q_42: 'Diferimos sobre reutilizar un disco duro con sectores dañados; propuse hacer prueba SMART para demostrar el riesgo.',
-                q_43: 'Hablo primero con él para que lo reporte y, si compromete la seguridad o equipos de la empresa, informo a coordinación.',
-                q_44: 'En electricidad y telemetría automotriz las reglas y diagramas deben seguirse al 100% porque un atajo provoca cortos.',
-                q_45: 'Usé un regulador equivalente de otra marca autorizada para no detener una corrida nocturna, documentándolo en bitácora.',
-                q_46: 'Solo si las condiciones acordadas en contratación fueran totalmente distintas a la realidad operativa.',
-                q_47: 'Cuando se nos descontó una herramienta extraviada por otro turno sin bitácora de resguardo.',
-                q_48: 'Muestro mi bitácora firmada con horas, números económicos intervenidos y fotografías del cierre de mi trabajo.',
-                q_49: 'Configuración avanzada de servidores Linux remotos; prefiero apoyarme en el área de TI/Sistemas.',
-                q_50: 'Me gustaría agregar mi disponibilidad para viajar a apoyar otras bases cuando hay despliegues masivos.'
+                q_25: 'A',
+                q_26: 'Dañé la punta de un multímetro midiendo amperaje; lo reporté y repuse el fusible cerámico interno.',
+                q_27: '9',
+                q_28: 'A',
+                q_29: 'Con una falla de protocolo CAN-Bus en un modelo nuevo; pedí apoyo al especialista del proveedor y tomé notas.',
+                q_30: '9',
+                q_41: 'A',
+                q_42: 'A',
+                q_43: '9',
+                q_44: 'Me desespera que dejen herramientas tiradas o sin reportar fallas; lo hablo directo y con respeto enfocándome en el orden del turno.',
+                q_45: 'A',
+                q_46: 'A',
+                q_47: '8',
+                q_48: 'Diferimos sobre reutilizar un disco duro con sectores dañados; propuse hacer prueba SMART para demostrar el riesgo con datos.',
+                q_49: 'B',
+                q_50: 'A',
+                q_51: 'A',
+                q_52: '9',
+                q_53: 'A',
+                q_54: 'En una temporada alta con 8 autobuses detenidos al mismo tiempo; prioricé salidas y escalé las unidades que requerían refacción mayor.',
+                q_55: 'Solo si las condiciones acordadas en contratación fueran totalmente distintas a la realidad operativa.'
             }
-        },
-        {
-            id: 'demo-2',
-            token: 'GHO-3K9P-71W4',
-            candidate_name: 'Laura Patricia Gómez',
-            base_location: 'Morelia',
-            role: 'Coordinador',
-            status: 'in_progress',
-            elapsed_seconds: 420,
-            created_at: new Date(now - 1800 * 1000).toISOString(),
-            started_at: new Date(now - 900 * 1000).toISOString(),
-            completed_at: null,
-            answers: {
-                q_1: 'Me motiva liderar equipos técnicos de alto desempeño en operación de transporte.',
-                q_2: 'Cuando recibí una base con alto rezago de órdenes de servicio y rotación de técnicos.'
-            }
-        },
-        {
-            id: 'demo-3',
-            token: 'GHO-5M2X-88R9',
-            candidate_name: 'Jorge Alberto Nava',
-            base_location: 'Atlacomulco',
-            role: 'Auxiliar',
-            status: 'pending',
-            elapsed_seconds: 0,
-            created_at: new Date(now - 600 * 1000).toISOString(),
-            started_at: null,
-            completed_at: null,
-            answers: {}
         }
     ];
     localStorage.setItem('tab_scout_admin_demo_list', JSON.stringify(demoSeed));
 }
-
