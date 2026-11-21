@@ -425,7 +425,7 @@ export const QUESTION_BANK = {
             module: 'M5',
             subBlock: 'Bloque A: Autoconocimiento y Control Emocional',
             type: 'choice',
-            text: 'Un compañero de trabajo te llama por un apodo o diminutivo de tu nombre que no te gusta, frente a otros. ¿Cómo reaccionas?',
+            text: 'Un compañero de trabajo te llama por un apodo o por una forma que te desagrada, frente a otros. ¿Cómo reaccionas?',
             options: [
                 { key: 'A', label: 'En privado y con calma le digo que prefiero que me llame por mi nombre.' },
                 { key: 'B', label: 'Le contesto con un comentario sarcástico o un apodo igual para que entienda.' },
@@ -452,8 +452,8 @@ export const QUESTION_BANK = {
             subBlock: 'Bloque A: Autoconocimiento y Control Emocional',
             type: 'slider',
             text: 'Separación de problemas personales y estabilidad de ánimo:',
-            minLabel: '1 = Si tengo un mal día personal se me nota en el trato y rendimiento',
-            maxLabel: '10 = Mantengo el mismo trato profesional y enfoque sin importar mis problemas fuera'
+            minLabel: '1 = Si tengo un mal día personal se me nota en el trato, en el semblante y mi rendimiento',
+            maxLabel: '10 = Mantengo el mismo trato profesional y enfoque sin dar peso a mis problemas durante mi trabajo'
         },
         {
             id: 44,
@@ -495,9 +495,9 @@ export const QUESTION_BANK = {
             module: 'M5',
             subBlock: 'Bloque B: Empatía y Relaciones Interpersonales',
             type: 'slider',
-            text: 'Manejo de desacuerdos (Detección de "Quedabien"):',
-            minLabel: '1 = Prefiero decir que sí a todo para evitar conflictos',
-            maxLabel: '10 = Expreso mi postura o desacuerdo con respeto desde el principio'
+            text: 'Manejo de desacuerdos:',
+            minLabel: '1 = Prefiero decir que sí y aceptar todo para evitar conflictos',
+            maxLabel: '10 = Expreso mi desacuerdo con respeto desde el principio'
         },
         {
             id: 48,

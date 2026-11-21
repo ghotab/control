@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAB Scout • Evaluación de Talento | Tecnología a Bordo</title>
-    <meta name="description" content="Portal de Evaluación Conductual y Técnica para candidatos del área de Tecnología a Bordo (TAB).">
+    <meta name="description"
+        content="Portal de Evaluación Conductual y Técnica para candidatos del área de Tecnología a Bordo.">
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,6 +44,7 @@
     <!-- Supabase JS v2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body class="min-h-screen flex flex-col telemetry-grid-bg text-[#1E293B]">
 
     <!-- =================================================================== -->
@@ -52,33 +55,41 @@
             <!-- Marca e Identidad -->
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-[#2563EB] flex items-center justify-center shadow-inner">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="font-bold tracking-tight text-sm sm:text-base text-white">TAB SCOUT</span>
-                        <span class="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                        <span
+                            class="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                             Telemetría &amp; Flota
                         </span>
                     </div>
-                    <p class="text-[11px] text-slate-400 leading-none mt-0.5">Tecnología a Bordo • Evaluación Técnica y Conductual</p>
+                    <p class="text-[11px] text-slate-400 leading-none mt-0.5">Tecnología a Bordo • Evaluación Técnica y
+                        Conductual</p>
                 </div>
             </div>
 
             <!-- Indicadores activos durante el Wizard -->
             <div id="header-telemetry-bar" class="hidden items-center gap-2.5 sm:gap-4">
                 <!-- Estado de auto-guardado -->
-                <div id="autosave-indicator" class="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-md">
+                <div id="autosave-indicator"
+                    class="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-md">
                     <span id="autosave-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
                     <span id="autosave-text">Sincronizado</span>
                 </div>
 
                 <!-- Temporizador discreto informativo -->
-                <div class="flex items-center gap-1.5 text-xs font-mono text-slate-200 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-md" title="Tiempo transcurrido de sesión (informativo)">
-                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <div class="flex items-center gap-1.5 text-xs font-mono text-slate-200 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-md"
+                    title="Tiempo transcurrido de sesión (informativo)">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span id="session-timer">00:00</span>
                 </div>
@@ -97,8 +108,11 @@
             <div class="flex items-center gap-2">
                 <span class="status-pill status-pending"><span class="status-dot"></span>CONFIGURACIÓN</span>
                 <span>
-                    Credenciales de Supabase pendientes en <code class="font-mono font-semibold bg-amber-100 px-1.5 py-0.5 rounded">js/config.js</code>.
-                    Puedes explorar con un token de demostración (<code class="font-mono font-bold">DEMO-COORD</code>, <code class="font-mono font-bold">DEMO-TEC</code> o <code class="font-mono font-bold">DEMO-AUX</code>) o conectar tu base de datos Supabase.
+                    Credenciales de Supabase pendientes en <code
+                        class="font-mono font-semibold bg-amber-100 px-1.5 py-0.5 rounded">js/config.js</code>.
+                    Puedes explorar con un token de demostración (<code class="font-mono font-bold">DEMO-COORD</code>,
+                    <code class="font-mono font-bold">DEMO-TEC</code> o <code
+                        class="font-mono font-bold">DEMO-AUX</code>) o conectar tu base de datos Supabase.
                 </span>
             </div>
         </div>
@@ -114,7 +128,8 @@
             <!-- VISTA 1: INGRESO DE TOKEN DE ACCESO                         -->
             <!-- =========================================================== -->
             <section id="view-token-entry" class="saas-card-elevated p-6 sm:p-10">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E2E8F0]">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E2E8F0]">
                     <div>
                         <span class="status-pill status-in_progress mb-2.5">
                             <span class="status-dot"></span>ACCESO DE CANDIDATO
@@ -123,37 +138,37 @@
                             Portal de Evaluación Tecnología a Bordo
                         </h1>
                         <p class="text-sm text-[#64748B] mt-1">
-                            Ingresa tu código de acceso único proporcionado por el equipo de Reclutamiento o Coordinación TAB.
+                            Ingresa tu código de acceso único proporcionado por el equipo de Reclutamiento o Tecnologia
+                            a Bordo.
                         </p>
                     </div>
                 </div>
 
                 <form id="form-token-access" class="mt-6 space-y-5" novalidate>
                     <div>
-                        <label for="input-token" class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-2">
+                        <label for="input-token"
+                            class="block text-xs font-semibold uppercase tracking-wider text-[#1E293B] mb-2">
                             Token de Evaluación (Un solo uso)
                         </label>
                         <div class="relative">
-                            <input
-                                type="text"
-                                id="input-token"
-                                name="token"
-                                autocomplete="off"
-                                spellcheck="false"
+                            <input type="text" id="input-token" name="token" autocomplete="off" spellcheck="false"
                                 placeholder="Ej. GHO-8F4A-92C1"
                                 class="w-full px-4 py-3.5 text-base sm:text-lg font-mono font-semibold tracking-wider uppercase bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[#1E293B] placeholder-[#94A3B8] transition"
-                                required
-                            >
+                                required>
                         </div>
                         <p class="text-xs text-[#64748B] mt-2">
-                            Si recibiste un enlace directo durante tu sesión de Google Meet, el código se validará automáticamente.
+                            Si recibiste un enlace directo durante tu sesión de Google Meet, el código se validará
+                            automáticamente.
                         </p>
                     </div>
 
                     <!-- Alerta de error de validación -->
-                    <div id="token-error-alert" class="hidden rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 flex items-start gap-3">
-                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                    <div id="token-error-alert"
+                        class="hidden rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800 flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                            stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
                         <div>
                             <p class="font-semibold">No fue posible validar el token</p>
@@ -163,20 +178,21 @@
 
                     <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-2 text-xs text-[#64748B]">
-                            <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                            <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                             </svg>
                             <span>Sesión cifrada con auto-guardado en tiempo real</span>
                         </div>
 
-                        <button
-                            type="submit"
-                            id="btn-validate-token"
-                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition disabled:opacity-60"
-                        >
+                        <button type="submit" id="btn-validate-token"
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition disabled:opacity-60">
                             <span>Validar Código</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                             </svg>
                         </button>
                     </div>
@@ -189,8 +205,10 @@
             <section id="view-welcome" class="hidden saas-card-elevated p-6 sm:p-10">
                 <div class="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-[#E2E8F0]">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Ficha de Evaluación Verificada</p>
-                        <h2 id="welcome-candidate-name" class="text-2xl font-bold text-[#1E293B] mt-1">Nombre del Candidato</h2>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Ficha de Evaluación
+                            Verificada</p>
+                        <h2 id="welcome-candidate-name" class="text-2xl font-bold text-[#1E293B] mt-1">Nombre del
+                            Candidato</h2>
                     </div>
                     <div class="flex items-center gap-2">
                         <span id="welcome-status-badge" class="status-pill status-pending">
@@ -203,16 +221,22 @@
                 <!-- Metadatos del candidato -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
                     <div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Puesto a Evaluar</span>
-                        <span id="welcome-meta-role" class="text-sm font-bold text-[#1E293B] mt-0.5 block">Técnico TAB</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Puesto a
+                            Evaluar</span>
+                        <span id="welcome-meta-role" class="text-sm font-bold text-[#1E293B] mt-0.5 block">Técnico
+                            TAB</span>
                     </div>
                     <div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Base / Ubicación</span>
-                        <span id="welcome-meta-base" class="text-sm font-bold text-[#1E293B] mt-0.5 block">Occidente</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Base /
+                            Ubicación</span>
+                        <span id="welcome-meta-base"
+                            class="text-sm font-bold text-[#1E293B] mt-0.5 block">Occidente</span>
                     </div>
                     <div class="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Token Asignado</span>
-                        <span id="welcome-meta-token" class="text-sm font-mono font-bold text-[#2563EB] mt-0.5 block">GHO-0000-0000</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">Token
+                            Asignado</span>
+                        <span id="welcome-meta-token"
+                            class="text-sm font-mono font-bold text-[#2563EB] mt-0.5 block">GHO-0000-0000</span>
                     </div>
                 </div>
 
@@ -221,9 +245,12 @@
                 <!-- ======================================================= -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs font-bold uppercase tracking-wider text-[#1E293B] flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                        <label
+                            class="text-xs font-bold uppercase tracking-wider text-[#1E293B] flex items-center gap-2">
+                            <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                             </svg>
                             <span>1. Adjunta tu Currículum Vitae / Solicitud (PDF)</span>
                         </label>
@@ -232,33 +259,28 @@
                         </span>
                     </div>
 
-                    <div
-                        id="cv-dropzone"
-                        class="cv-dropzone p-5 text-center cursor-pointer relative"
-                        role="button"
-                        tabindex="0"
-                        aria-label="Subir archivo PDF de CV"
-                    >
-                        <input
-                            type="file"
-                            id="cv-file-input"
-                            accept="application/pdf,.pdf"
-                            class="hidden"
-                        >
+                    <div id="cv-dropzone" class="cv-dropzone p-5 text-center cursor-pointer relative" role="button"
+                        tabindex="0" aria-label="Subir archivo PDF de CV">
+                        <input type="file" id="cv-file-input" accept="application/pdf,.pdf" class="hidden">
 
                         <!-- Estado inicial / Drag & Drop -->
                         <div id="cv-dropzone-empty" class="space-y-2">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#2563EB] mx-auto flex items-center justify-center">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+                            <div
+                                class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#2563EB] mx-auto flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-xs sm:text-sm font-semibold text-[#1E293B]">
-                                    Arrastra tu CV aquí o <span class="text-[#2563EB] underline">haz clic para seleccionar</span>
+                                    Arrastra tu CV aquí o <span class="text-[#2563EB] underline">haz clic para
+                                        seleccionar</span>
                                 </p>
                                 <p class="text-[11px] text-[#64748B] mt-0.5">
-                                    Formato único permitido: <strong>.PDF</strong> • Tamaño máximo: <strong>5 MB</strong>
+                                    Formato único permitido: <strong>.PDF</strong> • Tamaño máximo: <strong>5
+                                        MB</strong>
                                 </p>
                             </div>
                         </div>
@@ -270,16 +292,22 @@
                                 <span id="cv-upload-percent" class="text-[#2563EB]">0%</span>
                             </div>
                             <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                                <div id="cv-upload-bar" class="h-full bg-[#2563EB] transition-all duration-200 rounded-full" style="width: 0%"></div>
+                                <div id="cv-upload-bar"
+                                    class="h-full bg-[#2563EB] transition-all duration-200 rounded-full"
+                                    style="width: 0%"></div>
                             </div>
                         </div>
 
                         <!-- Estado CV Cargado exitosamente -->
-                        <div id="cv-dropzone-loaded" class="hidden flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                        <div id="cv-dropzone-loaded"
+                            class="hidden flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div>
@@ -287,7 +315,8 @@
                                         <span class="status-pill status-completed">
                                             <span class="status-dot"></span>CV CARGADO
                                         </span>
-                                        <span id="cv-loaded-filename" class="text-xs sm:text-sm font-bold text-[#1E293B] truncate max-w-[220px] sm:max-w-xs">
+                                        <span id="cv-loaded-filename"
+                                            class="text-xs sm:text-sm font-bold text-[#1E293B] truncate max-w-[220px] sm:max-w-xs">
                                             curriculum.pdf
                                         </span>
                                     </div>
@@ -296,20 +325,20 @@
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                id="btn-replace-cv"
-                                class="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] underline px-2 py-1"
-                            >
+                            <button type="button" id="btn-replace-cv"
+                                class="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] underline px-2 py-1">
                                 Cambiar archivo
                             </button>
                         </div>
                     </div>
 
                     <!-- Error de validación de CV -->
-                    <div id="cv-error-msg" class="hidden mt-2 text-xs font-semibold text-red-600 flex items-center gap-1.5">
-                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                    <div id="cv-error-msg"
+                        class="hidden mt-2 text-xs font-semibold text-red-600 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
                         <span id="cv-error-text">El archivo debe ser formato PDF y pesar menos de 5 MB.</span>
                     </div>
@@ -318,54 +347,62 @@
                 <!-- Instrucciones claras -->
                 <div class="space-y-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5">
                     <h3 class="text-sm font-bold text-[#1E293B] flex items-center gap-2">
-                        <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                        <svg class="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" stroke-width="2.2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                         </svg>
                         2. Instrucciones de la Evaluación Híbrida
                     </h3>
                     <ul class="text-xs sm:text-sm text-[#475569] space-y-2.5 leading-relaxed">
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                            <span><strong>Formato Dinámico:</strong> Combina <strong>tarjetas de elección rápida</strong>, <strong>escalas visuales del 1 al 10</strong> y <strong>preguntas abiertas breves</strong> sobre tu experiencia real.</span>
+                            <span
+                                class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                            <span><strong>Formato Dinámico:</strong> Combina <strong>tarjetas de elección
+                                    rápida</strong>, <strong>escalas visuales del 1 al 10</strong> y <strong>preguntas
+                                    abiertas breves</strong> sobre tu experiencia real.</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                            <span><strong>Tiempo estimado:</strong> Toma aproximadamente <strong>12 a 15 minutos</strong>. El cronómetro en pantalla es únicamente informativo.</span>
+                            <span
+                                class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                            <span><strong>Tiempo estimado:</strong> Toma aproximadamente <strong>12 a 15
+                                    minutos</strong>. El cronómetro en pantalla es únicamente informativo.</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                            <span><strong>Criterio real:</strong> No existen respuestas "de manual". Buscamos conocer tu estilo de trabajo real en operación y taller.</span>
+                            <span
+                                class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                            <span><strong>Criterio real:</strong> No existen respuestas "de manual". Buscamos conocer tu
+                                estilo de trabajo real en operación y taller.</span>
                         </li>
                         <li class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-                            <span><strong>Auto-guardado:</strong> Cada avance se respalda en automático. Al presionar <em>"Finalizar y Enviar Evaluación"</em> al final, el token quedará cerrado permanentemente.</span>
+                            <span
+                                class="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                            <span><strong>Auto-guardado:</strong> Cada avance se respalda en automático. Al presionar
+                                <em>"Finalizar y Enviar Evaluación"</em> al final, el token quedará cerrado
+                                permanentemente.</span>
                         </li>
                     </ul>
                 </div>
 
                 <!-- Aviso de progreso previo detectado -->
-                <div id="welcome-resume-banner" class="hidden mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3.5 text-xs text-blue-900 flex items-center justify-between">
+                <div id="welcome-resume-banner"
+                    class="hidden mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3.5 text-xs text-blue-900 flex items-center justify-between">
                     <span>Se detectó avance guardado previamente en este token. Continuarás donde te quedaste.</span>
                     <span id="welcome-resume-count" class="font-bold"></span>
                 </div>
 
                 <div class="mt-7 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <button
-                        type="button"
-                        id="btn-change-token"
-                        class="w-full sm:w-auto text-xs font-semibold text-[#64748B] hover:text-[#1E293B] py-2 px-3 transition"
-                    >
+                    <button type="button" id="btn-change-token"
+                        class="w-full sm:w-auto text-xs font-semibold text-[#64748B] hover:text-[#1E293B] py-2 px-3 transition">
                         ← Usar otro código de acceso
                     </button>
 
-                    <button
-                        type="button"
-                        id="btn-start-wizard"
-                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition disabled:opacity-50"
-                    >
+                    <button type="button" id="btn-start-wizard"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm shadow-sm transition disabled:opacity-50">
                         <span id="btn-start-wizard-label">Comenzar Evaluación</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
                     </button>
                 </div>
@@ -384,12 +421,14 @@
                                 Pregunta 1 de 35
                             </span>
                             <span class="text-slate-300">•</span>
-                            <span id="wizard-section-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-[#1E293B] border border-slate-200">
-                                Sección: Cultura, Actitud y Operación
+                            <span id="wizard-section-badge"
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-[#1E293B] border border-slate-200">
+                                Sección: Cultura y Actitud Laboral
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span id="wizard-type-pill" class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-200">
+                            <span id="wizard-type-pill"
+                                class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-200">
                                 Texto Libre
                             </span>
                             <span id="wizard-progress-percent" class="text-xs font-bold text-[#2563EB]">3%</span>
@@ -398,25 +437,26 @@
 
                     <!-- Barra visual -->
                     <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/70">
-                        <div
-                            id="wizard-progress-bar"
+                        <div id="wizard-progress-bar"
                             class="h-full bg-[#2563EB] transition-all duration-300 ease-out rounded-full"
-                            style="width: 3%"
-                        ></div>
+                            style="width: 3%"></div>
                     </div>
 
                     <!-- Mini navegador de bloques -->
                     <div class="mt-3 flex items-center justify-between text-[11px] text-[#64748B]">
                         <span id="wizard-candidate-pill" class="font-medium truncate">Candidato: —</span>
-                        <span class="hidden sm:inline">Atajo rápido: <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono text-slate-700">Ctrl + Enter</kbd> para avanzar</span>
+                        <span class="hidden sm:inline">Atajo rápido: <kbd
+                                class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono text-slate-700">Ctrl
+                                + Enter</kbd> para avanzar</span>
                     </div>
                 </div>
 
                 <!-- Tarjeta de la Pregunta Actual -->
                 <div id="wizard-question-card" class="saas-card-elevated p-6 sm:p-8 wizard-question-enter">
                     <div class="flex items-center justify-between gap-2 mb-3">
-                        <span id="question-module-tag" class="text-[11px] font-bold uppercase tracking-wider text-[#2563EB]">
-                            BLOQUE 1 DE 3 • CULTURA Y OPERACIÓN
+                        <span id="question-module-tag"
+                            class="text-[11px] font-bold uppercase tracking-wider text-[#2563EB]">
+                            BLOQUE 1 DE 3 • CULTURA LABORAL
                         </span>
                         <span id="question-id-tag" class="text-[11px] font-mono text-[#64748B]">
                             Reactivo #1
@@ -435,7 +475,15 @@
                             <!-- 4 tarjetas clickeables inyectadas dinámicamente -->
                         </div>
                         <p class="text-[11px] text-[#64748B] pt-1">
-                            Selecciona la tarjeta que mejor represente tu forma real de actuar. También puedes presionar las teclas <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">A</kbd>, <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">B</kbd>, <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">C</kbd> o <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">D</kbd>.
+                            Selecciona la tarjeta que mejor represente tu forma real de actuar. También puedes presionar
+                            las teclas <kbd
+                                class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">A</kbd>,
+                            <kbd
+                                class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">B</kbd>,
+                            <kbd
+                                class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">C</kbd>
+                            o <kbd
+                                class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px]">D</kbd>.
                         </p>
                     </div>
 
@@ -444,10 +492,13 @@
                     <!-- =================================================== -->
                     <div id="input-mode-slider" class="hidden space-y-5">
                         <!-- Badge grande y dinámico con el valor seleccionado -->
-                        <div class="flex flex-col items-center justify-center p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Posición seleccionada en la escala</span>
+                        <div
+                            class="flex flex-col items-center justify-center p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Posición
+                                seleccionada en la escala</span>
                             <div class="mt-1.5 flex items-baseline gap-1.5">
-                                <span id="slider-value-badge" class="inline-flex items-center justify-center min-w-[3.5rem] px-4 py-1.5 rounded-xl bg-[#2563EB] text-white font-extrabold text-2xl sm:text-3xl shadow-sm">
+                                <span id="slider-value-badge"
+                                    class="inline-flex items-center justify-center min-w-[3.5rem] px-4 py-1.5 rounded-xl bg-[#2563EB] text-white font-extrabold text-2xl sm:text-3xl shadow-sm">
                                     5
                                 </span>
                                 <span class="text-sm font-bold text-[#64748B]">/ 10</span>
@@ -456,27 +507,26 @@
 
                         <!-- Etiquetas claras de ambos extremos -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="p-3.5 rounded-xl bg-slate-50 border border-[#E2E8F0] flex flex-col justify-between">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#64748B]">Extremo Izquierdo (1)</span>
-                                <p id="slider-min-label" class="text-xs sm:text-sm font-semibold text-[#1E293B] mt-1"></p>
+                            <div
+                                class="p-3.5 rounded-xl bg-slate-50 border border-[#E2E8F0] flex flex-col justify-between">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#64748B]">Extremo
+                                    Izquierdo (1)</span>
+                                <p id="slider-min-label" class="text-xs sm:text-sm font-semibold text-[#1E293B] mt-1">
+                                </p>
                             </div>
-                            <div class="p-3.5 rounded-xl bg-blue-50/50 border border-blue-200/80 flex flex-col justify-between sm:text-right">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]">Extremo Derecho (10)</span>
-                                <p id="slider-max-label" class="text-xs sm:text-sm font-semibold text-[#1E293B] mt-1"></p>
+                            <div
+                                class="p-3.5 rounded-xl bg-blue-50/50 border border-blue-200/80 flex flex-col justify-between sm:text-right">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]">Extremo
+                                    Derecho (10)</span>
+                                <p id="slider-max-label" class="text-xs sm:text-sm font-semibold text-[#1E293B] mt-1">
+                                </p>
                             </div>
                         </div>
 
                         <!-- Control range + botonera rápida 1..10 -->
                         <div class="px-1 space-y-3">
-                            <input
-                                type="range"
-                                id="question-slider-input"
-                                min="1"
-                                max="10"
-                                step="1"
-                                value="5"
-                                class="telemetry-slider"
-                            >
+                            <input type="range" id="question-slider-input" min="1" max="10" step="1" value="5"
+                                class="telemetry-slider">
                             <div id="slider-ticks-container" class="grid grid-cols-10 gap-1.5">
                                 <!-- Botones 1..10 generados por JS -->
                             </div>
@@ -488,18 +538,16 @@
                     <!-- =================================================== -->
                     <div id="input-mode-text" class="hidden">
                         <label for="answer-textarea" class="sr-only">Tu respuesta</label>
-                        <textarea
-                            id="answer-textarea"
-                            rows="6"
+                        <textarea id="answer-textarea" rows="6"
                             placeholder="Escribe tu respuesta aquí con un ejemplo real o situación concreta..."
-                            class="w-full p-4 text-sm sm:text-base text-[#1E293B] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl leading-relaxed resize-y transition placeholder-[#94A3B8]"
-                        ></textarea>
+                            class="w-full p-4 text-sm sm:text-base text-[#1E293B] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl leading-relaxed resize-y transition placeholder-[#94A3B8]"></textarea>
 
                         <!-- Barra inferior del textarea: retroalimentación de caracteres -->
                         <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
                             <div id="char-feedback-box" class="flex items-center gap-1.5 text-[#64748B]">
                                 <span id="char-feedback-dot" class="w-2 h-2 rounded-full bg-slate-300"></span>
-                                <span id="char-feedback-text">Recomendado: al menos 40 caracteres para detallar tu ejemplo.</span>
+                                <span id="char-feedback-text">Recomendado: al menos 40 caracteres para detallar tu
+                                    ejemplo.</span>
                             </div>
                             <div class="font-mono text-xs text-[#64748B]">
                                 <span id="char-count-number" class="font-semibold text-[#1E293B]">0</span> caracteres
@@ -508,47 +556,48 @@
                     </div>
 
                     <!-- Mensaje de validación si no ha respondido -->
-                    <div id="answer-validation-msg" class="hidden mt-4 text-xs font-semibold text-red-600 flex items-center gap-1.5">
-                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                    <div id="answer-validation-msg"
+                        class="hidden mt-4 text-xs font-semibold text-red-600 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
-                        <span id="answer-validation-text">Por favor selecciona o escribe una respuesta antes de continuar.</span>
+                        <span id="answer-validation-text">Por favor selecciona o escribe una respuesta antes de
+                            continuar.</span>
                     </div>
 
                     <!-- Controles de Navegación del Wizard -->
                     <div class="mt-7 pt-5 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
-                        <button
-                            type="button"
-                            id="btn-prev-question"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-[#1E293B] font-semibold text-xs sm:text-sm transition disabled:opacity-40 disabled:pointer-events-none"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                        <button type="button" id="btn-prev-question"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-[#1E293B] font-semibold text-xs sm:text-sm transition disabled:opacity-40 disabled:pointer-events-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                             </svg>
                             <span>Anterior</span>
                         </button>
 
                         <div class="flex items-center gap-3">
                             <!-- Botón Siguiente -->
-                            <button
-                                type="button"
-                                id="btn-next-question"
-                                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-60"
-                            >
+                            <button type="button" id="btn-next-question"
+                                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-60">
                                 <span id="btn-next-label">Siguiente</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                 </svg>
                             </button>
 
                             <!-- Botón Finalizar -->
-                            <button
-                                type="button"
-                                id="btn-finish-evaluation"
-                                class="hidden inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-60"
-                            >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            <button type="button" id="btn-finish-evaluation"
+                                class="hidden inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-60">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <span>Finalizar y Enviar Evaluación</span>
                             </button>
@@ -561,9 +610,11 @@
             <!-- VISTA 4: TOKEN EXPIRADO / EVALUACIÓN FINALIZADA (BLOQUEO)   -->
             <!-- =========================================================== -->
             <section id="view-locked" class="hidden saas-card-elevated p-8 sm:p-10 text-center">
-                <div id="locked-icon-wrapper" class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center mb-5">
+                <div id="locked-icon-wrapper"
+                    class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center mb-5">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
 
@@ -577,10 +628,12 @@
                     Evaluación finalizada / Token expirado
                 </h2>
                 <p id="locked-subtitle" class="text-sm text-[#64748B] max-w-md mx-auto mt-2 leading-relaxed">
-                    Este enlace de acceso único ya fue utilizado. Tus respuestas han sido registradas y selladas en el sistema de Tecnología a Bordo.
+                    Este enlace de acceso único ya fue utilizado. Tus respuestas han sido registradas y selladas en el
+                    sistema de Tecnología a Bordo.
                 </p>
 
-                <div id="locked-details-box" class="mt-6 max-w-md mx-auto p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#475569] space-y-1.5">
+                <div id="locked-details-box"
+                    class="mt-6 max-w-md mx-auto p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#475569] space-y-1.5">
                     <div class="flex justify-between">
                         <span class="font-medium text-[#64748B]">Estado del Token:</span>
                         <span class="font-bold text-[#1E293B]">Cerrado permanentemente (Un solo uso)</span>
@@ -598,35 +651,33 @@
     <!-- =================================================================== -->
     <!-- MODAL DE CONFIRMACIÓN DE ENVÍO FINAL (CADUCIDAD IRREVERSIBLE)       -->
     <!-- =================================================================== -->
-    <div id="modal-confirm-submit" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div id="modal-confirm-submit"
+        class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="saas-card-elevated max-w-md w-full p-6 sm:p-7">
             <div class="flex items-start gap-3.5">
-                <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
+                <div
+                    class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
                 </div>
                 <div>
                     <h3 class="text-base font-bold text-[#1E293B]">¿Finalizar y sellar evaluación?</h3>
                     <p class="text-xs sm:text-sm text-[#64748B] mt-1 leading-relaxed">
-                        Al confirmar el envío, tus respuestas quedarán registradas y <strong>este token caducará de forma permanente</strong>. No podrás volver a abrir ni editar el cuestionario.
+                        Al confirmar el envío, tus respuestas quedarán registradas y <strong>este token caducará de
+                            forma permanente</strong>. No podrás volver a abrir ni editar el cuestionario.
                     </p>
                 </div>
             </div>
 
             <div class="mt-6 flex items-center justify-end gap-3">
-                <button
-                    type="button"
-                    id="btn-cancel-submit"
-                    class="px-4 py-2 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-xs sm:text-sm font-semibold text-[#1E293B] transition"
-                >
+                <button type="button" id="btn-cancel-submit"
+                    class="px-4 py-2 rounded-lg border border-[#CBD5E1] bg-white hover:bg-slate-50 text-xs sm:text-sm font-semibold text-[#1E293B] transition">
                     Revisar respuestas
                 </button>
-                <button
-                    type="button"
-                    id="btn-confirm-submit"
-                    class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition"
-                >
+                <button type="button" id="btn-confirm-submit"
+                    class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
                     <span>Sí, enviar definitivamente</span>
                 </button>
             </div>
@@ -648,4 +699,5 @@
     <!-- Lógica del Portal del Candidato -->
     <script type="module" src="./js/candidate.js"></script>
 </body>
+
 </html>
