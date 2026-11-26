@@ -6,11 +6,52 @@ const inventarioOperadoras = [
 ]
 
 const inventarioTiposAlmacenamiento = [
-  'Disco Duro 2.5" Intercambiable',
-  'SSD 2.5" Intercambiable',
-  'Disco Duro 3.5" Fijo',
-  "M.2 Fijo",
+  'HDD SATA 2.5"',
+  'HDD SATA 3.5"',
+  'SSD SATA 2.5"',
+  "SSD M.2 SATA",
+  "MicroSD Videovigilancia",
+  "SD / SDXC Videovigilancia",
 ]
+
+const inventarioEtiquetasAlmacenamiento = {
+  'HDD SATA 2.5"': 'HDD SATA 2.5" — Disco mecánico 2.5"',
+  'HDD SATA 3.5"': 'HDD SATA 3.5" — Disco mecánico 3.5" (MDVR X3NPro)',
+  'SSD SATA 2.5"': 'SSD SATA 2.5" — Estado sólido 2.5"',
+  "SSD M.2 SATA": "SSD M.2 SATA — Estado sólido M.2 (MDVR M1N 2.0)",
+  "MicroSD Videovigilancia": "MicroSD Videovigilancia — Alta durabilidad (Dashcam / M1N 2.0)",
+  "SD / SDXC Videovigilancia": "SD / SDXC Videovigilancia — Respaldo hot-swap (MDVR X3NPro)",
+}
+
+const inventarioAliasAlmacenamiento = {
+  'Disco Duro 2.5" Intercambiable': 'HDD SATA 2.5"',
+  'Disco Duro 3.5" Fijo': 'HDD SATA 3.5"',
+  'SSD 2.5" Intercambiable': 'SSD SATA 2.5"',
+  "M.2 Fijo": "SSD M.2 SATA",
+}
+
+const inventarioOrdenBandejas = [
+  "Caddy Compacto",
+  "Caddy Tornillo Cautivo",
+  "Caddy Asa Abatible",
+  'Cartucho 3.5" Streamax (X3NPro)',
+  "Módulo M.2 Extraíble (M1N 2.0)",
+  "Ranura Directa (Sin Caddy)",
+]
+
+const inventarioEtiquetasBandejas = {
+  "Caddy Compacto": 'Caddy Compacto 2.5" — Riel liso sin herraje (antes BDI)',
+  "Caddy Tornillo Cautivo": 'Caddy Tornillo Cautivo 2.5" — Fijación lateral con perillas',
+  "Caddy Asa Abatible": 'Caddy Asa Abatible 2.5" — Extracción con manija / jaladera',
+  'Cartucho 3.5" Streamax (X3NPro)': 'Cartucho 3.5" Streamax (X3NPro) — Asa + tornillos cautivos y llave',
+  "Módulo M.2 Extraíble (M1N 2.0)": "Módulo M.2 Extraíble (M1N 2.0) — Compartimento frontal con llave",
+  "Ranura Directa (Sin Caddy)": "Ranura Directa (Sin Caddy) — Inserción directa SD / MicroSD",
+}
+
+function inventarioOrdenBandeja(nombre) {
+  const idx = inventarioOrdenBandejas.indexOf(nombre)
+  return idx < 0 ? inventarioOrdenBandejas.length : idx
+}
 
 const inventarioOrdenCamaras = [
   "Camino",
@@ -141,11 +182,13 @@ function inventarioNuevoRegistro(autobusId) {
 }
 
 function inventarioTipoAlmacenamiento(registro) {
-  if (registro?.cctv_tipo_almacenamiento) return registro.cctv_tipo_almacenamiento
+  if (registro?.cctv_tipo_almacenamiento) {
+    return inventarioAliasAlmacenamiento[registro.cctv_tipo_almacenamiento] ?? registro.cctv_tipo_almacenamiento
+  }
   const anteriores = [
-    registro?.cctv_disco_25_intercambiable && inventarioTiposAlmacenamiento[0],
-    registro?.cctv_ssd_25 && inventarioTiposAlmacenamiento[1],
-    registro?.cctv_disco_35_fijo && inventarioTiposAlmacenamiento[2],
+    registro?.cctv_disco_25_intercambiable && 'HDD SATA 2.5"',
+    registro?.cctv_ssd_25 && 'SSD SATA 2.5"',
+    registro?.cctv_disco_35_fijo && 'HDD SATA 3.5"',
   ].filter(Boolean)
   return anteriores.length === 1 ? anteriores[0] : ""
 }
@@ -327,7 +370,20 @@ function InventarioEquipos() {
       if (campo === "cctv_dvr" || campo === "cctv_tipo_almacenamiento") {
         const tipo = campo === "cctv_tipo_almacenamiento" ? valor : inventarioTipoAlmacenamiento(siguiente)
         const dvr = campo === "cctv_dvr" ? valor : siguiente.cctv_dvr
-        if (![inventarioTiposAlmacenamiento[2], inventarioTiposAlmacenamiento[3]].includes(tipo) && dvr !== "DASHCAM MERIVA DUAL") siguiente.cctv_microsd = false
+        if (!['HDD SATA 3.5"', "SSD M.2 SATA"].includes(tipo) && dvr !== "DASHCAM MERIVA DUAL") siguiente.cctv_microsd = false
+        if (campo === "cctv_tipo_almacenamiento") {
+          const buscarBandeja = (nombre) => catalogoCctv.find((item) => item.categoria === "tipo_bandeja" && item.nombre === nombre && item.activo)?.id
+          if (valor === 'HDD SATA 3.5"') {
+            const idSug = buscarBandeja('Cartucho 3.5" Streamax (X3NPro)')
+            if (idSug) siguiente.cctv_tipo_bandeja_id = idSug
+          } else if (valor === "SSD M.2 SATA") {
+            const idSug = buscarBandeja("Módulo M.2 Extraíble (M1N 2.0)")
+            if (idSug) siguiente.cctv_tipo_bandeja_id = idSug
+          } else if (valor === "MicroSD Videovigilancia" || valor === "SD / SDXC Videovigilancia") {
+            const idSug = buscarBandeja("Ranura Directa (Sin Caddy)")
+            if (idSug) siguiente.cctv_tipo_bandeja_id = idSug
+          }
+        }
       }
       return siguiente
     })
@@ -376,11 +432,11 @@ function InventarioEquipos() {
       const tipoAlmacenamiento = inventarioTipoAlmacenamiento(payload)
       payload.cctv_tipo_almacenamiento = tipoAlmacenamiento || null
       if (tipoAlmacenamiento) {
-        payload.cctv_disco_25_intercambiable = tipoAlmacenamiento === inventarioTiposAlmacenamiento[0]
-        payload.cctv_ssd_25 = tipoAlmacenamiento === inventarioTiposAlmacenamiento[1]
-        payload.cctv_disco_35_fijo = tipoAlmacenamiento === inventarioTiposAlmacenamiento[2]
+        payload.cctv_disco_25_intercambiable = tipoAlmacenamiento === 'HDD SATA 2.5"'
+        payload.cctv_ssd_25 = tipoAlmacenamiento === 'SSD SATA 2.5"'
+        payload.cctv_disco_35_fijo = tipoAlmacenamiento === 'HDD SATA 3.5"'
       }
-      const microSdPermitida = [inventarioTiposAlmacenamiento[2], inventarioTiposAlmacenamiento[3]].includes(tipoAlmacenamiento)
+      const microSdPermitida = ['HDD SATA 3.5"', "SSD M.2 SATA"].includes(tipoAlmacenamiento)
         || payload.cctv_dvr === "DASHCAM MERIVA DUAL"
       if (!microSdPermitida) payload.cctv_microsd = false
       if (!payload.cctv_modulo_sim) {
@@ -540,9 +596,11 @@ function InventarioEquipos() {
   const catalogoPosiciones = catalogoCctv
     .filter((item) => item.categoria === "posicion_camara")
     .sort((a, b) => inventarioOrdenCamara(a.nombre) - inventarioOrdenCamara(b.nombre))
-  const catalogoBandejas = catalogoCctv.filter((item) => item.categoria === "tipo_bandeja")
+  const catalogoBandejas = catalogoCctv
+    .filter((item) => item.categoria === "tipo_bandeja")
+    .sort((a, b) => inventarioOrdenBandeja(a.nombre) - inventarioOrdenBandeja(b.nombre))
   const tipoAlmacenamiento = inventarioTipoAlmacenamiento(registro)
-  const microSdAplica = [inventarioTiposAlmacenamiento[2], inventarioTiposAlmacenamiento[3]].includes(tipoAlmacenamiento)
+  const microSdAplica = ['HDD SATA 3.5"', "SSD M.2 SATA"].includes(tipoAlmacenamiento)
     || registro?.cctv_dvr === "DASHCAM MERIVA DUAL"
   const puedeAdministrarCatalogos = esJefe
   const autobusesVista = ["jefe", "gerente"].includes(nivel) ? autobuses : autobusesBase
@@ -943,7 +1001,7 @@ function InventarioEquipos() {
                 registro.cctv_dvr === "Otro" && campo("Especifica el DVR", "cctv_dvr_otro"),
                 campo("Canales analógicos", "cctv_canales_analogicos", { tipo: "number", min: 0 }),
                 campo("Canales IP", "cctv_canales_ip", { tipo: "number", min: 0 }),
-                campo("Tipo de bandeja", "cctv_tipo_bandeja_id", { tipo: "select", opciones: bandejasActivas.map((item) => ({ value: item.id, label: `${item.nombre}${item.activo ? "" : " (inactivo)"}` })) }),
+                campo("Tipo de bandeja", "cctv_tipo_bandeja_id", { tipo: "select", opciones: bandejasActivas.map((item) => ({ value: item.id, label: `${inventarioEtiquetasBandejas[item.nombre] ?? item.nombre}${item.activo ? "" : " (inactivo)"}` })) }),
               ] }),
               (0, U.jsxs)("div", { children: [
                 (0, U.jsx)("p", { className: "mb-1 text-sm font-medium", children: "Cámaras instaladas" }),
@@ -955,8 +1013,8 @@ function InventarioEquipos() {
               (0, U.jsxs)("div", { className: "space-y-2 border-t border-[var(--color-border)] pt-3", children: [
                 (0, U.jsx)("h4", { className: "text-sm font-semibold", children: "Tipo de Almacenamiento" }),
                 (0, U.jsxs)("div", { className: "grid gap-3 sm:grid-cols-2", children: [
-                  campo("Tipo:", "cctv_tipo_almacenamiento", { tipo: "select", opciones: inventarioTiposAlmacenamiento.map((value) => ({ value, label: value })) }),
-                  microSdAplica && check("MicroSD como almacenamiento secundario", "cctv_microsd", true),
+                  campo("Tipo:", "cctv_tipo_almacenamiento", { tipo: "select", opciones: inventarioTiposAlmacenamiento.map((value) => ({ value, label: inventarioEtiquetasAlmacenamiento[value] ?? value })) }),
+                  microSdAplica && check("Tarjeta SD / MicroSD como almacenamiento secundario", "cctv_microsd", true),
                 ] }),
               ] }),
               (0, U.jsxs)("div", { className: "space-y-2 border-t border-[var(--color-border)] pt-3", children: [
