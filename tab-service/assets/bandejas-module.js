@@ -1,4 +1,5 @@
 const BANDEJAS_QR_REGEX = /^[A-Z0-9]{4}-[A-Z0-9]{5}-D0*[1-9][0-9]*$/
+const BANDEJAS_STORAGE_BUCKET = "evidencias-bandejas"
 const BANDEJAS_ESTATUS_LISTA = [
   "Instalado en bus",
   "En base",
@@ -15,9 +16,9 @@ const BANDEJAS_TIPOS_DISCO = [
   { value: "SD / SDXC Videovigilancia", label: "SD / SDXC Videovigilancia — Respaldo hot-swap (MDVR X3NPro)" },
 ]
 const BANDEJAS_TIPOS_BANDEJA = [
-  { value: "Caddy Compacto", label: "Caddy Compacto 2.5\" — Riel liso sin herraje (antes BDI)" },
-  { value: "Caddy Tornillo Cautivo", label: "Caddy Tornillo Cautivo 2.5\" — Fijación lateral con perillas" },
-  { value: "Caddy Asa Abatible", label: "Caddy Asa Abatible 2.5\" — Extracción con manija / jaladera" },
+  { value: "Caddy Compacto", label: 'Caddy Compacto 2.5" — Riel liso sin herraje (antes BDI)' },
+  { value: "Caddy Tornillo Cautivo", label: 'Caddy Tornillo Cautivo 2.5" — Fijación lateral con perillas' },
+  { value: "Caddy Asa Abatible", label: 'Caddy Asa Abatible 2.5" — Extracción con manija / jaladera' },
   { value: 'Cartucho 3.5" Streamax (X3NPro)', label: 'Cartucho 3.5" Streamax (X3NPro) — Asa + tornillos cautivos y llave' },
   { value: "Módulo M.2 Extraíble (M1N 2.0)", label: "Módulo M.2 Extraíble (M1N 2.0) — Compartimento frontal con llave" },
   { value: "Ranura Directa (Sin Caddy)", label: "Ranura Directa (Sin Caddy) — Inserción directa SD / MicroSD" },
@@ -409,9 +410,9 @@ function bandejasInyectarEstilos() {
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
-        width: min(94vw, 46rem);
+        width: min(94vw, 47rem);
         height: auto;
-        max-height: 90vh;
+        max-height: 92vh;
         border-radius: 1rem;
         border: 1px solid var(--color-border);
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
@@ -453,6 +454,12 @@ function bandejasInyectarEstilos() {
       flex-direction: column;
       gap: 0.9rem;
     }
+    .bdj-step-card.is-locked {
+      background: #f1f4f8;
+      border-style: dashed;
+      border-color: #cbd5e1;
+      opacity: 0.85;
+    }
     .bdj-step-header {
       display: flex;
       flex-wrap: wrap;
@@ -491,6 +498,46 @@ function bandejasInyectarEstilos() {
     }
     .bdj-scan-btn:hover {
       background: var(--color-navy-light);
+    }
+    .bdj-photo-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      min-height: 3.4rem;
+      padding: 0.85rem 1.15rem;
+      border-radius: 0.75rem;
+      border: 2px dashed var(--color-teal);
+      background: var(--color-teal-bg);
+      color: #085c52;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .bdj-photo-trigger:hover {
+      background: #d5f0ec;
+    }
+    .bdj-photo-preview-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(15, 158, 142, 0.4);
+      background: #f4fbf9;
+    }
+    .bdj-photo-thumb {
+      width: 112px;
+      height: 84px;
+      object-fit: cover;
+      border-radius: 0.55rem;
+      border: 1px solid var(--color-border);
+      background: #0b1220;
+      flex-shrink: 0;
     }
     .bdj-choice-grid {
       display: grid;
@@ -586,6 +633,47 @@ function bandejasInyectarEstilos() {
       flex-direction: column;
       gap: 1.15rem;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+    .bdj-dialog-lg {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 65;
+      width: min(95vw, 54rem);
+      max-height: 92vh;
+      overflow-y: auto;
+      background: var(--color-card);
+      border-radius: 1rem;
+      border: 1px solid var(--color-border);
+      padding: 1.4rem 1.55rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    }
+    .bdj-compare-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+    }
+    @media (min-width: 680px) {
+      .bdj-compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .bdj-compare-card {
+      border: 1px solid var(--color-border);
+      border-radius: 0.85rem;
+      background: #f8fafc;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .bdj-compare-img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: contain;
+      background: #0b1220;
+      display: block;
     }
     .bdj-section-box {
       background: #f8fafc;
@@ -694,6 +782,124 @@ function bandejasFormatearHoras(horas) {
   return `${num.toFixed(1)} h`
 }
 
+function bandejasFormatearTamanoKb(bytes) {
+  const kb = Math.max(1, Math.round(Number(bytes ?? 0) / 1024))
+  return `${kb} KB`
+}
+
+// Compresión en navegador con HTML5 Canvas (máx. 800px, JPEG calidad ~0.5 -> ~40-70 KB)
+async function bandejasComprimirImagen(archivo) {
+  if (!archivo || !String(archivo.type || "").startsWith("image/")) {
+    throw new Error("Selecciona un archivo de imagen válido.")
+  }
+
+  let fuente = null
+  let tempUrl = null
+  let anchoOrig = 0
+  let altoOrig = 0
+
+  try {
+    if (typeof createImageBitmap === "function") {
+      fuente = await createImageBitmap(archivo)
+      anchoOrig = fuente.width
+      altoOrig = fuente.height
+    } else {
+      tempUrl = URL.createObjectURL(archivo)
+      fuente = await new Promise((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.onerror = () => reject(new Error("No se pudo decodificar la fotografía."))
+        img.src = tempUrl
+      })
+      anchoOrig = fuente.naturalWidth || fuente.width
+      altoOrig = fuente.naturalHeight || fuente.height
+    }
+
+    const maxLado = 800
+    let ancho = anchoOrig
+    let alto = altoOrig
+    if (ancho > maxLado || alto > maxLado) {
+      if (ancho >= alto) {
+        alto = Math.max(1, Math.round((alto * maxLado) / ancho))
+        ancho = maxLado
+      } else {
+        ancho = Math.max(1, Math.round((ancho * maxLado) / alto))
+        alto = maxLado
+      }
+    }
+
+    const canvas = document.createElement("canvas")
+    canvas.width = ancho
+    canvas.height = alto
+    const ctx = canvas.getContext("2d", { alpha: false })
+    if (!ctx) throw new Error("El navegador no pudo inicializar el compresor gráfico.")
+
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, 0, ancho, alto)
+    ctx.drawImage(fuente, 0, 0, ancho, alto)
+
+    if (fuente && typeof fuente.close === "function") {
+      try { fuente.close() } catch {}
+    }
+
+    const codificarBlob = (calidad) =>
+      new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("No se pudo comprimir la fotografía."))),
+          "image/jpeg",
+          calidad
+        )
+      })
+
+    let blob = await codificarBlob(0.5)
+    // Si por alta textura supera ~78 KB, aplicar segunda pasada ligera a 0.40
+    if (blob.size > 78 * 1024) {
+      blob = await codificarBlob(0.4)
+    }
+
+    canvas.width = 0
+    canvas.height = 0
+
+    const previewUrl = URL.createObjectURL(blob)
+    const ahorroPct = archivo.size > blob.size
+      ? Math.round(((archivo.size - blob.size) / archivo.size) * 100)
+      : 0
+
+    return {
+      blob,
+      previewUrl,
+      bytesOriginal: archivo.size,
+      bytesFinal: blob.size,
+      ahorroPct,
+      ancho,
+      alto,
+      rutaSubida: null,
+    }
+  } finally {
+    if (tempUrl) {
+      try { URL.revokeObjectURL(tempUrl) } catch {}
+    }
+  }
+}
+
+function bandejasLiberarFoto(fotoObj) {
+  if (fotoObj?.previewUrl) {
+    try { URL.revokeObjectURL(fotoObj.previewUrl) } catch {}
+  }
+}
+
+function bandejasGenerarRutaEvidencia(baseEjecucion, economico, etapa) {
+  const ahora = new Date()
+  const yyyy = ahora.getFullYear()
+  const mm = String(ahora.getMonth() + 1).padStart(2, "0")
+  const rand = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID().slice(0, 8)
+    : Math.random().toString(36).slice(2, 10)
+  const baseSegura = String(baseEjecucion || "BASE").replace(/[^A-Z0-9_-]/gi, "").toUpperCase() || "BASE"
+  const busSeguro = String(economico || "BUS").replace(/[^A-Z0-9_-]/gi, "")
+  return `${baseSegura}/${yyyy}-${mm}/${busSeguro}_${Date.now()}_${etapa}_${rand}.jpg`
+}
+
 function bandejasEstiloEstatusDisco(estatus) {
   switch (estatus) {
     case "Instalado en bus":
@@ -763,6 +969,328 @@ function BandejasIconoQr({ size = 18 }) {
       (0, U.jsx)("rect", { x: "14", y: "3", width: "7", height: "7", rx: "1" }),
       (0, U.jsx)("rect", { x: "3", y: "14", width: "7", height: "7", rx: "1" }),
       (0, U.jsx)("path", { d: "M14 14h3v3h-3zM20 14v3M14 20h3M20 20h.01" }),
+    ],
+  })
+}
+
+function BandejasIconoCamara({ size = 19 }) {
+  return (0, U.jsxs)("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    children: [
+      (0, U.jsx)("path", { d: "M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" }),
+      (0, U.jsx)("circle", { cx: "12", cy: "13", r: "3" }),
+    ],
+  })
+}
+
+function BandejasBloqueCapturaFoto({
+  numeroPaso,
+  titulo,
+  descripcion,
+  etiquetaBoton,
+  foto,
+  comprimiendo,
+  bloqueado,
+  mensajeBloqueo,
+  onArchivoSeleccionado,
+}) {
+  if (bloqueado) {
+    return (0, U.jsxs)("section", {
+      className: "bdj-step-card is-locked",
+      children: [
+        (0, U.jsxs)("div", {
+          className: "bdj-step-header",
+          children: [
+            (0, U.jsx)("h4", { className: "bdj-step-title", style: { color: "#64748b" }, children: `${numeroPaso}. ${titulo}` }),
+            (0, U.jsx)("span", {
+              className: "bdj-pill",
+              style: { background: "#e2e8f0", color: "#475569" },
+              children: "Paso bloqueado",
+            }),
+          ],
+        }),
+        (0, U.jsx)("p", { className: "bdj-hint", children: mensajeBloqueo }),
+      ],
+    })
+  }
+
+  return (0, U.jsxs)("section", {
+    className: "bdj-step-card",
+    children: [
+      (0, U.jsxs)("div", {
+        className: "bdj-step-header",
+        children: [
+          (0, U.jsx)("h4", { className: "bdj-step-title", children: `${numeroPaso}. ${titulo}` }),
+          foto?.blob
+            ? (0, U.jsx)("span", {
+                className: "bdj-pill",
+                style: { background: "var(--color-teal-bg)", color: "#085c52" },
+                children: `Optimizada · ${bandejasFormatearTamanoKb(foto.bytesFinal)}`,
+              })
+            : (0, U.jsx)("span", {
+                className: "bdj-pill",
+                style: { background: "var(--color-amber-bg)", color: "#9a5b04" },
+                children: "Evidencia obligatoria",
+              }),
+        ],
+      }),
+      (0, U.jsx)("p", { className: "bdj-hint", children: descripcion }),
+
+      comprimiendo
+        ? (0, U.jsx)("div", {
+            className: "bdj-banner bdj-banner-blue",
+            style: { textAlign: "center", fontWeight: 600 },
+            children: "Comprimiendo fotografía en tu dispositivo para ahorrar datos móviles…",
+          })
+        : foto?.blob
+          ? (0, U.jsxs)("div", {
+              className: "bdj-photo-preview-box",
+              children: [
+                (0, U.jsx)("img", {
+                  src: foto.previewUrl,
+                  alt: titulo,
+                  className: "bdj-photo-thumb",
+                }),
+                (0, U.jsxs)("div", {
+                  style: { flex: "1 1 180px", display: "flex", flexDirection: "column", gap: "0.35rem" },
+                  children: [
+                    (0, U.jsx)("p", {
+                      style: { margin: 0, fontSize: "0.84rem", fontWeight: 700, color: "#085c52" },
+                      children: "Fotografía lista y optimizada",
+                    }),
+                    (0, U.jsx)("p", {
+                      className: "bdj-hint tabular",
+                      children: `${foto.ancho}×${foto.alto} px · Peso final: ${bandejasFormatearTamanoKb(foto.bytesFinal)}${foto.ahorroPct > 0 ? ` (${foto.ahorroPct}% menos datos)` : ""}`,
+                    }),
+                    (0, U.jsxs)("div", {
+                      style: { display: "flex", flexWrap: "wrap", gap: "0.75rem", marginTop: "0.2rem" },
+                      children: [
+                        (0, U.jsxs)("label", {
+                          className: "bdj-link-btn",
+                          style: { padding: 0 },
+                          children: [
+                            "Volver a tomar foto",
+                            (0, U.jsx)("input", {
+                              type: "file",
+                              accept: "image/*",
+                              capture: "environment",
+                              onChange: (e) => {
+                                const file = e.target.files?.[0]
+                                e.target.value = ""
+                                if (file) onArchivoSeleccionado(file)
+                              },
+                              style: { display: "none" },
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            })
+          : (0, U.jsxs)("div", {
+              style: { display: "flex", flexDirection: "column", gap: "0.5rem" },
+              children: [
+                (0, U.jsxs)("label", {
+                  className: "bdj-photo-trigger",
+                  children: [
+                    (0, U.jsx)(BandejasIconoCamara, {}),
+                    etiquetaBoton,
+                    (0, U.jsx)("input", {
+                      type: "file",
+                      accept: "image/*",
+                      capture: "environment",
+                      onChange: (e) => {
+                        const file = e.target.files?.[0]
+                        e.target.value = ""
+                        if (file) onArchivoSeleccionado(file)
+                      },
+                      style: { display: "none" },
+                    }),
+                  ],
+                }),
+                (0, U.jsx)("div", {
+                  style: { textAlign: "right" },
+                  children: (0, U.jsxs)("label", {
+                    className: "bdj-link-btn bdj-link-muted",
+                    children: [
+                      "Seleccionar imagen existente del dispositivo",
+                      (0, U.jsx)("input", {
+                        type: "file",
+                        accept: "image/*",
+                        onChange: (e) => {
+                          const file = e.target.files?.[0]
+                          e.target.value = ""
+                          if (file) onArchivoSeleccionado(file)
+                        },
+                        style: { display: "none" },
+                      }),
+                    ],
+                  }),
+                }),
+              ],
+            }),
+    ],
+  })
+}
+
+function BandejasModalEvidenciaFotos({ registro, onCerrar }) {
+  const [urls, setUrls] = S.useState({ antes: "", despues: "" })
+  const [cargando, setCargando] = S.useState(false)
+  const [error, setError] = S.useState("")
+
+  S.useEffect(() => {
+    if (!registro) return undefined
+    let activo = true
+
+    async function resolverUrls() {
+      setCargando(true)
+      setError("")
+      try {
+        const resolverRuta = async (ruta) => {
+          if (!ruta) return ""
+          if (/^(https?:|blob:|data:)/i.test(ruta)) return ruta
+          const { data, error: signErr } = await H.storage
+            .from(BANDEJAS_STORAGE_BUCKET)
+            .createSignedUrl(ruta, 3600)
+          if (signErr) throw signErr
+          return data?.signedUrl || ""
+        }
+
+        const [antesUrl, despuesUrl] = await Promise.all([
+          resolverRuta(registro.foto_antes_url),
+          resolverRuta(registro.foto_despues_url),
+        ])
+        if (!activo) return
+        setUrls({ antes: antesUrl, despues: despuesUrl })
+      } catch (err) {
+        if (!activo) return
+        setError(err?.message || "No se pudieron cargar las evidencias fotográficas desde Storage.")
+      } finally {
+        if (activo) setCargando(false)
+      }
+    }
+
+    resolverUrls()
+    return () => { activo = false }
+  }, [registro])
+
+  if (!registro) return null
+
+  return (0, U.jsxs)(U.Fragment, {
+    children: [
+      (0, U.jsx)("div", { className: "bdj-modal-backdrop", onClick: onCerrar }),
+      (0, U.jsxs)("div", {
+        className: "bdj-dialog-lg",
+        role: "dialog",
+        "aria-modal": true,
+        "aria-label": "Comparativa fotográfica Antes y Después",
+        children: [
+          (0, U.jsxs)("div", {
+            style: { display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem", paddingBottom: "0.9rem", borderBottom: "1px solid var(--color-border)" },
+            children: [
+              (0, U.jsxs)("div", {
+                children: [
+                  (0, U.jsxs)("h3", {
+                    style: { fontFamily: "var(--font-display)", fontSize: "1.125rem", fontWeight: 700, margin: 0 },
+                    children: ["Evidencia DVR · Autobús ", registro.economico],
+                  }),
+                  (0, U.jsxs)("p", {
+                    className: "bdj-hint",
+                    style: { marginTop: "0.25rem" },
+                    children: [
+                      bandejasFormatearFecha(registro.created_at),
+                      " · Base ",
+                      registro.base_ejecucion,
+                      " · Técnico: ",
+                      registro.tecnico_nombre || "—",
+                      " · Subió: ",
+                      registro.disco_subido_qr,
+                    ],
+                  }),
+                ],
+              }),
+              (0, U.jsx)("button", {
+                type: "button",
+                onClick: onCerrar,
+                className: "bdj-btn",
+                style: { padding: "0.45rem 0.95rem", minHeight: "2.2rem" },
+                children: "Cerrar",
+              }),
+            ],
+          }),
+
+          error && (0, U.jsx)("div", { className: "bdj-banner bdj-banner-danger", style: { fontWeight: 600 }, children: error }),
+
+          cargando
+            ? (0, U.jsx)("div", { className: "bdj-empty", children: "Cargando fotografías Antes / Después…" })
+            : (0, U.jsxs)("div", {
+                className: "bdj-compare-grid",
+                children: [
+                  // Tarjeta ANTES
+                  (0, U.jsxs)("div", {
+                    className: "bdj-compare-card",
+                    children: [
+                      (0, U.jsxs)("div", {
+                        style: { padding: "0.75rem 1rem", borderBottom: "1px solid var(--color-border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" },
+                        children: [
+                          (0, U.jsx)("span", { style: { fontWeight: 700, fontSize: "0.85rem" }, children: "ANTES (Cómo se encontró el DVR)" }),
+                          (0, U.jsx)("span", { className: "bdj-pill tabular", style: { background: "#e2e8f0", color: "#334155" }, children: registro.disco_bajado_qr || "SIN BANDEJA" }),
+                        ],
+                      }),
+                      urls.antes
+                        ? (0, U.jsx)("a", {
+                            href: urls.antes,
+                            target: "_blank",
+                            rel: "noopener noreferrer",
+                            title: "Abrir imagen ANTES en tamaño completo",
+                            children: (0, U.jsx)("img", { src: urls.antes, alt: "Evidencia Antes del DVR", className: "bdj-compare-img", loading: "lazy" }),
+                          })
+                        : (0, U.jsx)("div", { className: "bdj-empty", children: "Sin fotografía ANTES" }),
+                    ],
+                  }),
+
+                  // Tarjeta DESPUÉS
+                  (0, U.jsxs)("div", {
+                    className: "bdj-compare-card",
+                    children: [
+                      (0, U.jsxs)("div", {
+                        style: { padding: "0.75rem 1rem", borderBottom: "1px solid var(--color-border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" },
+                        children: [
+                          (0, U.jsx)("span", { style: { fontWeight: 700, fontSize: "0.85rem" }, children: "DESPUÉS (Cómo quedó el DVR)" }),
+                          (0, U.jsx)("span", {
+                            className: "bdj-pill",
+                            style: registro.dvr_grabando
+                              ? { background: "var(--color-teal-bg)", color: "#085c52" }
+                              : { background: "var(--color-danger-bg)", color: "var(--color-danger)" },
+                            children: registro.dvr_grabando ? "DVR Grabando" : "No graba",
+                          }),
+                        ],
+                      }),
+                      urls.despues
+                        ? (0, U.jsx)("a", {
+                            href: urls.despues,
+                            target: "_blank",
+                            rel: "noopener noreferrer",
+                            title: "Abrir imagen DESPUÉS en tamaño completo",
+                            children: (0, U.jsx)("img", { src: urls.despues, alt: "Evidencia Después del DVR", className: "bdj-compare-img", loading: "lazy" }),
+                          })
+                        : (0, U.jsx)("div", { className: "bdj-empty", children: "Sin fotografía DESPUÉS" }),
+                    ],
+                  }),
+                ],
+              }),
+        ],
+      }),
     ],
   })
 }
@@ -1155,6 +1683,9 @@ function BandejasModalRegistrarCambio({
   const [estadoBus, setEstadoBus] = S.useState(null)
   const [consultandoBus, setConsultandoBus] = S.useState(false)
 
+  const [fotoAntes, setFotoAntes] = S.useState(null)
+  const [comprimiendoAntes, setComprimiendoAntes] = S.useState(false)
+
   const [sinBandejaPrevia, setSinBandejaPrevia] = S.useState(false)
   const [discoBajadoQr, setDiscoBajadoQr] = S.useState("")
   const [infoDiscoBajado, setInfoDiscoBajado] = S.useState(null)
@@ -1168,18 +1699,24 @@ function BandejasModalRegistrarCambio({
   const [dvrGrabando, setDvrGrabando] = S.useState(null)
   const [discoFormateado, setDiscoFormateado] = S.useState(null)
 
+  const [fotoDespues, setFotoDespues] = S.useState(null)
+  const [comprimiendoDespues, setComprimiendoDespues] = S.useState(false)
+
   const [escanerObjetivo, setEscanerObjetivo] = S.useState(null)
   const [guardando, setGuardando] = S.useState(false)
+  const [etapaGuardado, setEtapaGuardado] = S.useState("")
   const [errorModal, setErrorModal] = S.useState("")
 
-  S.useEffect(() => {
-    if (!abierto) return
-    setBaseEjecucion(baseInicial)
-    setBusquedaBus("")
-    setBusAbierto(false)
-    setBusSeleccionado(null)
-    setEstadoBus(null)
-    setConsultandoBus(false)
+  const fotoAntesRef = S.useRef(null)
+  const fotoDespuesRef = S.useRef(null)
+  fotoAntesRef.current = fotoAntes
+  fotoDespuesRef.current = fotoDespues
+
+  function limpiarProgresoIntervencion() {
+    bandejasLiberarFoto(fotoAntesRef.current)
+    bandejasLiberarFoto(fotoDespuesRef.current)
+    setFotoAntes(null)
+    setComprimiendoAntes(false)
     setSinBandejaPrevia(false)
     setDiscoBajadoQr("")
     setInfoDiscoBajado(null)
@@ -1190,9 +1727,28 @@ function BandejasModalRegistrarCambio({
     setMotivoDiscrepancia("")
     setDvrGrabando(null)
     setDiscoFormateado(null)
+    setFotoDespues(null)
+    setComprimiendoDespues(false)
+  }
+
+  S.useEffect(() => {
+    if (!abierto) {
+      bandejasLiberarFoto(fotoAntesRef.current)
+      bandejasLiberarFoto(fotoDespuesRef.current)
+      return undefined
+    }
+    setBaseEjecucion(baseInicial)
+    setBusquedaBus("")
+    setBusAbierto(false)
+    setBusSeleccionado(null)
+    setEstadoBus(null)
+    setConsultandoBus(false)
+    limpiarProgresoIntervencion()
     setEscanerObjetivo(null)
     setGuardando(false)
+    setEtapaGuardado("")
     setErrorModal("")
+    return undefined
   }, [abierto, baseInicial])
 
   const autobusesFiltrados = S.useMemo(() => {
@@ -1205,6 +1761,7 @@ function BandejasModalRegistrarCambio({
   }, [flota, busquedaBus])
 
   async function elegirAutobus(bus) {
+    limpiarProgresoIntervencion()
     setBusSeleccionado(bus)
     setBusquedaBus(bus.autobus)
     setBusAbierto(false)
@@ -1227,6 +1784,28 @@ function BandejasModalRegistrarCambio({
       }
     } catch {} finally {
       setConsultandoBus(false)
+    }
+  }
+
+  async function procesarCapturaFoto(archivo, etapa) {
+    setErrorModal("")
+    if (etapa === "antes") setComprimiendoAntes(true)
+    else setComprimiendoDespues(true)
+
+    try {
+      const optimizada = await bandejasComprimirImagen(archivo)
+      if (etapa === "antes") {
+        bandejasLiberarFoto(fotoAntesRef.current)
+        setFotoAntes(optimizada)
+      } else {
+        bandejasLiberarFoto(fotoDespuesRef.current)
+        setFotoDespues(optimizada)
+      }
+    } catch (err) {
+      setErrorModal(err?.message || "No se pudo procesar la fotografía seleccionada.")
+    } finally {
+      if (etapa === "antes") setComprimiendoAntes(false)
+      else setComprimiendoDespues(false)
     }
   }
 
@@ -1347,9 +1926,12 @@ function BandejasModalRegistrarCambio({
   const subidoDanadoError = infoDiscoSubido?.existe && infoDiscoSubido?.estatus_actual === "Dañado/Baja"
   const motivoValido = evaluacionCustodia.ok !== false || motivoDiscrepancia.trim().length >= 5
 
-  const formularioCompleto = Boolean(
+  // Reglas de desbloqueo secuencial
+  const tieneFotoAntes = Boolean(fotoAntes?.blob)
+  const tieneFotoDespues = Boolean(fotoDespues?.blob)
+  const pasosOperativosListos = Boolean(
     busSeleccionado &&
-    baseEjecucion &&
+    tieneFotoAntes &&
     (sinBandejaPrevia || parsedBajado?.valido) &&
     parsedSubido?.valido &&
     !mismoDiscoError &&
@@ -1360,6 +1942,14 @@ function BandejasModalRegistrarCambio({
     discoFormateado !== null
   )
 
+  const formularioCompleto = Boolean(
+    pasosOperativosListos &&
+    baseEjecucion &&
+    tieneFotoDespues &&
+    !comprimiendoAntes &&
+    !comprimiendoDespues
+  )
+
   const basesSeleccionables = S.useMemo(() => {
     if (esJefatura) return opcionesBases
     if (Array.isArray(basesAutorizadas) && basesAutorizadas.length > 1) {
@@ -1368,22 +1958,48 @@ function BandejasModalRegistrarCambio({
     return []
   }, [esJefatura, basesAutorizadas, opcionesBases])
 
+  async function subirFotoSiPendiente(fotoObj, setFotoState, etapa) {
+    if (fotoObj.rutaSubida) return fotoObj.rutaSubida
+    const ruta = bandejasGenerarRutaEvidencia(baseEjecucion, busSeleccionado.autobus, etapa)
+    const { error: uploadErr } = await H.storage
+      .from(BANDEJAS_STORAGE_BUCKET)
+      .upload(ruta, fotoObj.blob, {
+        contentType: "image/jpeg",
+        cacheControl: "31536000",
+        upsert: false,
+      })
+    if (uploadErr) {
+      throw new Error(`No se pudo subir la Foto ${etapa.toUpperCase()} (${uploadErr.message}). Tus datos siguen en pantalla; verifica tu conexión y vuelve a pulsar Guardar.`)
+    }
+    setFotoState((prev) => (prev ? { ...prev, rutaSubida: ruta } : prev))
+    return ruta
+  }
+
   async function guardarCambio(evento) {
     evento.preventDefault()
     if (!formularioCompleto || guardando) return
     if (modoDemoSinSesion) {
-      setErrorModal("Estás en sesión demostrativa local sin token de Supabase. Inicia sesión con una clave real para guardar en base de datos.")
+      setErrorModal("Estás en sesión demostrativa local sin token de Supabase. Inicia sesión con una clave real para subir evidencias y guardar en base de datos.")
       return
     }
     setGuardando(true)
     setErrorModal("")
     try {
-      const { data, error } = await H.rpc("fn_registrar_cambio_bandeja", {
+      setEtapaGuardado("Subiendo Foto ANTES (1/2)…")
+      const rutaAntes = await subirFotoSiPendiente(fotoAntes, setFotoAntes, "antes")
+
+      setEtapaGuardado("Subiendo Foto DESPUÉS (2/2)…")
+      const rutaDespues = await subirFotoSiPendiente(fotoDespues, setFotoDespues, "despues")
+
+      setEtapaGuardado("Registrando cambio en bitácora…")
+      const { data, error } = await H.rpc("fn_registrar_cambio_bandeja_v2", {
         p_economico: busSeleccionado.autobus,
         p_disco_bajado_qr: sinBandejaPrevia ? null : parsedBajado.codigoQr,
         p_disco_subido_qr: parsedSubido.codigoQr,
         p_dvr_grabando: dvrGrabando,
         p_disco_formateado: discoFormateado,
+        p_foto_antes_url: rutaAntes,
+        p_foto_despues_url: rutaDespues,
         p_motivo_discrepancia: evaluacionCustodia.ok === false ? motivoDiscrepancia.trim() : null,
         p_base_ejecucion: baseEjecucion,
       })
@@ -1393,6 +2009,7 @@ function BandejasModalRegistrarCambio({
       setErrorModal(err?.message || "No se pudo registrar el cambio de bandeja.")
     } finally {
       setGuardando(false)
+      setEtapaGuardado("")
     }
   }
 
@@ -1464,6 +2081,7 @@ function BandejasModalRegistrarCambio({
                       busSeleccionado && (0, U.jsx)("button", {
                         type: "button",
                         onClick: () => {
+                          limpiarProgresoIntervencion()
                           setBusSeleccionado(null)
                           setEstadoBus(null)
                           setBusquedaBus("")
@@ -1483,6 +2101,7 @@ function BandejasModalRegistrarCambio({
                         value: busquedaBus,
                         onFocus: () => setBusAbierto(true),
                         onChange: (e) => {
+                          if (busSeleccionado) limpiarProgresoIntervencion()
                           setBusquedaBus(e.target.value)
                           setBusSeleccionado(null)
                           setEstadoBus(null)
@@ -1560,53 +2179,174 @@ function BandejasModalRegistrarCambio({
                 ],
               }),
 
-              // PASO 2: Bandeja que BAJA
-              (0, U.jsxs)("section", {
-                className: "bdj-step-card",
+              // PASO 2: FOTO ANTES (Cómo encuentro el DVR) - Habilitado tras elegir autobús
+              (0, U.jsx)(BandejasBloqueCapturaFoto, {
+                numeroPaso: 2,
+                titulo: "Foto ANTES (¿Cómo encuentro el DVR?)",
+                descripcion: "Toma una fotografía clara del frente del DVR y sus LEDs antes de intervenir la unidad. Al capturarla se desbloquearán los siguientes pasos.",
+                etiquetaBoton: "Tomar Foto ANTES del DVR",
+                foto: fotoAntes,
+                comprimiendo: comprimiendoAntes,
+                bloqueado: !busSeleccionado,
+                mensajeBloqueo: "Selecciona primero el autobús en el Paso 1 para habilitar la captura de Foto ANTES.",
+                onArchivoSeleccionado: (file) => procesarCapturaFoto(file, "antes"),
+              }),
+
+              // BLOQUEO PROGRESIVO: Mientras no exista Foto ANTES, mantener ocultos los pasos siguientes
+              !tieneFotoAntes && busSeleccionado && (0, U.jsx)("div", {
+                className: "bdj-step-card is-locked",
+                children: (0, U.jsx)("p", {
+                  className: "bdj-hint",
+                  style: { fontWeight: 600, color: "#475569" },
+                  children: "Pasos 3 al 6 ocultos: captura primero la Foto ANTES del estado inicial del DVR para desbloquear el escaneo de bandejas y la verificación.",
+                }),
+              }),
+
+              // PASOS 3, 4, 5 y 6 (Visibles únicamente cuando ya se capturó Foto ANTES)
+              tieneFotoAntes && (0, U.jsxs)(U.Fragment, {
                 children: [
-                  (0, U.jsxs)("div", {
-                    className: "bdj-step-header",
+                  // PASO 3: Bandeja que BAJA
+                  (0, U.jsxs)("section", {
+                    className: "bdj-step-card",
                     children: [
-                      (0, U.jsx)("h4", { className: "bdj-step-title", children: "2. Bandeja que BAJA (Retirada del autobús)" }),
-                      (0, U.jsxs)("label", {
-                        style: { display: "inline-flex", alignItems: "center", gap: "0.45rem", fontSize: "0.8rem", color: "var(--color-text-muted)", cursor: "pointer" },
+                      (0, U.jsxs)("div", {
+                        className: "bdj-step-header",
                         children: [
-                          (0, U.jsx)("input", {
-                            type: "checkbox",
-                            checked: sinBandejaPrevia,
-                            onChange: (e) => {
-                              const marcado = e.target.checked
-                              setSinBandejaPrevia(marcado)
-                              if (marcado) {
-                                setDiscoBajadoQr("")
-                                setInfoDiscoBajado(null)
-                                setManualBajadoActivo(false)
-                              }
-                            },
+                          (0, U.jsx)("h4", { className: "bdj-step-title", children: "3. Bandeja que BAJA (Retirada del autobús)" }),
+                          (0, U.jsxs)("label", {
+                            style: { display: "inline-flex", alignItems: "center", gap: "0.45rem", fontSize: "0.8rem", color: "var(--color-text-muted)", cursor: "pointer" },
+                            children: [
+                              (0, U.jsx)("input", {
+                                type: "checkbox",
+                                checked: sinBandejaPrevia,
+                                onChange: (e) => {
+                                  const marcado = e.target.checked
+                                  setSinBandejaPrevia(marcado)
+                                  if (marcado) {
+                                    setDiscoBajadoQr("")
+                                    setInfoDiscoBajado(null)
+                                    setManualBajadoActivo(false)
+                                  }
+                                },
+                              }),
+                              "Unidad llegó sin bandeja",
+                            ],
                           }),
-                          "Unidad llegó sin bandeja",
+                        ],
+                      }),
+
+                      !sinBandejaPrevia && (0, U.jsxs)(U.Fragment, {
+                        children: [
+                          (0, U.jsxs)("div", {
+                            className: "bdj-scan-row",
+                            children: [
+                              (0, U.jsx)("input", {
+                                type: "text",
+                                readOnly: !manualBajadoActivo,
+                                value: discoBajadoQr,
+                                onChange: (e) => manualBajadoActivo && aplicarQrBajado(e.target.value),
+                                placeholder: manualBajadoActivo ? "Ej. OFOC-55115-D1" : "Usa el botón Escanear QR…",
+                                style: { flex: "1 1 200px", fontSize: "1rem", fontWeight: 600 },
+                                className: "bdj-input tabular",
+                              }),
+                              (0, U.jsxs)("button", {
+                                type: "button",
+                                onClick: () => setEscanerObjetivo("bajado"),
+                                className: "bdj-scan-btn",
+                                children: [(0, U.jsx)(BandejasIconoQr, {}), "Escanear QR"],
+                              }),
+                            ],
+                          }),
+                          (0, U.jsxs)("div", {
+                            style: { display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" },
+                            children: [
+                              discoBajadoQr
+                                ? (0, U.jsx)("button", {
+                                    type: "button",
+                                    onClick: () => {
+                                      setDiscoBajadoQr("")
+                                      setInfoDiscoBajado(null)
+                                    },
+                                    className: "bdj-link-btn bdj-link-danger",
+                                    children: "Limpiar lectura",
+                                  })
+                                : (0, U.jsx)("span", {}),
+                              (0, U.jsx)("button", {
+                                type: "button",
+                                onClick: () => setManualBajadoActivo((v) => !v),
+                                className: "bdj-link-btn bdj-link-muted",
+                                children: manualBajadoActivo ? "Bloquear entrada manual" : "¿Escáner no disponible? Captura manual",
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+
+                      evaluacionCustodia.ok === true && (0, U.jsx)("div", {
+                        className: "bdj-banner bdj-banner-teal",
+                        style: { fontWeight: 600 },
+                        children: evaluacionCustodia.mensaje,
+                      }),
+
+                      evaluacionCustodia.ok === false && (0, U.jsxs)("div", {
+                        className: "bdj-banner bdj-banner-danger",
+                        style: { display: "flex", flexDirection: "column", gap: "0.8rem" },
+                        children: [
+                          (0, U.jsx)("p", { style: { margin: 0, fontWeight: 700 }, children: evaluacionCustodia.mensaje }),
+                          parsedBajado?.valido || sinBandejaPrevia
+                            ? (0, U.jsxs)("div", {
+                                style: { display: "flex", flexDirection: "column", gap: "0.6rem" },
+                                children: [
+                                  (0, U.jsx)("label", {
+                                    style: { fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text)" },
+                                    children: "Motivo de discrepancia en cadena de custodia (Obligatorio):",
+                                  }),
+                                  (0, U.jsx)("div", {
+                                    style: { display: "flex", flexWrap: "wrap", gap: "0.45rem" },
+                                    children: BANDEJAS_MOTIVOS_SUGERIDOS.map((sugerencia) => (0, U.jsx)("button", {
+                                      type: "button",
+                                      onClick: () => setMotivoDiscrepancia(sugerencia),
+                                      style: { padding: "0.35rem 0.7rem", borderRadius: "9999px", background: "#fff", border: "1px solid var(--color-border)", fontSize: "0.75rem", fontWeight: 500, color: "var(--color-text)", cursor: "pointer" },
+                                      children: sugerencia,
+                                    }, sugerencia)),
+                                  }),
+                                  (0, U.jsx)("textarea", {
+                                    rows: 2,
+                                    value: motivoDiscrepancia,
+                                    onChange: (e) => setMotivoDiscrepancia(e.target.value),
+                                    placeholder: "Explica por qué el disco retirado no coincide con el último registrado (mínimo 5 caracteres)…",
+                                    className: "bdj-textarea",
+                                    style: { borderColor: "var(--color-danger)" },
+                                    required: true,
+                                  }),
+                                ],
+                              })
+                            : null,
                         ],
                       }),
                     ],
                   }),
 
-                  !sinBandejaPrevia && (0, U.jsxs)(U.Fragment, {
+                  // PASO 4: Bandeja que SUBE
+                  (0, U.jsxs)("section", {
+                    className: "bdj-step-card",
                     children: [
+                      (0, U.jsx)("h4", { className: "bdj-step-title", children: "4. Bandeja que SUBE (Instalada en el autobús)" }),
                       (0, U.jsxs)("div", {
                         className: "bdj-scan-row",
                         children: [
                           (0, U.jsx)("input", {
                             type: "text",
-                            readOnly: !manualBajadoActivo,
-                            value: discoBajadoQr,
-                            onChange: (e) => manualBajadoActivo && aplicarQrBajado(e.target.value),
-                            placeholder: manualBajadoActivo ? "Ej. OFOC-55115-D1" : "Usa el botón Escanear QR…",
+                            readOnly: !manualSubidoActivo,
+                            value: discoSubidoQr,
+                            onChange: (e) => manualSubidoActivo && aplicarQrSubido(e.target.value),
+                            placeholder: manualSubidoActivo ? "Ej. SATU-COMOD-D3" : "Usa el botón Escanear QR…",
                             style: { flex: "1 1 200px", fontSize: "1rem", fontWeight: 600 },
                             className: "bdj-input tabular",
                           }),
                           (0, U.jsxs)("button", {
                             type: "button",
-                            onClick: () => setEscanerObjetivo("bajado"),
+                            onClick: () => setEscanerObjetivo("subido"),
                             className: "bdj-scan-btn",
                             children: [(0, U.jsx)(BandejasIconoQr, {}), "Escanear QR"],
                           }),
@@ -1615,12 +2355,12 @@ function BandejasModalRegistrarCambio({
                       (0, U.jsxs)("div", {
                         style: { display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" },
                         children: [
-                          discoBajadoQr
+                          discoSubidoQr
                             ? (0, U.jsx)("button", {
                                 type: "button",
                                 onClick: () => {
-                                  setDiscoBajadoQr("")
-                                  setInfoDiscoBajado(null)
+                                  setDiscoSubidoQr("")
+                                  setInfoDiscoSubido(null)
                                 },
                                 className: "bdj-link-btn bdj-link-danger",
                                 children: "Limpiar lectura",
@@ -1628,239 +2368,159 @@ function BandejasModalRegistrarCambio({
                             : (0, U.jsx)("span", {}),
                           (0, U.jsx)("button", {
                             type: "button",
-                            onClick: () => setManualBajadoActivo((v) => !v),
+                            onClick: () => setManualSubidoActivo((v) => !v),
                             className: "bdj-link-btn bdj-link-muted",
-                            children: manualBajadoActivo ? "Bloquear entrada manual" : "¿Escáner no disponible? Captura manual",
+                            children: manualSubidoActivo ? "Bloquear entrada manual" : "¿Escáner no disponible? Captura manual",
+                          }),
+                        ],
+                      }),
+
+                      discoSubidoQr && !parsedSubido.valido && (0, U.jsx)("div", {
+                        className: "bdj-banner bdj-banner-danger",
+                        style: { fontWeight: 600 },
+                        children: parsedSubido.error,
+                      }),
+
+                      mismoDiscoError && (0, U.jsx)("div", {
+                        className: "bdj-banner bdj-banner-danger",
+                        style: { fontWeight: 600 },
+                        children: "La bandeja que sube no puede ser el mismo disco que se acaba de retirar.",
+                      }),
+
+                      parsedSubido.valido && !mismoDiscoError && infoDiscoSubido && (0, U.jsxs)("div", {
+                        className: `bdj-banner ${subidoDanadoError ? "bdj-banner-danger" : infoDiscoSubido.existe ? "" : "bdj-banner-blue"}`,
+                        style: { display: "flex", flexDirection: "column", gap: "0.3rem" },
+                        children: [
+                          subidoDanadoError
+                            ? (0, U.jsx)("p", { style: { margin: 0, fontWeight: 700 }, children: "Este disco está marcado como Dañado/Baja y no puede instalarse en una unidad." })
+                            : infoDiscoSubido.existe
+                              ? (0, U.jsxs)(U.Fragment, {
+                                  children: [
+                                    (0, U.jsxs)("p", {
+                                      style: { margin: 0, fontWeight: 700, color: "var(--color-text)" },
+                                      children: [
+                                        "Disco en catálogo · ",
+                                        infoDiscoSubido.tipo_bandeja || "Bandeja sin especificar",
+                                        " · ",
+                                        infoDiscoSubido.tipo_disco || "Medio sin especificar",
+                                      ],
+                                    }),
+                                    (0, U.jsxs)("p", {
+                                      style: { margin: 0, fontSize: "0.8rem", color: "var(--color-text-muted)" },
+                                      children: [
+                                        infoDiscoSubido.numero_serie_disco ? `S/N: ${infoDiscoSubido.numero_serie_disco} · ` : "",
+                                        "Acumulado: ",
+                                        bandejasFormatearHoras(infoDiscoSubido.horas_uso_acumuladas),
+                                        " · Formateos: ",
+                                        infoDiscoSubido.conteo_formateos ?? 0,
+                                      ],
+                                    }),
+                                  ],
+                                })
+                              : (0, U.jsxs)("p", {
+                                  style: { margin: 0, fontWeight: 600 },
+                                  children: [
+                                    "Alta rápida automática: el QR es válido (",
+                                    parsedSubido.tipoAsignacion,
+                                    " · Base ",
+                                    parsedSubido.basePropietaria,
+                                    ") y se registrará en tbl_discos al guardar.",
+                                  ],
+                                }),
+                          busSeleccionado && parsedSubido.tipoAsignacion === "Fijo" && parsedSubido.economicoAsignado !== busSeleccionado.autobus && !subidoDanadoError && (0, U.jsx)("p", {
+                            style: { margin: "0.2rem 0 0 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--color-amber)" },
+                            children: `Aviso operativo: este disco tiene etiqueta Fija del económico ${parsedSubido.economicoAsignado} y se instalará en ${busSeleccionado.autobus}.`,
                           }),
                         ],
                       }),
                     ],
                   }),
 
-                  evaluacionCustodia.ok === true && (0, U.jsx)("div", {
-                    className: "bdj-banner bdj-banner-teal",
-                    style: { fontWeight: 600 },
-                    children: evaluacionCustodia.mensaje,
-                  }),
-
-                  evaluacionCustodia.ok === false && (0, U.jsxs)("div", {
-                    className: "bdj-banner bdj-banner-danger",
-                    style: { display: "flex", flexDirection: "column", gap: "0.8rem" },
+                  // PASO 5: DVR y Formateo (SIN valores por defecto)
+                  (0, U.jsxs)("section", {
+                    className: "bdj-step-card",
                     children: [
-                      (0, U.jsx)("p", { style: { margin: 0, fontWeight: 700 }, children: evaluacionCustodia.mensaje }),
-                      parsedBajado?.valido || sinBandejaPrevia
-                        ? (0, U.jsxs)("div", {
-                            style: { display: "flex", flexDirection: "column", gap: "0.6rem" },
+                      (0, U.jsxs)("div", {
+                        className: "bdj-step-header",
+                        children: [
+                          (0, U.jsx)("h4", { className: "bdj-step-title", children: "5. Verificación operativa de DVR y Disco" }),
+                          (dvrGrabando === null || discoFormateado === null) && (0, U.jsx)("span", {
+                            className: "bdj-pill",
+                            style: { background: "var(--color-amber-bg)", color: "#9a5b04" },
+                            children: "Selección obligatoria",
+                          }),
+                        ],
+                      }),
+
+                      (0, U.jsxs)("div", {
+                        style: { display: "flex", flexDirection: "column", gap: "0.55rem" },
+                        children: [
+                          (0, U.jsx)("p", { style: { margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }, children: "¿El DVR quedó encendiendo y grabando video correctamente?" }),
+                          (0, U.jsxs)("div", {
+                            className: "bdj-choice-grid",
+                            role: "group",
+                            "aria-label": "Estado de grabación del DVR",
                             children: [
-                              (0, U.jsx)("label", {
-                                style: { fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text)" },
-                                children: "Motivo de discrepancia en cadena de custodia (Obligatorio):",
+                              (0, U.jsx)("button", {
+                                type: "button",
+                                "aria-pressed": dvrGrabando === true,
+                                onClick: () => setDvrGrabando(true),
+                                className: `bdj-choice-btn ${dvrGrabando === true ? "is-yes" : ""}`,
+                                children: "Sí, grabando",
                               }),
-                              (0, U.jsx)("div", {
-                                style: { display: "flex", flexWrap: "wrap", gap: "0.45rem" },
-                                children: BANDEJAS_MOTIVOS_SUGERIDOS.map((sugerencia) => (0, U.jsx)("button", {
-                                  type: "button",
-                                  onClick: () => setMotivoDiscrepancia(sugerencia),
-                                  style: { padding: "0.35rem 0.7rem", borderRadius: "9999px", background: "#fff", border: "1px solid var(--color-border)", fontSize: "0.75rem", fontWeight: 500, color: "var(--color-text)", cursor: "pointer" },
-                                  children: sugerencia,
-                                }, sugerencia)),
-                              }),
-                              (0, U.jsx)("textarea", {
-                                rows: 2,
-                                value: motivoDiscrepancia,
-                                onChange: (e) => setMotivoDiscrepancia(e.target.value),
-                                placeholder: "Explica por qué el disco retirado no coincide con el último registrado (mínimo 5 caracteres)…",
-                                className: "bdj-textarea",
-                                style: { borderColor: "var(--color-danger)" },
-                                required: true,
+                              (0, U.jsx)("button", {
+                                type: "button",
+                                "aria-pressed": dvrGrabando === false,
+                                onClick: () => setDvrGrabando(false),
+                                className: `bdj-choice-btn ${dvrGrabando === false ? "is-no-danger" : ""}`,
+                                children: "No graba / Falla",
                               }),
                             ],
-                          })
-                        : null,
-                    ],
-                  }),
-                ],
-              }),
-
-              // PASO 3: Bandeja que SUBE
-              (0, U.jsxs)("section", {
-                className: "bdj-step-card",
-                children: [
-                  (0, U.jsx)("h4", { className: "bdj-step-title", children: "3. Bandeja que SUBE (Instalada en el autobús)" }),
-                  (0, U.jsxs)("div", {
-                    className: "bdj-scan-row",
-                    children: [
-                      (0, U.jsx)("input", {
-                        type: "text",
-                        readOnly: !manualSubidoActivo,
-                        value: discoSubidoQr,
-                        onChange: (e) => manualSubidoActivo && aplicarQrSubido(e.target.value),
-                        placeholder: manualSubidoActivo ? "Ej. SATU-COMOD-D3" : "Usa el botón Escanear QR…",
-                        style: { flex: "1 1 200px", fontSize: "1rem", fontWeight: 600 },
-                        className: "bdj-input tabular",
-                      }),
-                      (0, U.jsxs)("button", {
-                        type: "button",
-                        onClick: () => setEscanerObjetivo("subido"),
-                        className: "bdj-scan-btn",
-                        children: [(0, U.jsx)(BandejasIconoQr, {}), "Escanear QR"],
-                      }),
-                    ],
-                  }),
-                  (0, U.jsxs)("div", {
-                    style: { display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" },
-                    children: [
-                      discoSubidoQr
-                        ? (0, U.jsx)("button", {
-                            type: "button",
-                            onClick: () => {
-                              setDiscoSubidoQr("")
-                              setInfoDiscoSubido(null)
-                            },
-                            className: "bdj-link-btn bdj-link-danger",
-                            children: "Limpiar lectura",
-                          })
-                        : (0, U.jsx)("span", {}),
-                      (0, U.jsx)("button", {
-                        type: "button",
-                        onClick: () => setManualSubidoActivo((v) => !v),
-                        className: "bdj-link-btn bdj-link-muted",
-                        children: manualSubidoActivo ? "Bloquear entrada manual" : "¿Escáner no disponible? Captura manual",
-                      }),
-                    ],
-                  }),
-
-                  discoSubidoQr && !parsedSubido.valido && (0, U.jsx)("div", {
-                    className: "bdj-banner bdj-banner-danger",
-                    style: { fontWeight: 600 },
-                    children: parsedSubido.error,
-                  }),
-
-                  mismoDiscoError && (0, U.jsx)("div", {
-                    className: "bdj-banner bdj-banner-danger",
-                    style: { fontWeight: 600 },
-                    children: "La bandeja que sube no puede ser el mismo disco que se acaba de retirar.",
-                  }),
-
-                  parsedSubido.valido && !mismoDiscoError && infoDiscoSubido && (0, U.jsxs)("div", {
-                    className: `bdj-banner ${subidoDanadoError ? "bdj-banner-danger" : infoDiscoSubido.existe ? "" : "bdj-banner-blue"}`,
-                    style: { display: "flex", flexDirection: "column", gap: "0.3rem" },
-                    children: [
-                      subidoDanadoError
-                        ? (0, U.jsx)("p", { style: { margin: 0, fontWeight: 700 }, children: "Este disco está marcado como Dañado/Baja y no puede instalarse en una unidad." })
-                        : infoDiscoSubido.existe
-                          ? (0, U.jsxs)(U.Fragment, {
-                              children: [
-                                (0, U.jsxs)("p", {
-                                  style: { margin: 0, fontWeight: 700, color: "var(--color-text)" },
-                                  children: [
-                                    "Disco en catálogo · ",
-                                    infoDiscoSubido.tipo_bandeja || "Bandeja sin especificar",
-                                    " · ",
-                                    infoDiscoSubido.tipo_disco || "Medio sin especificar",
-                                  ],
-                                }),
-                                (0, U.jsxs)("p", {
-                                  style: { margin: 0, fontSize: "0.8rem", color: "var(--color-text-muted)" },
-                                  children: [
-                                    infoDiscoSubido.numero_serie_disco ? `S/N: ${infoDiscoSubido.numero_serie_disco} · ` : "",
-                                    "Acumulado: ",
-                                    bandejasFormatearHoras(infoDiscoSubido.horas_uso_acumuladas),
-                                    " · Formateos: ",
-                                    infoDiscoSubido.conteo_formateos ?? 0,
-                                  ],
-                                }),
-                              ],
-                            })
-                          : (0, U.jsxs)("p", {
-                              style: { margin: 0, fontWeight: 600 },
-                              children: [
-                                "Alta rápida automática: el QR es válido (",
-                                parsedSubido.tipoAsignacion,
-                                " · Base ",
-                                parsedSubido.basePropietaria,
-                                ") y se registrará en tbl_discos al guardar (después podrás completar su S/N y tipo de bandeja en Inventario).",
-                              ],
-                            }),
-                      busSeleccionado && parsedSubido.tipoAsignacion === "Fijo" && parsedSubido.economicoAsignado !== busSeleccionado.autobus && !subidoDanadoError && (0, U.jsx)("p", {
-                        style: { margin: "0.2rem 0 0 0", fontSize: "0.8rem", fontWeight: 600, color: "var(--color-amber)" },
-                        children: `Aviso operativo: este disco tiene etiqueta Fija del económico ${parsedSubido.economicoAsignado} y se instalará en ${busSeleccionado.autobus}.`,
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-
-              // PASO 4: DVR y Formateo (SIN valores por defecto)
-              (0, U.jsxs)("section", {
-                className: "bdj-step-card",
-                children: [
-                  (0, U.jsxs)("div", {
-                    className: "bdj-step-header",
-                    children: [
-                      (0, U.jsx)("h4", { className: "bdj-step-title", children: "4. Verificación operativa de DVR y Disco" }),
-                      (dvrGrabando === null || discoFormateado === null) && (0, U.jsx)("span", {
-                        className: "bdj-pill",
-                        style: { background: "var(--color-amber-bg)", color: "#9a5b04" },
-                        children: "Selección obligatoria",
-                      }),
-                    ],
-                  }),
-
-                  (0, U.jsxs)("div", {
-                    style: { display: "flex", flexDirection: "column", gap: "0.55rem" },
-                    children: [
-                      (0, U.jsx)("p", { style: { margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }, children: "¿El DVR quedó encendiendo y grabando video correctamente?" }),
-                      (0, U.jsxs)("div", {
-                        className: "bdj-choice-grid",
-                        role: "group",
-                        "aria-label": "Estado de grabación del DVR",
-                        children: [
-                          (0, U.jsx)("button", {
-                            type: "button",
-                            "aria-pressed": dvrGrabando === true,
-                            onClick: () => setDvrGrabando(true),
-                            className: `bdj-choice-btn ${dvrGrabando === true ? "is-yes" : ""}`,
-                            children: "Sí, grabando",
                           }),
-                          (0, U.jsx)("button", {
-                            type: "button",
-                            "aria-pressed": dvrGrabando === false,
-                            onClick: () => setDvrGrabando(false),
-                            className: `bdj-choice-btn ${dvrGrabando === false ? "is-no-danger" : ""}`,
-                            children: "No graba / Falla",
+                        ],
+                      }),
+
+                      (0, U.jsxs)("div", {
+                        style: { display: "flex", flexDirection: "column", gap: "0.55rem", paddingTop: "0.35rem" },
+                        children: [
+                          (0, U.jsx)("p", { style: { margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }, children: "¿La bandeja que sube fue formateada en este cambio?" }),
+                          (0, U.jsxs)("div", {
+                            className: "bdj-choice-grid",
+                            role: "group",
+                            "aria-label": "Estado de formateo del disco",
+                            children: [
+                              (0, U.jsx)("button", {
+                                type: "button",
+                                "aria-pressed": discoFormateado === true,
+                                onClick: () => setDiscoFormateado(true),
+                                className: `bdj-choice-btn ${discoFormateado === true ? "is-yes" : ""}`,
+                                children: "Sí, formateado",
+                              }),
+                              (0, U.jsx)("button", {
+                                type: "button",
+                                "aria-pressed": discoFormateado === false,
+                                onClick: () => setDiscoFormateado(false),
+                                className: `bdj-choice-btn ${discoFormateado === false ? "is-no-neutral" : ""}`,
+                                children: "No formateado",
+                              }),
+                            ],
                           }),
                         ],
                       }),
                     ],
                   }),
 
-                  (0, U.jsxs)("div", {
-                    style: { display: "flex", flexDirection: "column", gap: "0.55rem", paddingTop: "0.35rem" },
-                    children: [
-                      (0, U.jsx)("p", { style: { margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }, children: "¿La bandeja que sube fue formateada en este cambio?" }),
-                      (0, U.jsxs)("div", {
-                        className: "bdj-choice-grid",
-                        role: "group",
-                        "aria-label": "Estado de formateo del disco",
-                        children: [
-                          (0, U.jsx)("button", {
-                            type: "button",
-                            "aria-pressed": discoFormateado === true,
-                            onClick: () => setDiscoFormateado(true),
-                            className: `bdj-choice-btn ${discoFormateado === true ? "is-yes" : ""}`,
-                            children: "Sí, formateado",
-                          }),
-                          (0, U.jsx)("button", {
-                            type: "button",
-                            "aria-pressed": discoFormateado === false,
-                            onClick: () => setDiscoFormateado(false),
-                            className: `bdj-choice-btn ${discoFormateado === false ? "is-no-neutral" : ""}`,
-                            children: "No formateado",
-                          }),
-                        ],
-                      }),
-                    ],
+                  // PASO 6: FOTO DESPUÉS (Se habilita solo tras completar bandejas y elegir Sí/No en DVR y Formateo)
+                  (0, U.jsx)(BandejasBloqueCapturaFoto, {
+                    numeroPaso: 6,
+                    titulo: "Foto DESPUÉS (¿Cómo dejo el DVR?)",
+                    descripcion: "Toma la fotografía final mostrando la bandeja asegurada/cerrada y los indicadores LED del DVR tras la intervención.",
+                    etiquetaBoton: "Tomar Foto DESPUÉS del DVR",
+                    foto: fotoDespues,
+                    comprimiendo: comprimiendoDespues,
+                    bloqueado: !pasosOperativosListos,
+                    mensajeBloqueo: "Completa el escaneo de bandejas y elige Sí / No en grabación DVR y formateo para habilitar la Foto DESPUÉS.",
+                    onArchivoSeleccionado: (file) => procesarCapturaFoto(file, "despues"),
                   }),
                 ],
               }),
@@ -1873,23 +2533,27 @@ function BandejasModalRegistrarCambio({
               !formularioCompleto && (0, U.jsx)("p", {
                 style: { margin: 0, fontSize: "0.8rem", textAlign: "center", color: "var(--color-text-muted)" },
                 children: !busSeleccionado
-                  ? "Selecciona un autobús para comenzar."
-                  : (!sinBandejaPrevia && !parsedBajado?.valido)
-                    ? "Escanea el código QR de la bandeja que baja."
-                    : !parsedSubido?.valido
-                      ? "Escanea el código QR de la bandeja que sube."
+                  ? "Paso 1: Selecciona un autobús para comenzar."
+                  : !tieneFotoAntes
+                    ? "Paso 2: Captura la Foto ANTES del DVR para desbloquear la intervención."
+                    : (!sinBandejaPrevia && !parsedBajado?.valido)
+                      ? "Paso 3: Escanea el código QR de la bandeja que baja."
                       : !motivoValido
-                        ? "Captura el motivo de discrepancia en la cadena de custodia."
-                        : dvrGrabando === null || discoFormateado === null
-                          ? "Selecciona explícitamente Sí o No en DVR Grabando y Disco Formateado."
-                          : "Revisa las alertas antes de guardar.",
+                        ? "Paso 3: Captura el motivo de discrepancia en la cadena de custodia."
+                        : !parsedSubido?.valido || mismoDiscoError || subidoDanadoError
+                          ? "Paso 4: Escanea un código QR válido para la bandeja que sube."
+                          : dvrGrabando === null || discoFormateado === null
+                            ? "Paso 5: Selecciona explícitamente Sí o No en DVR Grabando y Disco Formateado."
+                            : !tieneFotoDespues
+                              ? "Paso 6: Captura la Foto DESPUÉS del DVR para habilitar el guardado."
+                              : "Procesando imágenes…",
               }),
               (0, U.jsx)("button", {
                 type: "submit",
                 disabled: !formularioCompleto || guardando,
                 className: "bdj-btn bdj-btn-primary",
                 style: { width: "100%", minHeight: "3.2rem", fontSize: "0.975rem" },
-                children: guardando ? "Guardando cambio…" : "Guardar Cambio de Bandeja",
+                children: guardando ? (etapaGuardado || "Guardando cambio…") : "Guardar Cambio de Bandeja",
               }),
             ],
           }),
@@ -1944,7 +2608,7 @@ function BandejasModalGestionDisco({
   )
   const [ubicacionBase, setUbicacionBase] = S.useState(baseDefault)
   const [notas, setNotas] = S.useState(discoInicial?.notas || "")
-  const [escanerModo, setEscanerModo] = S.useState(null) // 'qr' | 'serie' | null
+  const [escanerModo, setEscanerModo] = S.useState(null)
   const [guardando, setGuardando] = S.useState(false)
   const [error, setError] = S.useState("")
 
@@ -2018,7 +2682,7 @@ function BandejasModalGestionDisco({
     ? opcionesBases
     : opcionesBases.filter((b) => basesAutorizadas.includes(b.clave) || b.clave === ubicacionBase)
 
-  const requiereHardware = !estatusActualDisco // En alta nueva pedimos tipo de medio y tipo de bandeja
+  const requiereHardware = !estatusActualDisco
   const hardwareCompleto = !requiereHardware || Boolean(tipoDisco && tipoBandeja)
 
   async function guardar(e) {
@@ -2071,7 +2735,6 @@ function BandejasModalGestionDisco({
 
           error && (0, U.jsx)("div", { className: "bdj-banner bdj-banner-danger", style: { fontWeight: 600 }, children: error }),
 
-          // Identificación QR
           (0, U.jsxs)("div", {
             className: "bdj-field",
             children: [
@@ -2109,7 +2772,6 @@ function BandejasModalGestionDisco({
             ],
           }),
 
-          // Bloque Hardware: Medio + Tipo de Bandeja + Número de Serie
           (0, U.jsxs)("div", {
             className: "bdj-section-box",
             children: [
@@ -2179,7 +2841,6 @@ function BandejasModalGestionDisco({
             ],
           }),
 
-          // Estatus y Ubicación
           estaInstaladoEnBus
             ? (0, U.jsxs)("div", {
                 className: "bdj-banner bdj-banner-teal",
@@ -2322,6 +2983,7 @@ function BandejasModulo() {
   // Modales
   const [modalCambioAbierto, setModalCambioAbierto] = S.useState(false)
   const [modalDiscoEstado, setModalDiscoEstado] = S.useState({ abierto: false, disco: null })
+  const [registroEvidenciaActivo, setRegistroEvidenciaActivo] = S.useState(null)
 
   S.useEffect(() => {
     bandejasInyectarEstilos()
@@ -2458,6 +3120,8 @@ function BandejasModulo() {
       "DVR_Grabando",
       "Cadena_Custodia_OK",
       "Motivo_Discrepancia",
+      "Foto_Antes_Ruta",
+      "Foto_Despues_Ruta",
       "Tecnico",
     ]
     const escapar = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`
@@ -2473,6 +3137,8 @@ function BandejasModulo() {
       c.dvr_grabando ? "SI" : "NO",
       c.cadena_custodia_ok ? "OK" : "RUPTURA",
       c.motivo_discrepancia || "",
+      c.foto_antes_url || "",
+      c.foto_despues_url || "",
       c.tecnico_nombre || "",
     ])
     const csv = [encabezados, ...filas].map((r) => r.map(escapar).join(",")).join("\r\n")
@@ -2560,7 +3226,7 @@ function BandejasModulo() {
               }),
               (0, U.jsx)("p", {
                 className: "bdj-subtitle",
-                children: "Registro y auditoría de cambios físicos de discos, cadena de custodia y horas de uso acumuladas.",
+                children: "Registro y auditoría de cambios físicos de discos, cadena de custodia, evidencia fotográfica y horas de uso.",
               }),
             ],
           }),
@@ -2596,7 +3262,7 @@ function BandejasModulo() {
 
       modoDemoSinSesion && (0, U.jsx)("div", {
         className: "bdj-banner bdj-banner-amber",
-        children: "Modo demostración activo (sin token de Supabase). Puedes explorar toda la interfaz y el formulario táctil de cambio; para consultar o guardar registros reales inicia sesión con tu clave de colaborador.",
+        children: "Modo demostración activo (sin token de Supabase). Puedes explorar toda la interfaz y el flujo secuencial de fotos; para consultar o guardar registros reales inicia sesión con tu clave de colaborador.",
       }),
 
       errorCarga && (0, U.jsx)("div", {
@@ -2791,6 +3457,7 @@ function BandejasModulo() {
                       (0, U.jsx)("th", { children: "Bandeja Subió" }),
                       (0, U.jsx)("th", { children: "Cadena de Custodia" }),
                       (0, U.jsx)("th", { children: "Estado DVR" }),
+                      (0, U.jsx)("th", { children: "Evidencia" }),
                       (0, U.jsx)("th", { children: "Técnico" }),
                     ],
                   }),
@@ -2798,7 +3465,7 @@ function BandejasModulo() {
                 (0, U.jsx)("tbody", {
                   children: cargando
                     ? (0, U.jsx)("tr", {
-                        children: (0, U.jsx)("td", { colSpan: 8, className: "bdj-empty", children: "Cargando historial de cambios…" }),
+                        children: (0, U.jsx)("td", { colSpan: 9, className: "bdj-empty", children: "Cargando historial de cambios…" }),
                       })
                     : cambiosFiltrados.length > 0
                       ? cambiosFiltrados.map((fila) => (0, U.jsxs)("tr", {
@@ -2819,7 +3486,7 @@ function BandejasModulo() {
                               ],
                             }),
                             (0, U.jsxs)("td", {
-                              style: { maxWidth: "260px" },
+                              style: { maxWidth: "250px" },
                               children: [
                                 (0, U.jsx)("span", {
                                   className: "bdj-pill",
@@ -2847,12 +3514,24 @@ function BandejasModulo() {
                                 children: fila.dvr_grabando ? "Grabando" : "No graba",
                               }),
                             }),
+                            (0, U.jsx)("td", {
+                              style: { whiteSpace: "nowrap" },
+                              children: fila.foto_antes_url || fila.foto_despues_url
+                                ? (0, U.jsxs)("button", {
+                                    type: "button",
+                                    onClick: () => setRegistroEvidenciaActivo(fila),
+                                    className: "bdj-btn",
+                                    style: { minHeight: "2.05rem", padding: "0.35rem 0.7rem", fontSize: "0.76rem" },
+                                    children: [(0, U.jsx)(BandejasIconoCamara, { size: 14 }), "Antes / Después"],
+                                  })
+                                : (0, U.jsx)("span", { style: { fontSize: "0.78rem", color: "var(--color-text-muted)" }, children: "Sin fotos" }),
+                            }),
                             (0, U.jsx)("td", { style: { fontSize: "0.82rem", color: "var(--color-text-muted)" }, children: fila.tecnico_nombre || "—" }),
                           ],
                         }, fila.id))
                       : (0, U.jsx)("tr", {
                           children: (0, U.jsx)("td", {
-                            colSpan: 8,
+                            colSpan: 9,
                             className: "bdj-empty",
                             children: hayFiltrosCambios
                               ? "No hay cambios de bandeja que coincidan con los filtros seleccionados."
@@ -3104,7 +3783,7 @@ function BandejasModulo() {
           const msgCiclo = res?.disco_bajado_qr
             ? ` · Retirado ${res.disco_bajado_qr} (+${bandejasFormatearHoras(res.horas_ciclo_bajado)})`
             : ""
-          setAvisoExito(`Cambio registrado en autobús ${res?.economico}: instalado ${res?.disco_subido_qr}${msgCiclo}.`)
+          setAvisoExito(`Cambio y evidencias Antes/Después guardados en autobús ${res?.economico}: instalado ${res?.disco_subido_qr}${msgCiclo}.`)
           cargarDatos()
         },
         usuario,
@@ -3131,6 +3810,12 @@ function BandejasModulo() {
         basesAutorizadas,
         opcionesBases,
         modoDemoSinSesion,
+      }),
+
+      // Modal Visor Comparativo Antes vs Después
+      (0, U.jsx)(BandejasModalEvidenciaFotos, {
+        registro: registroEvidenciaActivo,
+        onCerrar: () => setRegistroEvidenciaActivo(null),
       }),
     ],
   })
